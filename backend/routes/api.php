@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Support\Facades\Auth;
 
-Route::middleware(['api', EnsureFrontendRequestsAreStateful::class])->group(function () {
+Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->group(function () {
     // 認証済みユーザー情報取得（親・子共通）
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
         return response()->json([
@@ -17,9 +17,10 @@ Route::middleware(['api', EnsureFrontendRequestsAreStateful::class])->group(func
     });
 
     // ログアウト
-    Route::middleware(['auth:sanctum'])->post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
-
+    Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
+        Auth::guard('web')->logout(); 
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return response()->json(['message' => 'ログアウトしました']);
     });
 

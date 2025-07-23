@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useRouter } from "next/navigation";
 import Link from "next/link"
 import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut, Inbox } from "lucide-react"
 import { useState } from "react"
@@ -22,6 +23,33 @@ export function ParentNavigation() {
     { href: "/parent/history", icon: History, label: "履歴" },
     { href: "/parent/master", icon: Settings, label: "マスタ設定" },
   ]
+
+  const router = useRouter();
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return null;
+  }
+
+  const handleLogout = async () => {
+    try {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+      });
+      router.push("/");
+    } catch (error) {
+      console.error("ログアウト失敗:", error);
+    }
+  };
+
 
   return (
     <>
@@ -66,7 +94,7 @@ export function ParentNavigation() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <button className="flex items-center gap-4 p-4 rounded-xl text-red-600 hover:bg-red-50 w-full">
+            <button onClick={handleLogout} className="flex items-center gap-4 p-4 rounded-xl text-red-600 hover:bg-red-50 w-full">
               <LogOut className="w-5 h-5" />
               <span className="font-medium">ログアウト</span>
             </button>
