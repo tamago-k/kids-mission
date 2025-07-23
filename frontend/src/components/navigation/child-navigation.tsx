@@ -9,6 +9,7 @@ import { useState } from "react"
 export function ChildNavigation() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const navItems = [
     { href: "/child/dashboard", icon: Home, label: "ホーム" },
@@ -33,14 +34,14 @@ export function ChildNavigation() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/sanctum/csrf-cookie`, {
+      await fetch(`${apiBaseUrl}/sanctum/csrf-cookie`, {
         method: "GET",
         credentials: "include",
       });
 
       const csrfToken = getCookie("XSRF-TOKEN");
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/logout`, {
+      await fetch(`${apiBaseUrl}/api/logout`, {
         method: "POST",
         credentials: "include",
         headers: {

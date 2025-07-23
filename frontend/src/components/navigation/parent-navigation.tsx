@@ -9,6 +9,7 @@ import { useState } from "react"
 export function ParentNavigation() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const navItems = [
     { href: "/parent/dashboard", icon: Home, label: "ホーム" },
@@ -36,7 +37,7 @@ export function ParentNavigation() {
   const handleLogout = async () => {
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/logout`, {
+      await fetch(`${apiBaseUrl}/api/logout`, {
         method: "POST",
         credentials: "include",
         headers: {

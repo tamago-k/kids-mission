@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Settings, Check } from "lucide-react"
+import { Plus, Settings, Check, Trash2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,32 +51,41 @@ const colorThemes = [
 ]
 
 const iconOptions = ["👦", "👧", "🧒", "👶", "🧑‍🦱", "🧑‍🦰", "🧑‍🦳"]
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function ChildrenPage() {
-  const [children, setChildren] = useState([
-    {
-      id: 1,
-      name: "太郎",
-      age: 8,
-      points: 150,
-      colorTheme: "blue",
-      icon: "👦",
-      completedTasks: 12,
-      totalTasks: 15,
-      pin: 1234,
-    },
-    {
-      id: 2,
-      name: "花子",
-      age: 6,
-      points: 89,
-      colorTheme: "pink",
-      icon: "👧",
-      completedTasks: 8,
-      totalTasks: 10,
-      pin: 9999,
-    },
-  ])
+  const [children, setChildren] = useState<Child[]>([])
+
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return null;
+  }
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      const res = await fetch(`${apiBaseUrl}/api/children`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+      });
+      if (!res.ok) {
+        alert("取得に失敗しました")
+        return
+      }
+      const data = await res.json()
+      setChildren(data)
+    }
+
+    fetchChildren()
+  }, [])
+
 
   const [showColorPicker, setShowColorPicker] = useState<number | null>(null)
 
@@ -88,9 +97,27 @@ export default function ChildrenPage() {
   // フォーム状態
   const [formName, setFormName] = useState("")
   const [formAge, setFormAge] = useState("")
-  const [formPin, setFormPin] = useState("")
+  const [formPassword, setFormPassword] = useState("")
   const [formIcon, setFormIcon] = useState(iconOptions[0])
   const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
+  const [deleteChildOpen, setDeleteChildOpen] = useState(false)
+  const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
+
+  //初期データ読み込み
+  useEffect(() => {
+    async function fetchChildren() {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/children`, { credentials: 'include' });
+        if (!res.ok) throw new Error('取得失敗');
+        const data = await res.json();
+        setChildren(data);
+      } catch (e) {
+        alert('読み込みに失敗しました');
+      }
+    }
+
+    fetchChildren();
+  }, []);
 
   // 編集モード時、対象子どもの情報をフォームにセット
   useEffect(() => {
@@ -99,7 +126,7 @@ export default function ChildrenPage() {
       if (child) {
         setFormName(child.name)
         setFormAge(String(child.age))
-        setFormPin(String(child.pin))
+        setFormPassword(String(child.password))
         setFormIcon(child.icon || iconOptions[0])
         setFormColorTheme(child.colorTheme)
       }
@@ -107,7 +134,7 @@ export default function ChildrenPage() {
       // 追加モード時リセット
       setFormName("")
       setFormAge("")
-      setFormPin("")
+      setFormPassword("")
       setFormIcon(iconOptions[0])
       setFormColorTheme(colorThemes[0].value)
     }
@@ -118,45 +145,73 @@ export default function ChildrenPage() {
     return theme || colorThemes[0]
   }
 
-  const handleSave = () => {
-    if (!formName.trim()) {
-      alert("名前を入力してください")
-      return
-    }
-    if (!formAge.trim() || isNaN(Number(formAge)) || Number(formAge) < 0) {
-      alert("正しい年齢を入力してください")
-      return
-    }
+  const handleSave = async () => {
+    if (!formName.trim()) return alert("名前を入力してください");
+    if (!formAge.trim() || isNaN(Number(formAge))) return alert("正しい年齢を入力してください");
 
-    if (editChildId === null) {
-      // 追加
-      const newChild = {
-        id: children.length ? Math.max(...children.map((c) => c.id)) + 1 : 1,
-        name: formName.trim(),
-        age: Number(formAge),
-        points: 0,
-        level: 1,
-        colorTheme: formColorTheme,
-        icon: formIcon,
-        completedTasks: 0,
-        totalTasks: 0,
-        pin: '',
+    const payload = {
+      name: formName.trim(),
+      age: Number(formAge),
+      password: formPassword.trim(),
+      icon: formIcon,
+      colorTheme: formColorTheme,
+    };
+    const csrfToken = getCookie("XSRF-TOKEN");
+    try {
+      if (editChildId === null) {
+        const res = await fetch(`${apiBaseUrl}/api/children`, {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": csrfToken ?? "",
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('追加失敗');
+        const newChild = await res.json();
+        setChildren(prev => [...prev, newChild]);
+      } else {
+        const res = await fetch(`${apiBaseUrl}/api/children/${editChildId}`, {
+          method: 'PUT',
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": csrfToken ?? "",
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('更新失敗');
+        const updatedChild = await res.json();
+        setChildren(prev => prev.map(c => c.id === editChildId ? updatedChild : c));
       }
-      setChildren((prev) => [...prev, newChild])
-    } else {
-      // 編集
-      setChildren((prev) =>
-        prev.map((child) =>
-          child.id === editChildId
-            ? { ...child, name: formName.trim(), age: Number(formAge), colorTheme: formColorTheme, icon: formIcon }
-            : child
-        )
-      )
-    }
 
-    setModalOpen(false)
-    setEditChildId(null)
-  }
+      setModalOpen(false);
+      setEditChildId(null);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+
+    const csrfToken = getCookie("XSRF-TOKEN");
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/children/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+      });
+      if (!res.ok) throw new Error('削除に失敗しました');
+      setChildren(prev => prev.filter(c => c.id !== id));
+      setDeleteChildOpen(false);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -211,6 +266,17 @@ export default function ChildrenPage() {
                         }}
                       >
                         <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-white hover:bg-white/20"
+                          onClick={() => {
+                            setSelectedChild(child)
+                            setDeleteChildOpen(true)
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -321,15 +387,15 @@ export default function ChildrenPage() {
             </div>
 
             <div>
-              <Label htmlFor="pin" className="text-gray-700 font-medium">
+              <Label htmlFor="password" className="text-gray-700 font-medium">
                 PIN
               </Label>
               <Input
-                id="pin"
+                id="password"
                 type="number"
                 min={0}
-                value={formPin}
-                onChange={(e) => setFormPin(e.target.value)}
+                value={formPassword}
+                onChange={(e) => setFormPassword(e.target.value)}
                 placeholder="例：0000"
                 className="mt-1 rounded-2xl"
               />
@@ -395,6 +461,37 @@ export default function ChildrenPage() {
         </DialogContent>
       </Dialog>
 
+      {/* 削除モーダル */}
+      <Dialog open={deleteChildOpen} onOpenChange={setDeleteChildOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-red-600">⚠️ 子どもの削除</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <p className="text-gray-700">
+              「<strong>{selectedChild?.name}</strong>」のアカウントを削除してもよろしいですか？
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-2xl"
+                onClick={() => setDeleteChildOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
+                onClick={() => {
+                  if (!selectedChild) return;
+                  handleDelete(selectedChild.id);
+                }}
+              >
+                削除する <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <ParentNavigation />
     </div>
   )
