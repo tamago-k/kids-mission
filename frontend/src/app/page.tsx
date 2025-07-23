@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Lock, Heart, ArrowLeft, User, Baby, Smile} from "lucide-react"
+import { Lock, Heart, ArrowLeft, User, Baby, Smile, BicepsFlexed} from "lucide-react"
 
 export default function LoginPage() {
   const [step, setStep] = useState<"role" | "parent" | "child">("role")
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [selectedChild, setSelectedChild] = useState("")
   const [pin, setPin] = useState("")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const children = [
     { id: "taro", name: "太郎", avatar: "👦", color: "from-blue-400 to-blue-600" },
@@ -39,8 +40,10 @@ export default function LoginPage() {
   }
 
   const handleParentLogin = async () => {
+    setErrorMessage(null);
+
     if (!name || !password) {
-      alert("ユーザー名とパスワードを入力してください");
+      setErrorMessage("ユーザー名とパスワードを入力してください");
       return;
     }
 
@@ -51,7 +54,6 @@ export default function LoginPage() {
         credentials: "include",
       });
 
-      // クッキーからCSRFトークンを取得
       const csrfToken = getCookie("XSRF-TOKEN");
 
       const res = await fetch(`${apiBaseUrl}/api/parent-login`, {
@@ -59,15 +61,16 @@ export default function LoginPage() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "", // 必ずセット
+          "X-XSRF-TOKEN": csrfToken ?? "",
         },
         body: JSON.stringify({ name, password }),
       });
 
-      if (!res.ok) {
-        alert("ログインに失敗しました。名前かパスワードを確認してください。");
-        return;
-      }
+    if (!res.ok) {
+      const data = await res.json();
+      setErrorMessage("入力情報が違います。");
+      return;
+    }
 
       window.location.href = "/parent/dashboard";
     } catch (error) {
@@ -77,8 +80,9 @@ export default function LoginPage() {
   };
 
   const handleChildLogin = async () => {
+    setErrorMessage(null);
     if (!selectedChild || pin.length !== 4) {
-      alert("子の名前と4桁のPINを入力してください");
+      setErrorMessage("子の名前と4桁のPINを入力してください");
       return;
     }
 
@@ -100,10 +104,11 @@ export default function LoginPage() {
         body: JSON.stringify({ name: selectedChild, password: pin }),
       });
 
-      if (!res.ok) {
-        alert("ログインに失敗しました。名前かPINを確認してください。");
-        return;
-      }
+    if (!res.ok) {
+      const data = await res.json();
+      setErrorMessage("何かまちがえているよ");
+      return;
+    }
 
       window.location.href = "/child/dashboard";
     } catch (error) {
@@ -118,8 +123,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* ロゴ・タイトル */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-3xl">
-            🎯
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-3xl text-white ">
+            <BicepsFlexed className="w-8 h-8" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Kids Mission</h1>
@@ -161,7 +166,20 @@ export default function LoginPage() {
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Button variant="ghost" size="icon" onClick={() => setStep("role")} className="rounded-full">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    setStep("role")
+                    setName("");
+                    setPassword("");
+                    setSelectedChild("");
+                    setChildId("");
+                    setPin("");
+                    setErrorMessage(null);
+                  }}
+                  className="rounded-full"
+                >
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <CardTitle className="text-xl text-gray-800 flex items-center gap-2">ログイン</CardTitle>
@@ -210,6 +228,11 @@ export default function LoginPage() {
               >
                 ログイン
               </Button>
+              {errorMessage && (
+                <p className="text-red-600 text-center font-medium mt-2">
+                  {errorMessage}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -219,7 +242,20 @@ export default function LoginPage() {
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Button variant="ghost" size="icon" onClick={() => setStep("role")} className="rounded-full">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    setStep("role")
+                    setName("");
+                    setPassword("");
+                    setSelectedChild("");
+                    setChildId("");
+                    setPin("");
+                    setErrorMessage(null);
+                  }}
+                  className="rounded-full"
+                >
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <CardTitle className="text-xl text-gray-800">だれかな？</CardTitle>
@@ -261,7 +297,7 @@ export default function LoginPage() {
                       {children.find((c) => c.id === selectedChild)?.avatar}
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
-                      こんにちは、{children.find((c) => c.id === selectedChild)?.name}！
+                      こんにちは！
                     </h3>
                     <p className="text-gray-600">ばんごうをいれてね</p>
                   </div>
@@ -290,7 +326,10 @@ export default function LoginPage() {
                       </Button>
                     ))}
                     <Button
-                      onClick={clearPin}
+                      onClick={() => {
+                        clearPin();
+                        setErrorMessage(null);
+                      }}
                       className="h-14 rounded-2xl bg-gray-300 hover:bg-gray-400 text-gray-700 text-lg font-bold"
                     >
                       ✖
@@ -309,10 +348,19 @@ export default function LoginPage() {
                       ✓
                     </Button>
                   </div>
-
+                  {errorMessage && (
+                    <p className="text-red-600 text-center font-medium mt-2">
+                      {errorMessage}
+                    </p>
+                  )}
                   <Button
                     variant="outline"
-                    onClick={() => setSelectedChild("")}
+                    onClick={() => {
+                      setSelectedChild("");
+                      setChildId("");
+                      setPin("");
+                      setErrorMessage(null);
+                    }}
                     className="w-full rounded-2xl bg-transparent"
                   >
                     べつのひとにする
