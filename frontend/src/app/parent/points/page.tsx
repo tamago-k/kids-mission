@@ -24,7 +24,7 @@ export default function ParentPointsPage() {
       type: "earned",
       amount: 100,
       reason: "算数の宿題完了",
-      date: "2024年1月15日 19:00",
+      date: "2025年1月15日 19:00",
       taskId: 1,
     },
     {
@@ -34,7 +34,7 @@ export default function ParentPointsPage() {
       type: "spent",
       amount: -150,
       reason: "ゲーム時間30分",
-      date: "2024年1月15日 20:00",
+      date: "2025年1月15日 20:00",
       rewardId: 1,
     },
     {
@@ -44,7 +44,7 @@ export default function ParentPointsPage() {
       type: "earned",
       amount: 80,
       reason: "漢字練習完了",
-      date: "2024年1月15日 17:30",
+      date: "2025年1月15日 17:30",
       taskId: 2,
     },
     {
@@ -54,7 +54,7 @@ export default function ParentPointsPage() {
       type: "spent",
       amount: -100,
       reason: "お菓子",
-      date: "2024年1月14日 16:00",
+      date: "2025年1月14日 16:00",
       rewardId: 2,
     },
     {
@@ -64,7 +64,7 @@ export default function ParentPointsPage() {
       type: "earned",
       amount: 50,
       reason: "お手伝い完了",
-      date: "2024年1月14日 21:00",
+      date: "2025年1月14日 21:00",
       taskId: 3,
     },
     {
@@ -74,7 +74,7 @@ export default function ParentPointsPage() {
       type: "earned",
       amount: 150,
       reason: "読書感想文完了",
-      date: "2024年1月13日 17:00",
+      date: "2025年1月13日 17:00",
       taskId: 4,
     },
   ]

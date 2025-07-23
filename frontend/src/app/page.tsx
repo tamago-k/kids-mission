@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState} from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Mail, Lock, Heart, ArrowLeft, User, Baby, Smile} from "lucide-react"
+import { Lock, Heart, ArrowLeft, User, Baby, Smile} from "lucide-react"
 
 export default function LoginPage() {
   const [step, setStep] = useState<"role" | "parent" | "child">("role")
-  const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
   const [password, setPassword] = useState("")
+  const [childId, setChildId] = useState("")
   const [selectedChild, setSelectedChild] = useState("")
   const [pin, setPin] = useState("")
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const children = [
     { id: "taro", name: "太郎", avatar: "👦", color: "from-blue-400 to-blue-600" },
@@ -27,19 +29,89 @@ export default function LoginPage() {
 
   const clearPin = () => {
     setPin("")
+    }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return null;
   }
 
-  const handleChildLogin = () => {
-    if (selectedChild && pin.length === 4) {
-      window.location.href = "/child/dashboard"
+  const handleParentLogin = async () => {
+    if (!name || !password) {
+      alert("ユーザー名とパスワードを入力してください");
+      return;
     }
-  }
 
-  const handleParentLogin = () => {
-    if (email && password) {
-      window.location.href = "/parent/dashboard"
+    try {
+      // CSRF用クッキーを取得
+      await fetch(`${apiBaseUrl}/sanctum/csrf-cookie`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      // クッキーからCSRFトークンを取得
+      const csrfToken = getCookie("XSRF-TOKEN");
+
+      const res = await fetch(`${apiBaseUrl}/api/parent-login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "", // 必ずセット
+        },
+        body: JSON.stringify({ name, password }),
+      });
+
+      if (!res.ok) {
+        alert("ログインに失敗しました。名前かパスワードを確認してください。");
+        return;
+      }
+
+      window.location.href = "/parent/dashboard";
+    } catch (error) {
+      console.error(error);
+      alert("通信エラーが発生しました");
     }
-  }
+  };
+
+  const handleChildLogin = async () => {
+    if (!selectedChild || pin.length !== 4) {
+      alert("子の名前と4桁のPINを入力してください");
+      return;
+    }
+
+    try {
+      await fetch(`${apiBaseUrl}/sanctum/csrf-cookie`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const csrfToken = getCookie("XSRF-TOKEN");
+
+      const res = await fetch(`${apiBaseUrl}/api/child-login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+        body: JSON.stringify({ name: selectedChild, password: pin }),
+      });
+
+      if (!res.ok) {
+        alert("ログインに失敗しました。名前かPINを確認してください。");
+        return;
+      }
+
+      window.location.href = "/child/dashboard";
+    } catch (error) {
+      console.error(error);
+      alert("通信エラーが発生しました");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -98,18 +170,18 @@ export default function LoginPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
-                    メールアドレス
+                  <Label htmlFor="name" className="text-gray-700 font-medium">
+                    ユーザー名
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="pl-10 h-12 rounded-2xl border-2 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                      placeholder="example@email.com"
+                      placeholder="family_account"
                     />
                   </div>
                 </div>
@@ -157,18 +229,28 @@ export default function LoginPage() {
               {!selectedChild ? (
                 // 子ども選択
                 <div className="space-y-4">
-                  <p className="text-center text-gray-600 mb-4">じぶんをえらんでね！</p>
                   <div className="grid gap-3">
-                    {children.map((child) => (
-                      <Button
-                        key={child.id}
-                        onClick={() => setSelectedChild(child.id)}
-                        className={`w-full h-16 rounded-2xl bg-gradient-to-r ${child.color} hover:scale-105 transition-transform text-white font-medium text-lg shadow-lg`}
-                      >
-                        <span className="text-3xl mr-4">{child.avatar}</span>
-                        {child.name}
-                      </Button>
-                    ))}
+                    <div className="relative">
+                      <Baby className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        className="pl-10 h-12 rounded-2xl border-2 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        placeholder="じぶんのなまえ"
+                        value={childId}
+                        onChange={(e) => setChildId(e.target.value)}
+                      />
+                      </div>
+                    <Button
+                      onClick={() => {
+                        if (childId.trim()) {
+                          setSelectedChild(childId.trim())
+                        } else {
+                          alert("なまえをいれてね")
+                        }
+                      }}
+                      className="h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-medium text-lg shadow-lg"
+                    >
+                      決定
+                    </Button>
                   </div>
                 </div>
               ) : (

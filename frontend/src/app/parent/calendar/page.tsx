@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 
 export default function ParentCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 15)) // 2024年1月15日
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 15))
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedChild, setSelectedChild] = useState("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -24,7 +24,7 @@ export default function ParentCalendarPage() {
     {
       id: 1,
       title: "算数の宿題",
-      date: new Date(2024, 0, 15),
+      date: new Date(2025, 0, 15),
       childId: "taro",
       childName: "太郎",
       status: "completed",
@@ -34,7 +34,7 @@ export default function ParentCalendarPage() {
     {
       id: 2,
       title: "漢字練習",
-      date: new Date(2024, 0, 15),
+      date: new Date(2025, 0, 15),
       childId: "hanako",
       childName: "花子",
       status: "pending",
@@ -44,7 +44,7 @@ export default function ParentCalendarPage() {
     {
       id: 3,
       title: "理科レポート",
-      date: new Date(2024, 0, 16),
+      date: new Date(2025, 0, 16),
       childId: "taro",
       childName: "太郎",
       status: "pending",
@@ -54,7 +54,7 @@ export default function ParentCalendarPage() {
     {
       id: 4,
       title: "お手伝い",
-      date: new Date(2024, 0, 17),
+      date: new Date(2025, 0, 17),
       childId: "hanako",
       childName: "花子",
       status: "completed",
@@ -64,7 +64,7 @@ export default function ParentCalendarPage() {
     {
       id: 5,
       title: "読書感想文",
-      date: new Date(2024, 0, 18),
+      date: new Date(2025, 0, 18),
       childId: "taro",
       childName: "太郎",
       status: "overdue",

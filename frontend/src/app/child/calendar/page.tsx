@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle } from "lucide-
 import { ChildNavigation } from "@/components/navigation/child-navigation"
 
 export default function ChildCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 15)) // 2024年1月15日
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 15)) // 2025年1月15日
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 

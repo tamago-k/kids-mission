@@ -63,6 +63,7 @@ export default function ChildrenPage() {
       icon: "👦",
       completedTasks: 12,
       totalTasks: 15,
+      pin: 1234,
     },
     {
       id: 2,
@@ -73,6 +74,7 @@ export default function ChildrenPage() {
       icon: "👧",
       completedTasks: 8,
       totalTasks: 10,
+      pin: 9999,
     },
   ])
 
@@ -86,6 +88,7 @@ export default function ChildrenPage() {
   // フォーム状態
   const [formName, setFormName] = useState("")
   const [formAge, setFormAge] = useState("")
+  const [formPin, setFormPin] = useState("")
   const [formIcon, setFormIcon] = useState(iconOptions[0])
   const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
 
@@ -96,6 +99,7 @@ export default function ChildrenPage() {
       if (child) {
         setFormName(child.name)
         setFormAge(String(child.age))
+        setFormPin(String(child.pin))
         setFormIcon(child.icon || iconOptions[0])
         setFormColorTheme(child.colorTheme)
       }
@@ -103,6 +107,7 @@ export default function ChildrenPage() {
       // 追加モード時リセット
       setFormName("")
       setFormAge("")
+      setFormPin("")
       setFormIcon(iconOptions[0])
       setFormColorTheme(colorThemes[0].value)
     }
@@ -135,6 +140,7 @@ export default function ChildrenPage() {
         icon: formIcon,
         completedTasks: 0,
         totalTasks: 0,
+        pin: '',
       }
       setChildren((prev) => [...prev, newChild])
     } else {
@@ -310,6 +316,21 @@ export default function ChildrenPage() {
                 value={formAge}
                 onChange={(e) => setFormAge(e.target.value)}
                 placeholder="例：8"
+                className="mt-1 rounded-2xl"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="pin" className="text-gray-700 font-medium">
+                PIN
+              </Label>
+              <Input
+                id="pin"
+                type="number"
+                min={0}
+                value={formPin}
+                onChange={(e) => setFormPin(e.target.value)}
+                placeholder="例：0000"
                 className="mt-1 rounded-2xl"
               />
             </div>
