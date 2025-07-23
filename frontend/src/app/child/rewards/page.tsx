@@ -103,53 +103,6 @@ export default function ChildRewardsPage() {
                 <div className="text-sm text-purple-100">使ったポイント</div>
               </div>
             </div>
-
-            <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-2xl h-12">
-                  <Gift className="w-5 h-5 mr-2" />
-                  ポイントを使う ✨
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="rounded-3xl max-w-sm">
-                <DialogHeader>
-                  <DialogTitle className="text-center text-xl">🎁 ポイント交換</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="item" className="text-gray-700 font-medium">
-                      欲しいもの
-                    </Label>
-                    <Input
-                      id="item"
-                      value={rewardItem}
-                      onChange={(e) => setRewardItem(e.target.value)}
-                      placeholder="例：ゲーム時間30分、お菓子など"
-                      className="mt-1 rounded-2xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="amount" className="text-gray-700 font-medium">
-                      使うポイント
-                    </Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={rewardAmount}
-                      onChange={(e) => setRewardAmount(e.target.value)}
-                      placeholder="100"
-                      className="mt-1 rounded-2xl"
-                    />
-                  </div>
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12"
-                    onClick={() => setRewardDialogOpen(false)}
-                  >
-                    申請する 🚀
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </CardContent>
         </Card>
 

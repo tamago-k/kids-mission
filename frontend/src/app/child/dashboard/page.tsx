@@ -1,25 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { CheckCircle, Clock, Star, MessageCircle, Gift, Target } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/child-navigation"
 
 export default function ChildDashboard() {
-  const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
-  const [rewardItem, setRewardItem] = useState("")
-  const [rewardAmount, setRewardAmount] = useState("")
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [completionComment, setCompletionComment] = useState("")
   const [newComment, setNewComment] = useState("")
+  const router = useRouter()
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const todayTasks = [
     {
@@ -86,6 +86,22 @@ export default function ChildDashboard() {
     setCommentDialogOpen(true)
   }
 
+  useEffect(() => {
+    const checkRole = async () => {
+      const res = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
+      if (!res.ok) {
+        router.push("/")
+        return
+      }
+      const user = await res.json()
+      console.log("user.role:", user.role) 
+      if (user.role !== "child") {
+        router.push("/")
+      }
+    }
+    checkRole()
+  }, [router])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50">
       {/* ヘッダー */}
@@ -138,52 +154,12 @@ export default function ChildDashboard() {
               </div>
               <div className="text-6xl opacity-20">💎</div>
             </div>
-            <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full mt-4 bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-2xl h-12">
-                  <Gift className="w-5 h-5 mr-2" />
-                  ポイントを使う ✨
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="rounded-3xl">
-                <DialogHeader>
-                  <DialogTitle className="text-center text-xl">🎁 ポイント交換</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="item" className="text-gray-700 font-medium">
-                      欲しいもの
-                    </Label>
-                    <Input
-                      id="item"
-                      value={rewardItem}
-                      onChange={(e) => setRewardItem(e.target.value)}
-                      placeholder="例：ゲーム時間30分、お菓子など"
-                      className="mt-1 rounded-2xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="amount" className="text-gray-700 font-medium">
-                      使うポイント
-                    </Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={rewardAmount}
-                      onChange={(e) => setRewardAmount(e.target.value)}
-                      placeholder="100"
-                      className="mt-1 rounded-2xl"
-                    />
-                  </div>
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12"
-                    onClick={() => setRewardDialogOpen(false)}
-                  >
-                    申請する 🚀
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Link href="/child/rewards/" className="flex-1">
+              <Button className="w-full mt-4 bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-2xl h-12">
+                <Gift className="w-5 h-5 mr-2" />
+                ポイントを使う ✨
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

@@ -1,10 +1,11 @@
 "use client"
 
-import { useState} from "react"
+import { useState, useEffect} from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
 import { Lock, Heart, ArrowLeft, User, Baby, Smile, BicepsFlexed} from "lucide-react"
 
 export default function LoginPage() {
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [pin, setPin] = useState("")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter()
 
   const children = [
     { id: "taro", name: "太郎", avatar: "👦", color: "from-blue-400 to-blue-600" },
@@ -116,6 +118,35 @@ export default function LoginPage() {
       alert("通信エラーが発生しました");
     }
   };
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/user`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json",
+          },
+        });
+
+        if (!res.ok) return; // 未ログインなら何もしない
+
+        const user = await res.json();
+        console.log("ログイン済み:", user)
+
+        if (user.role === "parent") {
+          router.push("/parent/dashboard");
+        } else if (user.role === "child") {
+          router.push("/child/dashboard");
+        }
+      } catch (error) {
+        console.error("ログインチェック失敗:", error);
+      }
+    };
+
+    checkLogin();
+  }, []);
 
 
   return (

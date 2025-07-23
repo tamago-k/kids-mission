@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +11,8 @@ import { ParentNavigation } from "@/components/navigation/parent-navigation"
 
 export default function ParentDashboard() {
   const [selectedChild, setSelectedChild] = useState("all")
+  const router = useRouter()
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const children = [
     { id: "taro", name: "太郎", avatar: "👦", color: "bg-blue-100 text-blue-600" },
@@ -92,6 +95,22 @@ export default function ParentDashboard() {
     selectedChild === "all"
       ? allRewardRequests
       : allRewardRequests.filter((request) => request.childId === selectedChild)
+
+  useEffect(() => {
+    const checkRole = async () => {
+      const res = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
+      if (!res.ok) {
+        router.push("/")
+        return
+      }
+      const user = await res.json()
+      console.log("user.role:", user.role) 
+      if (user.role !== "parent") {
+        router.push("/")
+      }
+    }
+    checkRole()
+  }, [router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
