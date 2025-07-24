@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Users } from "lucide-react"
 import {
   BarChart,
   Bar,
@@ -77,7 +78,7 @@ export default function StatsPage() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">👶 レポート</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Users className="w-6 h-6" /> レポート</h1>
               <p className="text-sm text-gray-600">子どもアカウント管理</p>
             </div>
           </div>

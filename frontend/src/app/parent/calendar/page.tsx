@@ -144,7 +144,7 @@ export default function ParentCalendarPage() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">📅 カレンダー</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Calendar className="w-6 h-6" /> カレンダー</h1>
               <p className="text-sm text-gray-600">タスクの予定を確認</p>
             </div>
             <div className="flex items-center gap-2">

@@ -4,58 +4,17 @@ import { useState, useEffect } from "react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Settings, Check, Trash2 } from "lucide-react"
+import { Plus, Settings, Check, Trash2, Users, TriangleAlert } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { colorThemes, iconOptions } from "@/components/optionThemes"
 
-const colorThemes = [
-  { name: "ブルー", value: "blue", gradient: "from-blue-400 to-blue-600", bg: "bg-blue-100", text: "text-blue-800" },
-  { name: "ピンク", value: "pink", gradient: "from-pink-400 to-pink-600", bg: "bg-pink-100", text: "text-pink-800" },
-  {
-    name: "グリーン",
-    value: "green",
-    gradient: "from-green-400 to-green-600",
-    bg: "bg-green-100",
-    text: "text-green-800",
-  },
-  {
-    name: "パープル",
-    value: "purple",
-    gradient: "from-purple-400 to-purple-600",
-    bg: "bg-purple-100",
-    text: "text-purple-800",
-  },
-  {
-    name: "オレンジ",
-    value: "orange",
-    gradient: "from-orange-400 to-orange-600",
-    bg: "bg-orange-100",
-    text: "text-orange-800",
-  },
-  { name: "レッド", value: "red", gradient: "from-red-400 to-red-600", bg: "bg-red-100", text: "text-red-800" },
-  {
-    name: "イエロー",
-    value: "yellow",
-    gradient: "from-yellow-400 to-yellow-600",
-    bg: "bg-yellow-100",
-    text: "text-yellow-800",
-  },
-  {
-    name: "インディゴ",
-    value: "indigo",
-    gradient: "from-indigo-400 to-indigo-600",
-    bg: "bg-indigo-100",
-    text: "text-indigo-800",
-  },
-]
 
-const iconOptions = ["👦", "👧", "🧒", "👶", "🧑‍🦱", "🧑‍🦰", "🧑‍🦳"]
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function ChildrenPage() {
   const [children, setChildren] = useState<Child[]>([])
-
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -96,9 +55,8 @@ export default function ChildrenPage() {
 
   // フォーム状態
   const [formName, setFormName] = useState("")
-  const [formAge, setFormAge] = useState("")
   const [formPassword, setFormPassword] = useState("")
-  const [formIcon, setFormIcon] = useState(iconOptions[0])
+  const [formIcon, setFormIcon] = useState(iconOptions[0].id)
   const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
   const [deleteChildOpen, setDeleteChildOpen] = useState(false)
   const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
@@ -125,17 +83,15 @@ export default function ChildrenPage() {
       const child = children.find((c) => c.id === editChildId)
       if (child) {
         setFormName(child.name)
-        setFormAge(String(child.age))
         setFormPassword(String(child.password))
-        setFormIcon(child.icon || iconOptions[0])
+        setFormIcon(child.icon || iconOptions[0].id);
         setFormColorTheme(child.colorTheme)
       }
     } else {
       // 追加モード時リセット
       setFormName("")
-      setFormAge("")
       setFormPassword("")
-      setFormIcon(iconOptions[0])
+      setFormIcon(iconOptions[0].id)
       setFormColorTheme(colorThemes[0].value)
     }
   }, [editChildId, children])
@@ -147,11 +103,9 @@ export default function ChildrenPage() {
 
   const handleSave = async () => {
     if (!formName.trim()) return alert("名前を入力してください");
-    if (!formAge.trim() || isNaN(Number(formAge))) return alert("正しい年齢を入力してください");
 
     const payload = {
       name: formName.trim(),
-      age: Number(formAge),
       password: formPassword.trim(),
       icon: formIcon,
       colorTheme: formColorTheme,
@@ -220,7 +174,7 @@ export default function ChildrenPage() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">👶 子ども</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Users className="w-6 h-6" /> 子ども</h1>
               <p className="text-sm text-gray-600">子どもアカウント管理</p>
             </div>
             <Button
@@ -243,16 +197,18 @@ export default function ChildrenPage() {
           {children.map((child) => {
             const theme = getThemeStyles(child.colorTheme)
             const completionRate = child.totalTasks ? Math.round((child.completedTasks / child.totalTasks) * 100) : 0
+            const iconObj = iconOptions.find((icon) => icon.id === child.icon)
 
             return (
               <Card key={child.id} className="overflow-hidden">
                 <CardHeader className={`bg-gradient-to-r ${theme.gradient} text-white`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl">{child.icon}</div>
+                      <div className="text-3xl">
+                        {iconObj ? <iconObj.Icon /> : null}
+                      </div>
                       <div>
                         <CardTitle className="text-xl">{child.name}</CardTitle>
-                        <p className="text-white/90">{child.age}歳</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -352,8 +308,9 @@ export default function ChildrenPage() {
       >
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">
-              {editChildId === null ? "👶 新しい子どもを追加" : "📝 子ども情報を編集"}
+            <DialogTitle className="text-center text-xl flex justify-center gap-2">
+              <Users className="w-6 h-6 mr-3" />
+              {editChildId === null ? "新しい子どもを追加" : "子ども情報を編集"}
             </DialogTitle>
           </DialogHeader>
 
@@ -367,21 +324,6 @@ export default function ChildrenPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="例：太郎"
-                className="mt-1 rounded-2xl"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="age" className="text-gray-700 font-medium">
-                年齢
-              </Label>
-              <Input
-                id="age"
-                type="number"
-                min={0}
-                value={formAge}
-                onChange={(e) => setFormAge(e.target.value)}
-                placeholder="例：8"
                 className="mt-1 rounded-2xl"
               />
             </div>
@@ -404,17 +346,16 @@ export default function ChildrenPage() {
             <div>
               <Label className="text-gray-700 font-medium">アイコンを選択</Label>
               <div className="flex gap-2 mt-2">
-                {iconOptions.map((ic) => (
+                {iconOptions.map(({ id, Icon }) => (
                   <Button
-                    key={ic}
-                    variant={formIcon === ic ? "default" : "outline"}
+                    key={id}
+                    variant={formIcon === id ? "default" : "outline"}
                     className={`h-12 w-12 text-2xl rounded-2xl ${
-                      formIcon === ic ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white" : "bg-transparent"
+                      formIcon === id ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white" : "bg-transparent"
                     }`}
-                    onClick={() => setFormIcon(ic)}
-                    type="button"
+                    onClick={() => setFormIcon(id)}
                   >
-                    {ic}
+                    <Icon />
                   </Button>
                 ))}
               </div>
@@ -454,7 +395,7 @@ export default function ChildrenPage() {
                 className="flex-1 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl"
                 onClick={handleSave}
               >
-                {editChildId === null ? "追加 🎉" : "更新 ✔️"}
+                {editChildId === null ? "追加" : "更新"}
               </Button>
             </div>
           </div>
@@ -465,7 +406,7 @@ export default function ChildrenPage() {
       <Dialog open={deleteChildOpen} onOpenChange={setDeleteChildOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl text-red-600">⚠️ 子どもの削除</DialogTitle>
+            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2"><TriangleAlert className="w-6 h-6 mr-3" />子どもの削除</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
             <p className="text-gray-700">

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, User, Filter } from "lucide-react"
+import { Calendar, User, Filter, ClipboardCheck } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 
 export default function ParentHistoryPage() {
@@ -95,23 +95,28 @@ export default function ParentHistoryPage() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">📋 タスク履歴</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><ClipboardCheck className="w-6 h-6" /> タスク履歴</h1>
               <p className="text-sm text-gray-600">過去のタスク実績を確認</p>
             </div>
             <div className="flex gap-2">
               <Button
-                variant={timeFilter === "week" ? "outline" : "default"}
-                size="sm"
                 onClick={() => setTimeFilter("week")}
-                className="rounded-2xl"
+                className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
+                  timeFilter === "week"
+                    ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
+                    : "border-2 border-gray-200"
+                }`}
               >
                 今週
               </Button>
+
               <Button
-                variant={timeFilter === "month" ? "outline" : "default"}
-                size="sm"
                 onClick={() => setTimeFilter("month")}
-                className="rounded-2xl"
+                className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
+                  timeFilter === "month"
+                    ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
+                    : "border-2 border-gray-200"
+                }`}
               >
                 今月
               </Button>

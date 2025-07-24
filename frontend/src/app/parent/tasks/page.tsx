@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Calendar, Clock, User, Edit, Trash2, Repeat } from "lucide-react"
+import { Plus, Calendar, Clock, User, Edit, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
 import { MessageCircle } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
 
@@ -189,7 +189,7 @@ export default function ParentTasksPage() {
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">📋 タスク管理</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><ClipboardCheck className="w-6 h-6" /> タスク管理</h1>
               <p className="text-sm text-gray-600">子どもたちのタスクを管理</p>
             </div>
             <Dialog
@@ -197,7 +197,6 @@ export default function ParentTasksPage() {
               onOpenChange={(open) => {
                 setCreateTaskOpen(open)
                 if (open) {
-                  // 🌟 フォーム初期化
                   setTaskTitle("")
                   setTaskDescription("")
                   setTaskReward("")
@@ -218,7 +217,7 @@ export default function ParentTasksPage() {
               </DialogTrigger>
               <DialogContent className="rounded-3xl max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-center text-xl">📝 新しいタスク</DialogTitle>
+                  <DialogTitle className="text-center text-xl">新しいタスク</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -380,7 +379,7 @@ export default function ParentTasksPage() {
         {/* タスク一覧 */}
         <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">📋 全タスク一覧</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg"><ClipboardCheck className="w-6 h-6" /> 全タスク一覧</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {tasks.map((task) => (
@@ -537,7 +536,7 @@ export default function ParentTasksPage() {
       <Dialog open={editTaskOpen} onOpenChange={setEditTaskOpen}>
         <DialogContent className="rounded-3xl max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">✏️ タスクを編集</DialogTitle>
+            <DialogTitle className="text-center text-xl">タスクを編集</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -692,7 +691,7 @@ export default function ParentTasksPage() {
       <Dialog open={deleteTaskOpen} onOpenChange={setDeleteTaskOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl text-red-600">⚠️ タスクの削除</DialogTitle>
+            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2"><TriangleAlert className="w-6 h-6" /> タスクの削除</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
             <p className="text-gray-700">

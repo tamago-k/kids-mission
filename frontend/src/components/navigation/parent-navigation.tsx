@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation";
 import Link from "next/link"
-import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut, Inbox } from "lucide-react"
+import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut } from "lucide-react"
 import { useState } from "react"
 
 export function ParentNavigation() {

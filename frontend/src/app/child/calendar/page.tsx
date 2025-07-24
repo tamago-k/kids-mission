@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/child-navigation"
 
 export default function ChildCalendarPage() {
@@ -133,7 +133,7 @@ export default function ChildCalendarPage() {
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">📅 カレンダー</h1>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Calendar className="w-6 h-6" /> カレンダー</h1>
               <p className="text-sm text-gray-600">きみのタスクをチェック！</p>
             </div>
             <div className="flex items-center gap-2">
