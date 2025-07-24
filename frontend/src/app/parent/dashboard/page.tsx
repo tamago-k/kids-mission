@@ -190,16 +190,16 @@ export default function ParentDashboard() {
         <Tabs defaultValue="tasks" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="tasks" className="rounded-xl text-sm">
-              <BarChart3 className="w-4 h-4 mr-3" /> タスク
+              <BarChart3 className="w-4 h-4 mr-2" /> タスク
             </TabsTrigger>
             <TabsTrigger value="children" className="rounded-xl text-sm">
-              <Users className="w-4 h-4 mr-3" /> 子ども
+              <Users className="w-4 h-4 mr-2" /> 子ども
             </TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-xl text-sm">
-              <PiggyBank className="w-4 h-4 mr-3" /> 報酬
+              <PiggyBank className="w-4 h-4 mr-2" /> 報酬
             </TabsTrigger>
             <TabsTrigger value="notifications" className="rounded-xl text-sm">
-              <Bell className="w-4 h-4 mr-3" /> 通知
+              <Bell className="w-4 h-4 mr-2" /> 通知
             </TabsTrigger>
           </TabsList>
 

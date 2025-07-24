@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Task;
+use App\Http\Controllers\Controller;
+use App\Models\TaskWeeklyRecurrence;
+
+class TaskController extends Controller
+{
+    // 一覧取得
+    public function index()
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'parent') {
+            $tasks = Task::with('child')
+                ->where('parent_id', $user->id)
+                ->get();
+        } elseif ($user->role === 'child') {
+            $tasks = Task::with('child')
+                ->where('child_id', $user->id)
+                ->get();
+        } else {
+            return response()->json(['message' => '不正なユーザー'], 403);
+        }
+
+        return response()->json($tasks);
+    }
+
+    // 作成
+    public function store(Request $request)
+        {
+            // バリデーション（必要に応じて）
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'due_date' => 'nullable|date',
+                'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
+                'reward_amount' => 'required|integer|min:0',
+                'child_id' => 'required|exists:users,id',
+            ]);
+
+            $task = Task::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+                'recurrence' => $request->recurrence,
+                'reward_amount' => $request->reward_amount,
+                'child_id' => $request->child_id,
+                'parent_id' => auth()->id(), // ログイン中の親アカウントID
+            ]);
+
+            // 毎週の曜日指定がある場合は保存
+            if ($request->recurrence === 'weekly' && is_array($request->weekdays)) {
+                foreach ($request->weekdays as $weekday) {
+                    TaskWeeklyRecurrence::create([
+                        'task_id' => $task->id,
+                        'weekday' => $weekday,
+                    ]);
+                }
+            }
+
+            return response()->json($task, 201);
+        }
+
+    // 更新
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        $task = Task::find($id);
+
+        if (!$task || $task->parent_id !== $user->id) {
+            return response()->json(['message' => '更新できません'], 403);
+        }
+
+        $task->update($request->only([
+            'title', 'description', 'due_date', 'recurrence', 'child_id', 'reward_amount'
+        ]));
+
+        return response()->json($task);
+    }
+
+    // 削除
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        $task = Task::find($id);
+
+        if (!$task || $task->parent_id !== $user->id) {
+            return response()->json(['message' => '削除できません'], 403);
+        }
+
+        $task->delete();
+        return response()->json(['message' => '削除しました']);
+    }
+}

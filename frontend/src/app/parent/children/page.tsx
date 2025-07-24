@@ -433,6 +433,8 @@ export default function ChildrenPage() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )
