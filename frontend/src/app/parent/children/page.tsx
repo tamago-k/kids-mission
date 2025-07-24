@@ -406,7 +406,7 @@ export default function ChildrenPage() {
       <Dialog open={deleteChildOpen} onOpenChange={setDeleteChildOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2"><TriangleAlert className="w-6 h-6 mr-3" />子どもの削除</DialogTitle>
+            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2"><TriangleAlert className="w-6 h-6" /> 子どもの削除</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
             <p className="text-gray-700">
