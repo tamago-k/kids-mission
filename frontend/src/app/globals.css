@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }

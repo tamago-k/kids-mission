@@ -107,7 +107,7 @@ export default function ParentNotificationsPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
@@ -140,14 +140,14 @@ export default function ParentNotificationsPage() {
       {/* メインコンテンツ */}
       <div className="p-4 pb-24">
         <Tabs value={filter} onValueChange={setFilter} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
-            <TabsTrigger value="all" className="rounded-xl text-sm">
+          <TabsList className="grid grid-cols-3 mb-4 rounded-xl bg-gray-100 p-1">
+            <TabsTrigger value="all" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               📋 すべて ({notifications.length})
             </TabsTrigger>
-            <TabsTrigger value="action" className="rounded-xl text-sm">
+            <TabsTrigger value="action" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               ⚡ 要対応 ({actionRequiredCount})
             </TabsTrigger>
-            <TabsTrigger value="unread" className="rounded-xl text-sm">
+            <TabsTrigger value="unread" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               🔔 未読 ({unreadCount})
             </TabsTrigger>
           </TabsList>

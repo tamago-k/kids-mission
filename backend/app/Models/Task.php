@@ -14,12 +14,14 @@ class Task extends Model
         'parent_id',
         'child_id',
         'reward_amount',
+        'completed_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function parent()
@@ -35,5 +37,10 @@ class Task extends Model
     public function weeklyRecurrences()
     {
         return $this->hasMany(TaskWeeklyRecurrence::class);
+    }
+    
+    public function category()
+    {
+        return $this->belongsTo(TaskCategory::class, 'task_category_id');
     }
 }

@@ -5,8 +5,29 @@ import {
   Gamepad,
   Flower,
   Plane,
-  Hamburger, 
+  Hamburger,
+  Candy,
+  Book,
+  Music,
+  Paintbrush,
+  Trophy,
+  Star,
+  Gem,
+  Target,
+  Rocket,
+  Crown,
+  Medal,
+  Tv2,
+  Film,
+  Sparkles,
+  Heart,
+  Fan,
+  Siren,
+  HandHelping,
+  Youtube,
+  Coins
 } from "lucide-react";
+import { Flame } from "lucide-react"
 
 export const iconOptions = [
   { id: "pawprint", Icon: PawPrint },
@@ -17,6 +38,36 @@ export const iconOptions = [
   { id: "plane", Icon: Plane },
   { id: "hamburger", Icon: Hamburger },
 ];
+
+export const rewardIconOptions = [
+  { id: "gamepad", Icon: Gamepad },
+  { id: "candy", Icon: Candy },
+  { id: "tv", Icon: Tv2 },
+  { id: "hamburger", Icon: Hamburger },
+  { id: "film", Icon: Film },
+  { id: "paint", Icon: Paintbrush },
+  { id: "book", Icon: Book },
+  { id: "music", Icon: Music },
+  { id: "sparkles", Icon: Sparkles },
+  { id: "heart", Icon: Heart },
+  { id: "youtube", Icon: Youtube },
+  { id: "cins", Icon: Coins },
+]
+
+export const badgeIconOptions = [
+  { id: "fire", Icon: Flame },
+  { id: "trophy", Icon: Trophy },
+  { id: "book", Icon: Book },
+  { id: "star", Icon: Star },
+  { id: "gem", Icon: Gem },
+  { id: "target", Icon: Target },
+  { id: "rocket", Icon: Rocket },
+  { id: "crown", Icon: Crown },
+  { id: "medal", Icon: Medal },
+  { id: "fan", Icon: Fan }, 
+  { id: "siren", Icon: Siren },
+  { id: "handHelping", Icon: HandHelping },
+]
 
 export const colorThemes = [
   { 

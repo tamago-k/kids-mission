@@ -113,7 +113,7 @@ export default function ParentDashboard() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
@@ -188,17 +188,17 @@ export default function ParentDashboard() {
         </Card>
 
         <Tabs defaultValue="tasks" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
-            <TabsTrigger value="tasks" className="rounded-xl text-sm">
+          <TabsList  className="grid grid-cols-4 mb-4 rounded-xl bg-gray-100 p-1">
+            <TabsTrigger value="tasks" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <BarChart3 className="w-4 h-4 mr-2" /> タスク
             </TabsTrigger>
-            <TabsTrigger value="children" className="rounded-xl text-sm">
+            <TabsTrigger value="children" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <Users className="w-4 h-4 mr-2" /> 子ども
             </TabsTrigger>
-            <TabsTrigger value="rewards" className="rounded-xl text-sm">
+            <TabsTrigger value="rewards" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <PiggyBank className="w-4 h-4 mr-2" /> 報酬
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="rounded-xl text-sm">
+            <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <Bell className="w-4 h-4 mr-2" /> 通知
             </TabsTrigger>
           </TabsList>

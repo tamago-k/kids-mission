@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TaskList } from "@/components/taskList"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Calendar, PiggyBank, User, Edit, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
-import { MessageCircle } from "lucide-react"
+import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
-import { colorThemes, iconOptions } from "@/components/optionThemes"
+import { TaskCommentModal } from "@/components/TaskCommentModal"
 
 const weekDays = [
   { id: "sunday", label: "日" },
@@ -27,12 +27,12 @@ const weekDays = [
 
 export default function ParentTasksPage() {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
-  const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [deleteTaskOpen, setDeleteTaskOpen] = useState(false)
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
 
   const [newComment, setNewComment] = useState("")
   const [taskTitle, setTaskTitle] = useState("")
-  const [selectedTask, setSelectedTask] = useState<any>(null)
   const [taskDescription, setTaskDescription] = useState("")
   const [taskReward, setTaskReward] = useState("")
   const [taskDeadline, setTaskDeadline] = useState("")
@@ -45,21 +45,6 @@ export default function ParentTasksPage() {
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-600">⏳ 進行中</Badge>
-      case "submitted":
-        return <Badge className="bg-blue-100 text-blue-600">📝 申請中</Badge>
-      case "completed":
-        return <Badge className="bg-green-100 text-green-600">✅ 完了</Badge>
-      case "rejected":
-        return <Badge className="bg-red-100 text-red-600">❌ 却下</Badge>
-      default:
-        return <Badge className="bg-gray-100 text-gray-600">❓ 不明</Badge>
-    }
-  }
-
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -70,7 +55,7 @@ export default function ParentTasksPage() {
   useEffect(() => {
     const fetchChildren = async () => {
       const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/children`, { // ここは子供一覧のエンドポイント想定に修正
+      const res = await fetch(`${apiBaseUrl}/api/children`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -105,6 +90,7 @@ export default function ParentTasksPage() {
         return
       }
       const data = await res.json()
+
       setTasks(data)
     }
 
@@ -174,7 +160,7 @@ export default function ParentTasksPage() {
       if (!res.ok) throw new Error("タスク作成失敗")
 
       const newTask = await res.json()
-      setTasks([...tasks, newTask])
+      setTasks([newTask,...tasks])
       setTaskModalOpen(false)
       resetForm()
     } catch (error) {
@@ -254,6 +240,7 @@ export default function ParentTasksPage() {
 
   const openCommentDialog = (task: any) => {
     setSelectedTask(task)
+    setTaskTitle(task.title);
     setCommentDialogOpen(true)
   }
 
@@ -286,21 +273,6 @@ export default function ParentTasksPage() {
     }
   }
 
-  const formatDateForDisplay = (input) => {
-    if (!input) return ""
-    const date = new Date(input)
-    if (isNaN(date.getTime())) return ""
-    const yyyy = date.getFullYear()
-    const mm = String(date.getMonth() + 1).padStart(2, "0")
-    const dd = String(date.getDate()).padStart(2, "0")
-    return `${yyyy}/${mm}/${dd}`
-  }
-  
-  const getBgClassByTheme = (themeValue: string | undefined) => {
-    const theme = colorThemes.find(t => t.value === themeValue)
-    return theme ? theme.bg : "bg-gray-100" // デフォルト色
-  }
-
   const formatForInputDateTimeLocal = (dateString: string | undefined | null) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -314,7 +286,7 @@ export default function ParentTasksPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4 flex items-center justify-between">
@@ -351,164 +323,61 @@ export default function ParentTasksPage() {
           </Card>
         </div>
 
-        {/* タスク一覧 */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg"><ClipboardCheck className="w-6 h-6" /> 全タスク一覧</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {tasks.map((task) => (
-              <Card key={task.id} className="border border-gray-200 rounded-2xl">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-3">
-                      {(() => {
-                        const iconObj = task.child ? iconOptions.find(icon => icon.id === task.child.avatar) : null;
-                        return (
-                          <div 
-                          className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                            getBgClassByTheme(task.child?.theme)
-                          }`}>
-                            {iconObj ? <iconObj.Icon /> : "未設定"}
-                          </div>
-                        )
-                      })()}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-gray-800">{task.title}</h3>
-                          {task.isRecurring && (
-                            <Badge className="bg-purple-100 text-purple-600 text-xs">
-                              <Repeat className="w-3 h-3 mr-1" />
-                              {task.recurringType === "daily"
-                                ? "毎日"
-                                : task.recurringType === "weekly"
-                                  ? "毎週"
-                                  : "毎月"}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            {task.child?.name || "未設定"}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {task.due_date ? formatDateForDisplay(task.due_date) : "なし"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {getStatusBadge(task.status)}
-                      <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" />{task.reward_amount}P</Badge>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 rounded-2xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                      onClick={() => openCommentDialog(task)}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      コメント
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                      onClick={() => openEditDialog(task)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      編集
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 rounded-xl border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
-                      onClick={() => {
-                        setSelectedTask(task)
-                        setDeleteTaskOpen(true)
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      削除
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
+        {/* タスク一覧タブ */}
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4 rounded-xl bg-gray-100 p-1">
+            <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+              進行中
+            </TabsTrigger>
+            <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+              申請中
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+              完了済み
+            </TabsTrigger>
+          </TabsList>
+
+          {/* 進行中タスク */}
+          <TabsContent value="active">
+            <TaskList
+              tasks={tasks.filter(t => !t.completed_at)}
+              onEdit={openEditDialog}
+              onDelete={(task) => {
+                setSelectedTask(task)
+                setDeleteTaskOpen(true)
+              }}
+              onComment={openCommentDialog}
+            />
+          </TabsContent>
+
+          {/* 申請中タスク */}
+          <TabsContent value="submission">
+            <TaskList
+              tasks={tasks.filter(t => t.completed_at)}
+              onComment={openCommentDialog}
+              allowEdit={false}
+            />
+          </TabsContent>
+
+          {/* 完了済みタスク */}
+          <TabsContent value="completed">
+            <TaskList
+              tasks={tasks.filter(t => t.completed_at)}
+              onComment={openCommentDialog}
+              allowEdit={false}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* コメントモーダル */}
-      <Dialog open={commentDialogOpen} onOpenChange={setCommentDialogOpen}>
-        <DialogContent className="rounded-3xl max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl flex justify-center gap-1"><MessageCircle className="w-6 h-6" />コメント</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-blue-50 rounded-2xl p-4">
-              <h3 className="font-bold text-gray-800">{selectedTask?.title}</h3>
-              <p className="text-sm text-gray-600 mt-1">{selectedTask?.description}</p>
-            </div>
-
-            {/* 既存のコメント */}
-            <div className="space-y-3 max-h-48 overflow-y-auto">
-              {selectedTask?.comments?.map((comment: any) => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm">
-                    {comment.author === "太郎" ? "👦" : comment.author === "ママ" ? "👩" : "👨"}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-gray-100 rounded-2xl p-3">
-                      <p className="text-sm text-gray-800">{comment.message}</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {comment.author} • {comment.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* 新しいコメント */}
-            <div>
-              <Label htmlFor="new-comment" className="text-gray-700 font-medium">
-                新しいコメント
-              </Label>
-              <Textarea
-                id="new-comment"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="質問や報告があれば書いてね！"
-                className="mt-1 rounded-2xl"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 rounded-2xl bg-transparent"
-                onClick={() => setCommentDialogOpen(false)}
-              >
-                閉じる
-              </Button>
-              <Button
-                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl"
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
-              >
-                送信 📤
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TaskCommentModal
+        open={commentDialogOpen}
+        onOpenChange={setCommentDialogOpen}
+        taskId={selectedTask?.id}
+        taskTitle={taskTitle}
+        onAddComment={handleAddComment}
+      />
 
       {/* 新規・編集モーダル */}
       <Dialog open={taskModalOpen} onOpenChange={(open) => {

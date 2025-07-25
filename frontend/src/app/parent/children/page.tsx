@@ -10,11 +10,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { colorThemes, iconOptions } from "@/components/optionThemes"
 
-
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-
 export default function ChildrenPage() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const [children, setChildren] = useState<Child[]>([])
+  const [showColorPicker, setShowColorPicker] = useState<number | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editChildId, setEditChildId] = useState<number | null>(null)
+  const [formName, setFormName] = useState("")
+  const [formPassword, setFormPassword] = useState("")
+  const [formIcon, setFormIcon] = useState(iconOptions[0].id)
+  const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
+  const [deleteChildOpen, setDeleteChildOpen] = useState(false)
+  const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -44,22 +51,6 @@ export default function ChildrenPage() {
 
     fetchChildren()
   }, [])
-
-
-  const [showColorPicker, setShowColorPicker] = useState<number | null>(null)
-
-  // 編集・追加共通モーダルの開閉状態
-  const [modalOpen, setModalOpen] = useState(false)
-  // 編集対象の子どもID（nullなら追加モード）
-  const [editChildId, setEditChildId] = useState<number | null>(null)
-
-  // フォーム状態
-  const [formName, setFormName] = useState("")
-  const [formPassword, setFormPassword] = useState("")
-  const [formIcon, setFormIcon] = useState(iconOptions[0].id)
-  const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
-  const [deleteChildOpen, setDeleteChildOpen] = useState(false)
-  const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
 
   //初期データ読み込み
   useEffect(() => {
@@ -168,7 +159,7 @@ export default function ChildrenPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
@@ -345,13 +336,15 @@ export default function ChildrenPage() {
 
             <div>
               <Label className="text-gray-700 font-medium">アイコンを選択</Label>
-              <div className="flex gap-2 mt-2">
+              <div className="grid grid-cols-6 gap-2 mt-2">
                 {iconOptions.map(({ id, Icon }) => (
                   <Button
                     key={id}
                     variant={formIcon === id ? "default" : "outline"}
-                    className={`h-12 w-12 text-2xl rounded-2xl ${
-                      formIcon === id ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white" : "bg-transparent"
+                    className={`h-12 text-2xl rounded-2xl ${
+                      formIcon === id 
+                        ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
+                        : "bg-white"
                     }`}
                     onClick={() => setFormIcon(id)}
                   >

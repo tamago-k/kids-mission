@@ -113,11 +113,11 @@ export default function ChildNotificationsPage() {
       <div className="p-4 pb-24">
 
         <Tabs value={filter} onValueChange={setFilter} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
-            <TabsTrigger value="all" className="rounded-xl">
+          <TabsList className="grid grid-cols-2 mb-4 rounded-xl bg-gray-100 p-1">
+            <TabsTrigger value="all"  className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               📋 ぜんぶ ({notifications.length})
             </TabsTrigger>
-            <TabsTrigger value="unread" className="rounded-xl">
+            <TabsTrigger value="unread" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               🔔 あたらしい ({unreadCount})
             </TabsTrigger>
           </TabsList>

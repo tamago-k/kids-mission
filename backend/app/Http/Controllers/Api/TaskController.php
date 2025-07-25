@@ -18,10 +18,12 @@ class TaskController extends Controller
         if ($user->role === 'parent') {
             $tasks = Task::with('child')
                 ->where('parent_id', $user->id)
+                ->orderBy('created_at', 'desc')
                 ->get();
         } elseif ($user->role === 'child') {
             $tasks = Task::with('child')
                 ->where('child_id', $user->id)
+                ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             return response()->json(['message' => '不正なユーザー'], 403);
@@ -33,7 +35,6 @@ class TaskController extends Controller
     // 作成
     public function store(Request $request)
         {
-            // バリデーション（必要に応じて）
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -62,7 +63,7 @@ class TaskController extends Controller
                     ]);
                 }
             }
-
+            $task = Task::with('child')->find($task->id);
             return response()->json($task, 201);
         }
 
@@ -80,6 +81,7 @@ class TaskController extends Controller
             'title', 'description', 'due_date', 'recurrence', 'child_id', 'reward_amount'
         ]));
 
+        $task = Task::with('child')->find($task->id);
         return response()->json($task);
     }
 
