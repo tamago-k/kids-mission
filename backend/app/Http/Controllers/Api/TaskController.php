@@ -16,12 +16,12 @@ class TaskController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'parent') {
-            $tasks = Task::with('child', 'task_category')
+            $tasks = Task::with(['child', 'task_category', 'latestSubmission'])
                 ->where('parent_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
         } elseif ($user->role === 'child') {
-            $tasks = Task::with('child', 'task_category')
+            $tasks = Task::with(['child', 'task_category', 'latestSubmission'])
                 ->where('child_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -29,8 +29,14 @@ class TaskController extends Controller
             return response()->json(['message' => '不正なユーザー'], 403);
         }
 
+        $tasks->transform(function ($task) {
+            $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
+            return $task;
+        });
+
         return response()->json($tasks);
     }
+
 
     // 作成
     public function store(Request $request)

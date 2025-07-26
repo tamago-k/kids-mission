@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react"
-import { ChildNavigation } from "@/components/navigation/child-navigation"
+import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 15)) // 2025年1月15日
@@ -127,7 +127,7 @@ export default function ChildCalendarPage() {
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50">
+     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">

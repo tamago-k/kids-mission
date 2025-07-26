@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Edit, Trash2, CopyPlus, TriangleAlert } from "lucide-react"
-import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentMasterPage() {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL

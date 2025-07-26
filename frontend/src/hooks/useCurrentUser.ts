@@ -36,7 +36,6 @@ export const useCurrentUser = () => {
         console.error("ユーザー情報取得エラー:", error);
       }
     };
-
     fetchUser();
   }, []);
 

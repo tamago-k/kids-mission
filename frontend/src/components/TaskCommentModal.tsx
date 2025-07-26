@@ -108,7 +108,6 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
         ) : (
           comments.map((comment) => {
             const isMine = comment.user_id === currentUserId;
-
             return (
               <div
                 key={comment.id}

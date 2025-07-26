@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Gift, Medal, Settings, SquareCheck } from "lucide-react";
-import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function MasterMenuPage() {
   return (

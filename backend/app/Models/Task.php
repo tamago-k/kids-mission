@@ -44,4 +44,14 @@ class Task extends Model
     {
         return $this->belongsTo(TaskCategory::class, 'task_category_id');
     }
+    
+    public function submissions()
+    {
+        return $this->hasMany(TaskSubmission::class);
+    }
+
+    public function latestSubmission()
+    {
+        return $this->hasOne(TaskSubmission::class)->latestOfMany();
+    }
 }

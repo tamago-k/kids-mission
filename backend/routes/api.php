@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\BadgeController;
 use App\Http\Controllers\Api\TaskCategoryController;
 use App\Http\Controllers\Api\TaskCommentController;
+use App\Http\Controllers\Api\TaskSubmissionController;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->group(function () {
@@ -56,6 +57,9 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::get('/task_categories/{id}', [TaskCategoryController::class, 'show']);
         Route::put('/task_categories/{id}', [TaskCategoryController::class, 'update']);
         Route::delete('/task_categories/{id}', [TaskCategoryController::class, 'destroy']);
+
+        // task_submission
+        Route::post('/tasks/{task}/submit', [TaskSubmissionController::class, 'store']);
 
         // comment
         Route::get('/tasks/{taskId}/comments', [TaskCommentController::class, 'index']);

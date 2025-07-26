@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TaskList } from "@/components/taskList"
+import { TaskListParent } from "@/components/TaskListParent"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
-import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TaskCommentModal } from "@/components/TaskCommentModal"
 
@@ -254,10 +254,6 @@ export default function ParentTasksPage() {
   }
 
   const handleAddComment = () => {
-    console.log("コメント追加:", {
-      taskId: selectedTask?.id,
-      comment: newComment,
-    })
     setCommentDialogOpen(false)
     setNewComment("")
     setSelectedTask(null)
@@ -367,7 +363,7 @@ export default function ParentTasksPage() {
 
           {/* 進行中タスク */}
           <TabsContent value="active">
-            <TaskList
+            <TaskListParent
               tasks={tasks.filter(t => !t.completed_at)}
               onEdit={openEditDialog}
               onDelete={(task) => {
@@ -380,7 +376,7 @@ export default function ParentTasksPage() {
 
           {/* 申請中タスク */}
           <TabsContent value="submission">
-            <TaskList
+            <TaskListParent
               tasks={tasks.filter(t => t.completed_at)}
               onComment={openCommentDialog}
               allowEdit={false}
@@ -389,7 +385,7 @@ export default function ParentTasksPage() {
 
           {/* 完了済みタスク */}
           <TabsContent value="completed">
-            <TaskList
+            <TaskListParent
               tasks={tasks.filter(t => t.completed_at)}
               onComment={openCommentDialog}
               allowEdit={false}

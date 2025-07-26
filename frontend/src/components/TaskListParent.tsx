@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, Edit, Trash2 } from "lucide-react"
-import { colorThemes, iconOptions } from "@/components/optionThemes"
+import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 interface Task {
   id: number
@@ -27,7 +27,7 @@ interface Task {
   } | null
 }
 
-interface TaskListProps {
+interface TaskListParentProps {
   tasks: Task[]
   onEdit?: (task: Task) => void
   onDelete?: (task: Task) => void
@@ -35,7 +35,7 @@ interface TaskListProps {
   allowEdit?: boolean
 }
 
-export const TaskList: React.FC<TaskListProps> = ({
+export const TaskListParent: React.FC<TaskListParentProps> = ({
   tasks,
   onEdit,
   onDelete,
@@ -93,7 +93,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                   )}
                   </div>
                 </div>
-                <h3 className="font-medium text-gray-800 mt-3">{task.title}</h3>
+                <h3 className="font-medium text-gray-800 mt-3 font-bold">{task.title}</h3>
                 <p className="text-sm text-gray-600 mt-2">{task.description}</p>
                 <div className="flex gap-2 mt-4">
                   <div className="flex items-center gap-1 text-xs">

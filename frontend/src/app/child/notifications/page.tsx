@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bell, ArrowLeft } from "lucide-react"
-import { ChildNavigation } from "@/components/navigation/child-navigation"
+import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildNotificationsPage() {
   const [filter, setFilter] = useState("all")
@@ -79,7 +79,7 @@ export default function ChildNotificationsPage() {
   const filteredNotifications = filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50">
+     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">

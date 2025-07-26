@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { CheckCircle, Clock, Star, MessageCircle, Gift, Target } from "lucide-react"
-import { ChildNavigation } from "@/components/navigation/child-navigation"
+import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildDashboard() {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
@@ -57,20 +57,12 @@ export default function ChildDashboard() {
   const currentBalance = 450
 
   const handleCompleteTask = () => {
-    console.log("タスク完了申請:", {
-      taskId: selectedTask?.id,
-      comment: completionComment,
-    })
     setCompleteDialogOpen(false)
     setCompletionComment("")
     setSelectedTask(null)
   }
 
   const handleAddComment = () => {
-    console.log("コメント追加:", {
-      taskId: selectedTask?.id,
-      comment: newComment,
-    })
     setCommentDialogOpen(false)
     setNewComment("")
     setSelectedTask(null)
@@ -94,7 +86,6 @@ export default function ChildDashboard() {
         return
       }
       const user = await res.json()
-      console.log("user.role:", user.role) 
       if (user.role !== "child") {
         router.push("/")
       }
@@ -103,7 +94,7 @@ export default function ChildDashboard() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
@@ -163,89 +154,6 @@ export default function ChildDashboard() {
           </CardContent>
         </Card>
 
-        {/* 今日のタスク */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="w-5 h-5 text-blue-500" />
-              今日のタスク
-              <Badge className="bg-blue-100 text-blue-600">
-                {todayTasks.filter((t) => t.status === "pending").length}個
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {todayTasks.map((task) => (
-              <Card
-                key={task.id}
-                className={`border-2 rounded-2xl transition-all ${
-                  task.status === "completed" ? "border-green-200 bg-green-50" : "border-gray-200 hover:border-blue-300"
-                }`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3
-                        className={`font-medium ${
-                          task.status === "completed" ? "text-green-700 line-through" : "text-gray-800"
-                        }`}
-                      >
-                        {task.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Clock className="w-4 h-4" />
-                          {task.deadline}
-                        </div>
-                        {task.comments.length > 0 && (
-                          <div className="flex items-center gap-1 text-sm text-blue-500">
-                            <MessageCircle className="w-4 h-4" />
-                            {task.comments.length}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <Badge
-                      className={`ml-3 ${
-                        task.status === "completed" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
-                      }`}
-                    >
-                      💰 {task.reward}P
-                    </Badge>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                      onClick={() => openCommentDialog(task)}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      コメント
-                    </Button>
-                    {task.status === "pending" ? (
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl"
-                        onClick={() => openCompleteDialog(task)}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        完了申請
-                      </Button>
-                    ) : (
-                      <Button size="sm" disabled className="flex-1 bg-green-500 text-white rounded-xl">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        完了済み
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
 
         {/* 今週の成果 */}
         <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">

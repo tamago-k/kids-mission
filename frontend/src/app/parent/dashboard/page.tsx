@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle, XCircle, Clock, Bell, Wallet, User, Users, BarChart3, PiggyBank } from "lucide-react"
-import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentDashboard() {
   const [selectedChild, setSelectedChild] = useState("all")

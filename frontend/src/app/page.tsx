@@ -128,7 +128,6 @@ export default function LoginPage() {
         if (!res.ok) return; // 未ログインなら何もしない
 
         const user = await res.json();
-        console.log("ログイン済み:", user)
 
         if (user.role === "parent") {
           router.push("/parent/dashboard");

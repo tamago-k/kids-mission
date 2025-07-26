@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react"
-import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 15))
