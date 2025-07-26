@@ -19,11 +19,6 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter()
 
-  const children = [
-    { id: "taro", name: "太郎", avatar: "👦", color: "from-blue-400 to-blue-600" },
-    { id: "hanako", name: "花子", avatar: "👧", color: "from-pink-400 to-pink-600" },
-  ]
-
   const handlePinInput = (digit: string) => {
     if (pin.length < 4) {
       setPin(pin + digit)
@@ -325,7 +320,7 @@ export default function LoginPage() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-4xl">
-                      {children.find((c) => c.id === selectedChild)?.avatar}
+                      <Smile className="w-10 h-10 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
                       こんにちは！

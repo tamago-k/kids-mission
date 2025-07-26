@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\ChildController;
 use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\BadgeController;
-use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\TaskCategoryController;
 use App\Http\Controllers\Api\TaskCommentController;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
@@ -50,12 +50,12 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
         Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
-        // categories
-        Route::get('/categories', [CategoryController::class, 'index']);
-        Route::post('/categories', [CategoryController::class, 'store']);
-        Route::get('/categories/{id}', [CategoryController::class, 'show']);
-        Route::put('/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+        // task_categories
+        Route::get('/task_categories', [TaskCategoryController::class, 'index']);
+        Route::post('/task_categories', [TaskCategoryController::class, 'store']);
+        Route::get('/task_categories/{id}', [TaskCategoryController::class, 'show']);
+        Route::put('/task_categories/{id}', [TaskCategoryController::class, 'update']);
+        Route::delete('/task_categories/{id}', [TaskCategoryController::class, 'destroy']);
 
         // comment
         Route::get('/tasks/{taskId}/comments', [TaskCommentController::class, 'index']);

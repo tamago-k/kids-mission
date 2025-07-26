@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/parent-navigation"
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TaskCommentModal } from "@/components/TaskCommentModal"
 
 const weekDays = [
@@ -26,24 +27,27 @@ const weekDays = [
 ]
 
 export default function ParentTasksPage() {
+  const user = useCurrentUser();
+
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [deleteTaskOpen, setDeleteTaskOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<any>(null)
-
   const [newComment, setNewComment] = useState("")
   const [taskTitle, setTaskTitle] = useState("")
   const [taskDescription, setTaskDescription] = useState("")
   const [taskReward, setTaskReward] = useState("")
   const [taskDeadline, setTaskDeadline] = useState("")
   const [assignedChild, setAssignedChild] = useState("")
+  const [assignedTaskCategory, setAssignedTaskCategory] = useState("")
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurringType, setRecurringType] = useState("")
   const [recurringDays, setRecurringDays] = useState<string[]>([])
-
   const [tasks, setTasks] = useState<any[]>([])
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
+  const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
@@ -71,10 +75,6 @@ export default function ParentTasksPage() {
       setChildren(data)
     }
 
-    fetchChildren()
-  }, [apiBaseUrl])
-
-  useEffect(() => {
     const fetchTasks = async () => {
       const csrfToken = getCookie("XSRF-TOKEN");
       const res = await fetch(`${apiBaseUrl}/api/tasks`, {
@@ -94,7 +94,28 @@ export default function ParentTasksPage() {
       setTasks(data)
     }
 
+    const fetchTaskCategories = async () => {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      const res = await fetch(`${apiBaseUrl}/api/task_categories`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+      });
+      if (!res.ok) {
+        alert("タスク取得に失敗しました")
+        return
+      }
+      const data = await res.json()
+
+      setTaskCategories(data)
+    }
+
+    fetchChildren()
     fetchTasks()
+    fetchTaskCategories()
   }, [apiBaseUrl])
 
   const dayToNumber = (dayId: string) => {
@@ -116,6 +137,7 @@ export default function ParentTasksPage() {
     setTaskReward("")
     setTaskDeadline("")
     setAssignedChild("")
+    setAssignedTaskCategory("")
     setIsRecurring(false)
     setRecurringType("")
     setRecurringDays([])
@@ -132,11 +154,12 @@ export default function ParentTasksPage() {
     setIsRecurring(Boolean(task.recurrence))
     setRecurringType(task.recurrence || "")
     setRecurringDays(task.recurringDays || [])
+    setAssignedTaskCategory(task.task_category_id || "")
     setTaskModalOpen(true)
   }
 
   const handleCreateTask = async () => {
-    if (!(taskTitle && taskDescription && taskReward && taskDeadline && assignedChild)) return
+    if (!(taskTitle && taskDescription && taskReward && taskDeadline && assignedChild && assignedTaskCategory)) return
 
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
@@ -153,6 +176,7 @@ export default function ParentTasksPage() {
           reward_amount: Number(taskReward),
           due_date: taskDeadline,
           child_id: assignedChild,
+          task_category_id: assignedTaskCategory,
           recurrence: isRecurring ? recurringType : null,
           weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
         }),
@@ -185,6 +209,7 @@ export default function ParentTasksPage() {
           reward_amount: Number(taskReward),
           due_date: taskDeadline,
           child_id: assignedChild,
+          task_category_id: assignedTaskCategory,
           recurrence: isRecurring ? recurringType : null,
           weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
         }),
@@ -252,6 +277,7 @@ export default function ParentTasksPage() {
       setTaskReward(String(task.reward_amount || task.reward || ""))
       setTaskDeadline(task.due_date || task.deadline || "")
       setAssignedChild(task.child_id || task.assignedTo || "")
+      setAssignedTaskCategory(task.task_category_id || "")
       setIsRecurring(Boolean(task.recurrence || task.isRecurring))
       setRecurringType(task.recurrence || task.recurringType || "")
       setRecurringDays(
@@ -284,6 +310,8 @@ export default function ParentTasksPage() {
 
     return `${yyyy}-${mm}-${dd}`;
   }
+
+  if (!user) return null;
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
@@ -377,6 +405,7 @@ export default function ParentTasksPage() {
         taskId={selectedTask?.id}
         taskTitle={taskTitle}
         onAddComment={handleAddComment}
+        currentUserId={user.id}
       />
 
       {/* 新規・編集モーダル */}
@@ -450,6 +479,24 @@ export default function ParentTasksPage() {
                     <SelectItem key={child.id} value={child.id}>
                       <span className="flex items-center gap-2">
                         {child.avatar} {child.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="task_category" className="text-gray-700 font-medium">カテゴリ</Label>
+              <Select value={assignedTaskCategory} onValueChange={setAssignedTaskCategory}>
+                <SelectTrigger className="mt-1 rounded-2xl">
+                  <SelectValue placeholder="カテゴリ" />
+                </SelectTrigger>
+                <SelectContent className="bg-white shadow-md border rounded-xl z-50">
+                  {taskCategories.map((taskCategoty) => (
+                    <SelectItem key={taskCategoty.id} value={taskCategoty.id}>
+                      <span className="flex items-center gap-2">
+                        {taskCategoty.name}
                       </span>
                     </SelectItem>
                   ))}

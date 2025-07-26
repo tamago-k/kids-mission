@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Category;
+use App\Models\TaskCategory;
 
-class CategoryController extends Controller
+class TaskCategoryController extends Controller
 {
     public function index()
     {
-        return Category::all();
+        return TaskCategory::all();
     }
 
     public function store(Request $request)
@@ -19,16 +19,16 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string',
         ]);
-        $badge = Category::create($data);
+        $badge = TaskCategory::create($data);
         return response()->json($badge, 201);
     }
 
-    public function show(Category $badge)
+    public function show(TaskCategory $badge)
     {
         return $badge;
     }
 
-    public function update(Request $request, Category $badge)
+    public function update(Request $request, TaskCategory $badge)
     {
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -38,7 +38,7 @@ class CategoryController extends Controller
         return response()->json($badge);
     }
 
-    public function destroy(Category $badge)
+    public function destroy(TaskCategory $badge)
     {
         $badge->delete();
         return response()->noContent();

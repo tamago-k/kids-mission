@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button"
+import { Smile } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -14,6 +15,8 @@ type Props = {
 export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, taskTitle }: Props) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const commentBoxRef = useRef<HTMLDivElement | null>(null);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
   function getCookie(name: string) {
@@ -23,10 +26,36 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     return null;
   }
 
+  const onScroll = () => {
+    const box = commentBoxRef.current;
+    if (!box) return;
+    const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 10;
+    setAutoScrollEnabled(isAtBottom);
+  };
+
   useEffect(() => {
-    if (!taskId) return;
-    fetchComments();
-  }, [taskId]);
+    if (!taskId || !open) return;
+
+    const fetchAndScroll = async () => {
+      await fetchComments();
+
+      const box = commentBoxRef.current;
+      if (box) {
+        box.scrollTop = box.scrollHeight;
+      }
+    };
+
+    fetchAndScroll();
+  }, [taskId, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const box = commentBoxRef.current;
+    if (box) {
+      box.scrollTop = box.scrollHeight;
+    }
+  }, [comments, open])
 
   const fetchComments = async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
@@ -69,10 +98,16 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
           <DialogTitle>{taskTitle} のコメント</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-blue-50">
-          {comments.map((comment) => {
+        <div 
+        ref={commentBoxRef}
+        onScroll={onScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-3 bg-blue-50 max-h-240 overflow-scroll"
+        >
+        {comments.length === 0 ? (
+          <p className="text-center text-gray-500">コメントはありません</p>
+        ) : (
+          comments.map((comment) => {
             const isMine = comment.user_id === currentUserId;
-console.log("comment.user_id:", comment.user_id, "currentUserId:", currentUserId, "isMine:", isMine);
 
             return (
               <div
@@ -80,26 +115,27 @@ console.log("comment.user_id:", comment.user_id, "currentUserId:", currentUserId
                 className={`flex items-start gap-2 ${isMine ? 'flex-row-reverse justify-end' : 'justify-start'}`}
               >
                 {/* アイコン */}
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm select-none">
-                  {comment.user?.name?.[0] || "👤"}
+                <div className={`w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm select-none shrink-0 ${isMine ? 'bg-blue-300' : 'bg-indigo-300'}`}>
+                  <Smile className="w-4 h-4 text-white" />
                 </div>
 
                 {/* 吹き出し */}
                 <div
-                  className={`p-3 rounded-2xl max-w-[80%] shadow ${
+                  className={`p-3 rounded-2xl grow shadow ${
                     isMine
                       ? 'bg-blue-500 text-white text-right'
                       : 'bg-white text-gray-800 text-left'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-                  <div className={`text-xs mt-1 ${isMine ? 'text-white/70' : 'text-gray-500'}`}>
+                  <p className="text-sm whitespace-pre-wrap text-left">{comment.content}</p>
+                  <div className={`text-xs mt-1 text-right ${isMine ? 'text-white/70' : 'text-gray-500'}`}>
                     {new Date(comment.created_at).toLocaleString()}
                   </div>
                 </div>
               </div>
             );
-          })}
+          })
+        )}
         </div>
 
         <div className="p-4 border-t flex gap-2">

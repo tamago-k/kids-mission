@@ -16,12 +16,12 @@ class TaskController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'parent') {
-            $tasks = Task::with('child')
+            $tasks = Task::with('child', 'task_category')
                 ->where('parent_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
         } elseif ($user->role === 'child') {
-            $tasks = Task::with('child')
+            $tasks = Task::with('child', 'task_category')
                 ->where('child_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -42,6 +42,7 @@ class TaskController extends Controller
                 'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
                 'reward_amount' => 'required|integer|min:0',
                 'child_id' => 'required|exists:users,id',
+                'task_category_id' => 'required|exists:task_categories,id',
             ]);
 
             $task = Task::create([
@@ -51,7 +52,8 @@ class TaskController extends Controller
                 'recurrence' => $request->recurrence,
                 'reward_amount' => $request->reward_amount,
                 'child_id' => $request->child_id,
-                'parent_id' => auth()->id(), // ログイン中の親アカウントID
+                'parent_id' => auth()->id(),
+                'task_category_id' => $request->task_category_id,
             ]);
 
             // 毎週の曜日指定がある場合は保存
@@ -78,7 +80,7 @@ class TaskController extends Controller
         }
 
         $task->update($request->only([
-            'title', 'description', 'due_date', 'recurrence', 'child_id', 'reward_amount'
+            'title', 'description', 'due_date', 'recurrence', 'child_id', 'task_category_id', 'reward_amount'
         ]));
 
         $task = Task::with('child')->find($task->id);

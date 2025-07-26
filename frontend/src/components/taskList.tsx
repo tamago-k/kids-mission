@@ -2,7 +2,7 @@ import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, Repeat, User, Calendar, PiggyBank, MessageCircle, Edit, Trash2 } from "lucide-react"
+import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, Edit, Trash2 } from "lucide-react"
 import { colorThemes, iconOptions } from "@/components/optionThemes"
 
 interface Task {
@@ -20,6 +20,11 @@ interface Task {
   } | null
   isRecurring?: boolean
   recurringType?: "daily" | "weekly" | "monthly"
+  task_category?: {
+    id: number
+    name: string
+    slug: string
+  } | null
 }
 
 interface TaskListProps {
@@ -65,47 +70,52 @@ export const TaskList: React.FC<TaskListProps> = ({
           const iconObj = task.child ? iconOptions.find(icon => icon.id === task.child.avatar) : null
 
           return (
-            <Card key={task.id} className="border border-gray-200 rounded-2xl relative mb-6">
-              <CardContent className="p-4 pt-9">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-gray-800">{task.title}</h3>
-                        {task.isRecurring && (
-                          <Badge className="bg-purple-100 text-purple-600 text-xs">
-                            <Repeat className="w-3 h-3 mr-1" />
-                            {task.recurringType === "daily"
-                              ? "毎日"
-                              : task.recurringType === "weekly"
-                              ? "毎週"
-                              : "毎月"}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 absolute -top-5 left-0">
-                        <div className={`flex items-center gap-1 rounded-2xl p-1 pr-3 pl-3 bg-gradient-to-r text-white ${getBgClassByTheme(
-                          task.child?.theme
-                        )}`}>
-                          {iconObj ? <iconObj.Icon /> : "未設定"}
-                          {task.child?.name || "未設定"}
-                        </div>
-                      </div>
+            <Card key={task.id} className="border border-gray-200 rounded-2xl mb-6">
+              <CardContent className="p-4">
+                <div className="flex gap-2 justify-between">
+                  <div className="text-sm text-gray-500">
+                    <div className={`flex items-center gap-1 rounded-2xl p-1 pr-3 pl-3 bg-gradient-to-r text-white ${getBgClassByTheme(
+                      task.child?.theme
+                    )}`}>
+                      {iconObj ? <iconObj.Icon /> : "未設定"}
+                      {task.child?.name || "未設定"}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-1 text-xs">
-                      <Calendar className="w-4 h-4" />
-                      {task.due_date ? formatDateForDisplay(task.due_date) : "なし"}
-                    </div>
-                    <Badge className="bg-purple-100 text-purple-600">
-                      <PiggyBank className="w-4 h-4 mr-2" />
-                      {task.reward_amount}P
+                  <div className="flex item-center flex-col">
+                  <Badge className="bg-purple-100 text-purple-600">
+                    <PiggyBank className="w-4 h-4 mr-2" />
+                    {task.reward_amount}P
+                  </Badge>
+                  {task.task_category?.name && (
+                    <Badge className="bg-yellow-100 text-yellow-600 text-xs text-center mt-1 justify-center">
+                      {task.task_category?.name}
                     </Badge>
+                  )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <h3 className="font-medium text-gray-800 mt-3">{task.title}</h3>
+                <p className="text-sm text-gray-600 mt-2">{task.description}</p>
+                <div className="flex gap-2 mt-4">
+                  <div className="flex items-center gap-1 text-xs">
+                    <Calendar className="w-4 h-4" />
+                    {task.due_date ? formatDateForDisplay(task.due_date) : "なし"}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      {task.isRecurring && (
+                        <Badge className="bg-purple-100 text-purple-600 text-xs">
+                          <Repeat className="w-3 h-3 mr-1" />
+                          {task.recurringType === "daily"
+                            ? "毎日"
+                            : task.recurringType === "weekly"
+                            ? "毎週"
+                            : "毎月"}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
                   <Button
                     variant="outline"
                     size="sm"

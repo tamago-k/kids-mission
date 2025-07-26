@@ -13,6 +13,7 @@ class Task extends Model
         'recurrence',
         'parent_id',
         'child_id',
+        'task_category_id',
         'reward_amount',
         'completed_at',
     ];
@@ -39,7 +40,7 @@ class Task extends Model
         return $this->hasMany(TaskWeeklyRecurrence::class);
     }
     
-    public function category()
+    public function task_category()
     {
         return $this->belongsTo(TaskCategory::class, 'task_category_id');
     }
