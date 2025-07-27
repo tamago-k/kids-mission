@@ -187,7 +187,7 @@ export default function ChildrenPage() {
         <div className="space-y-4">
           {children.map((child) => {
             const theme = getThemeStyles(child.colorTheme)
-            const completionRate = child.totalTasks ? Math.round((child.completedTasks / child.totalTasks) * 100) : 0
+            const completionRate = child.totalTasks ? Math.round((child.approvedTasks / child.totalTasks) * 100) : 0
             const iconObj = iconOptions.find((icon) => icon.id === child.icon)
 
             return (
@@ -270,7 +270,7 @@ export default function ChildrenPage() {
                     <div className="flex justify-between text-sm">
                       <span>今週のタスク進捗</span>
                       <span>
-                        {child.completedTasks}/{child.totalTasks}
+                        {child.approvedTasks}/{child.totalTasks}
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">

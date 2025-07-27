@@ -69,7 +69,7 @@ export default function ParentDashboard() {
       childId: "taro",
       task: "算数の宿題が完了しました",
       submittedAt: "2時間前",
-      type: "task_completed",
+      type: "task_approved",
     },
     {
       id: 2,
@@ -88,7 +88,7 @@ export default function ParentDashboard() {
       : allNotifications.filter((notification) => notification.childId === selectedChild)
 
   // 選択された子どもでフィルタリング
-  const pendingTasks =
+  const submittedTasks =
     selectedChild === "all" ? allPendingTasks : allPendingTasks.filter((task) => task.childId === selectedChild)
 
   const rewardRequests =
@@ -209,7 +209,7 @@ export default function ParentDashboard() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Clock className="w-5 h-5 text-orange-500" />
                   未承認の申請
-                  <Badge className="bg-orange-100 text-orange-600">{pendingTasks.length}</Badge>
+                  <Badge className="bg-orange-100 text-orange-600">{submittedTasks.length}</Badge>
                   {selectedChild !== "all" && (
                     <Badge className="bg-blue-100 text-blue-600">
                       {children.find((c) => c.id === selectedChild)?.name}のみ
@@ -218,7 +218,7 @@ export default function ParentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {pendingTasks.length === 0 ? (
+                {submittedTasks.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-2">🎉</div>
                     <p className="text-gray-600">
@@ -228,7 +228,7 @@ export default function ParentDashboard() {
                     </p>
                   </div>
                 ) : (
-                  pendingTasks.map((task) => (
+                  submittedTasks.map((task) => (
                     <Card key={task.id} className="border border-gray-200 rounded-2xl">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
@@ -378,7 +378,7 @@ export default function ParentDashboard() {
                   {notifications.map((notification) => (
                     <div key={notification.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-2xl">
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
-                        {notification.type === "task_completed" ? "✅" : "💰"}
+                        {notification.type === "task_approved" ? "✅" : "💰"}
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">

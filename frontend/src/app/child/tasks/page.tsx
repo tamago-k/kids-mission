@@ -82,7 +82,7 @@ export default function ChildTasksPage() {
 
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/tasks/${task.id}/submit`, {
+      const res = await fetch(`${apiBaseUrl}/api/task/${task.id}/submit`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -121,6 +121,38 @@ export default function ChildTasksPage() {
     setSelectedTask(task)
     setCommentDialogOpen(true)
   }
+
+  const isToday = (dateStr?: string | null) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const today = new Date();
+    // 時間部分は無視したいなら日付だけで比較
+    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return target <= now;
+  };
+
+  const isTomorrow = (dateStr?: string | null) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return (
+      date.getFullYear() === tomorrow.getFullYear() &&
+      date.getMonth() === tomorrow.getMonth() &&
+      date.getDate() === tomorrow.getDate()
+    );
+  };
+
+  const isUpcoming = (dateStr?: string | null) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    // 今度は明日の次の日以降のタスク（期限がそれ以降）
+    return date >= dayAfterTomorrow;
+  };
+
     
   const filteredTasks = tasks.filter(task => {
     if (!task.due_date) return false;
@@ -128,10 +160,11 @@ export default function ChildTasksPage() {
     const dueDate = new Date(task.due_date);
 
     if (filter === "today") {
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
       return (
-        dueDate.getFullYear() === today.getFullYear() &&
-        dueDate.getMonth() === today.getMonth() &&
-        dueDate.getDate() === today.getDate()
+
+        dueDate <= todayEnd
       );
     } else if (filter === "tomorrow") {
       const tomorrow = new Date(today);
@@ -163,7 +196,7 @@ export default function ChildTasksPage() {
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-orange-600">
-                {tasks.filter((t) => t.status === "completed").length}/{tasks.length}
+                {tasks.filter(t => isToday(t.due_date)).filter(t => t.completion_status === "approved").length} / {tasks.filter(t => isToday(t.due_date)).length}
               </div>
               <div className="text-xs text-gray-600">完了</div>
             </div>
@@ -178,33 +211,31 @@ export default function ChildTasksPage() {
           <Button
             onClick={() => setFilter("today")}
             className={`px-4 py-2 whitespace-nowrap rounded-xl ${
-              filter === "today"
-                ? "bg-white shadow"
-                : ""
+              filter === "today" ? "bg-white shadow" : ""
             }`}
           >
-
-            <CalendarSearch className="w-4 h-4 mr-1" />今日 ({tasks.filter((t) => t.category === "today").length})
+            <CalendarSearch className="w-4 h-4 mr-1" />
+            今日 ({tasks.filter(t => isToday(t.due_date)).length})
           </Button>
+
           <Button
             onClick={() => setFilter("tomorrow")}
             className={`px-4 py-2 whitespace-nowrap rounded-xl ${
-              filter === "tomorrow"
-                ? "bg-white shadow"
-                : ""
+              filter === "tomorrow" ? "bg-white shadow" : ""
             }`}
           >
-            <Sun className="w-4 h-4 mr-1" />明日 ({tasks.filter((t) => t.category === "tomorrow").length})
+            <Sun className="w-4 h-4 mr-1" />
+            明日 ({tasks.filter(t => isTomorrow(t.due_date)).length})
           </Button>
+
           <Button
             onClick={() => setFilter("upcoming")}
             className={`px-4 py-2 whitespace-nowrap rounded-xl ${
-              filter === "upcoming"
-                ? "bg-white shadow"
-                : ""
+              filter === "upcoming" ? "bg-white shadow" : ""
             }`}
           >
-            <SwatchBook className="w-4 h-4 mr-1" />今度 ({tasks.filter((t) => t.category === "upcoming").length})
+            <SwatchBook className="w-4 h-4 mr-1" />
+            今度 ({tasks.filter(t => isUpcoming(t.due_date)).length})
           </Button>
         </div>
 
@@ -261,7 +292,6 @@ export default function ChildTasksPage() {
           </div>
         </DialogContent>
       </Dialog>
-
 
       {/* コメントモーダル */}
       <TaskCommentModal

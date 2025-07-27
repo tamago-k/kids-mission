@@ -25,7 +25,7 @@ export default function ChildRewardsPage() {
       title: "算数の宿題完了",
       amount: 100,
       date: "今日",
-      status: "completed",
+      status: "approved",
     },
     {
       id: 2,
@@ -41,7 +41,7 @@ export default function ChildRewardsPage() {
       title: "漢字練習完了",
       amount: 80,
       date: "昨日",
-      status: "completed",
+      status: "approved",
     },
     {
       id: 4,
@@ -49,7 +49,7 @@ export default function ChildRewardsPage() {
       title: "お菓子",
       amount: -100,
       date: "2日前",
-      status: "pending",
+      status: "submitted",
     },
   ]
 
@@ -178,14 +178,14 @@ export default function ChildRewardsPage() {
                   </div>
                   <Badge
                     className={`text-xs ${
-                      item.status === "completed"
+                      item.status === "approved"
                         ? "bg-green-100 text-green-600"
                         : item.status === "approved"
                           ? "bg-blue-100 text-blue-600"
                           : "bg-yellow-100 text-yellow-600"
                     }`}
                   >
-                    {item.status === "completed" ? "完了" : item.status === "approved" ? "承認済み" : "申請中"}
+                    {item.status === "approved" ? "完了" : item.status === "approved" ? "承認済み" : "申請中"}
                   </Badge>
                 </div>
               </div>

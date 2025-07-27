@@ -13,13 +13,13 @@ export default function ChildStatsPage() {
 
   // 太郎のデータ例
   const weeklyData = [
-    { day: "月", completed: 3 },
-    { day: "火", completed: 2 },
-    { day: "水", completed: 4 },
-    { day: "木", completed: 3 },
-    { day: "金", completed: 5 },
-    { day: "土", completed: 2 },
-    { day: "日", completed: 1 },
+    { day: "月", approved: 3 },
+    { day: "火", approved: 2 },
+    { day: "水", approved: 4 },
+    { day: "木", approved: 3 },
+    { day: "金", approved: 5 },
+    { day: "土", approved: 2 },
+    { day: "日", approved: 1 },
   ]
 
   const pointsData = [
@@ -155,7 +155,7 @@ export default function ChildStatsPage() {
                   <XAxis dataKey="day" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="completed" fill="#10B981" name="完了" />
+                  <Bar dataKey="approved" fill="#10B981" name="完了" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

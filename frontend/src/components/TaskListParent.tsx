@@ -2,7 +2,7 @@ import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, Edit, Trash2 } from "lucide-react"
+import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, Edit, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 interface Task {
@@ -10,7 +10,7 @@ interface Task {
   title: string
   description?: string | null
   status: string
-  completed_at?: string | null
+  approved_at?: string | null
   reward_amount: number | null
   due_date?: string | null
   child?: {
@@ -32,6 +32,8 @@ interface TaskListParentProps {
   onEdit?: (task: Task) => void
   onDelete?: (task: Task) => void
   onComment?: (task: Task) => void
+  onApprove?: (task: Task) => void,
+  onReject?: (task: Task) => void,
   allowEdit?: boolean
 }
 
@@ -40,6 +42,8 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
   onEdit,
   onDelete,
   onComment,
+  onApprove,
+  onReject,
   allowEdit = true,
 }) => {
   const getBgClassByTheme = (themeValue?: string) => {
@@ -115,6 +119,27 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                     </div>
                   </div>
                 </div>
+                {task.completion_status === "submitted" && (
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl"
+                      onClick={() => onApprove && onApprove(task)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      承認
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50 rounded-xl bg-transparent"
+                      onClick={() => onReject && onReject(task)}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      却下
+                    </Button>
+                  </div>
+                )}
                 <div className="flex gap-2 mt-4">
                   <Button
                     variant="outline"
@@ -124,7 +149,7 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                   >
                     <MessageCircle className="w-4 h-4" />
                   </Button>
-                  {allowEdit && (
+                  {task.completion_status !== "approved" && (
                     <>
                       <Button
                         variant="outline"

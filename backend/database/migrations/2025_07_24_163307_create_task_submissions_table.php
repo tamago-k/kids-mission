@@ -17,7 +17,7 @@ class CreateTaskSubmissionsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('task_id');
             $table->unsignedBigInteger('submitted_by');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['submitted', 'approved', 'rejected'])->default('submitted');
             $table->timestamp('submitted_at');
             $table->timestamps();
 

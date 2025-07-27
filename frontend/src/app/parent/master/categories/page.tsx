@@ -44,6 +44,8 @@ export default function ParentMasterPage() {
       if (!res.ok) throw new Error('カテゴリの取得に失敗');
       const data = await res.json();
       setTaskCategorys(Array.isArray(data) ? data : data.task_categories ?? []);
+      
+    console.log("取得したカテゴリ一覧:", data);
     } catch (e) {
       alert(e.message || "カテゴリの取得に失敗しました");
     }
@@ -104,7 +106,8 @@ export default function ParentMasterPage() {
   };
 
   // 編集時フォームにセット
-  const handleEditTaskCategory = (task_categories: { id: number; name: string; slug: number;}) => {
+  const handleEditTaskCategory = (task_categories: { id: number; name: string; slug: string;}) => {
+     console.log("編集するカテゴリ:", task_categories);
     setEditingTaskCategoryId(task_categories.id);
     setTaskCategoryName(task_categories.name);
     setTaskCategorySlug(task_categories.slug);

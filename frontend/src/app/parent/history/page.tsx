@@ -24,8 +24,8 @@ export default function ParentHistoryPage() {
       child: "太郎",
       childId: "taro",
       reward: 100,
-      status: "completed",
-      completedAt: "2025年1月15日 18:30",
+      status: "approved",
+      approvedAt: "2025年1月15日 18:30",
       submittedAt: "2025年1月15日 18:00",
       approvedAt: "2025年1月15日 19:00",
       comment: "きちんと解けていました！",
@@ -37,8 +37,8 @@ export default function ParentHistoryPage() {
       child: "花子",
       childId: "hanako",
       reward: 80,
-      status: "completed",
-      completedAt: "2025年1月15日 17:00",
+      status: "approved",
+      approvedAt: "2025年1月15日 17:00",
       submittedAt: "2025年1月15日 17:15",
       approvedAt: "2025年1月15日 17:30",
       comment: "とても丁寧に書けています",
@@ -51,7 +51,7 @@ export default function ParentHistoryPage() {
       childId: "taro",
       reward: 50,
       status: "rejected",
-      completedAt: "2025年1月14日 20:00",
+      approvedAt: "2025年1月14日 20:00",
       submittedAt: "2025年1月14日 20:30",
       rejectedAt: "2025年1月14日 21:00",
       comment: "まだ汚れが残っているので、もう一度お願いします",
@@ -63,8 +63,8 @@ export default function ParentHistoryPage() {
       child: "花子",
       childId: "hanako",
       reward: 150,
-      status: "completed",
-      completedAt: "2025年1月13日 16:00",
+      status: "approved",
+      approvedAt: "2025年1月13日 16:00",
       submittedAt: "2025年1月13日 16:30",
       approvedAt: "2025年1月13日 17:00",
       comment: "感想がとても詳しく書けていて素晴らしいです！",
@@ -79,7 +79,7 @@ export default function ParentHistoryPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
+      case "approved":
         return <Badge className="bg-green-100 text-green-600">✅ 承認済み</Badge>
       case "rejected":
         return <Badge className="bg-red-100 text-red-600">❌ 却下</Badge>
@@ -161,7 +161,7 @@ export default function ParentHistoryPage() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{filteredHistory.filter((t) => t.status === "completed").length}</div>
+              <div className="text-2xl font-bold">{filteredHistory.filter((t) => t.status === "approved").length}</div>
               <div className="text-sm text-green-100">承認済み</div>
             </CardContent>
           </Card>
@@ -174,7 +174,7 @@ export default function ParentHistoryPage() {
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-indigo-400 text-white">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold">
-                {filteredHistory.reduce((sum, t) => sum + (t.status === "completed" ? t.reward : 0), 0)}
+                {filteredHistory.reduce((sum, t) => sum + (t.status === "approved" ? t.reward : 0), 0)}
               </div>
               <div className="text-sm text-purple-100">付与ポイント</div>
             </CardContent>
@@ -224,7 +224,7 @@ export default function ParentHistoryPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
-                              {task.status === "completed" ? task.approvedAt : task.rejectedAt}
+                              {task.status === "approved" ? task.approvedAt : task.rejectedAt}
                             </div>
                           </div>
                         </div>

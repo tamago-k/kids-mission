@@ -28,7 +28,7 @@ export default function ChildDashboard() {
       description: "教科書p.24-26の問題を解く",
       reward: 100,
       deadline: "今日 18:00",
-      status: "pending",
+      status: "submitted",
       comments: [
         { id: 1, author: "ママ", message: "がんばって！", time: "1時間前" },
         { id: 2, author: "太郎", message: "わかりました！", time: "30分前" },
@@ -40,7 +40,7 @@ export default function ChildDashboard() {
       description: "新しい漢字10個を3回ずつ書く",
       reward: 80,
       deadline: "今日 19:00",
-      status: "completed",
+      status: "approved",
       comments: [{ id: 1, author: "パパ", message: "きれいに書けてるね！", time: "2時間前" }],
     },
     {
@@ -49,7 +49,7 @@ export default function ChildDashboard() {
       description: "夕食後の食器を洗う",
       reward: 50,
       deadline: "今日 20:00",
-      status: "pending",
+      status: "submitted",
       comments: [],
     },
   ]
@@ -125,7 +125,7 @@ export default function ChildDashboard() {
               <div>
                 <h2 className="text-lg font-bold mb-1">🎯 今日のタスク</h2>
                 <div className="text-3xl font-bold">
-                  {todayTasks.filter((t) => t.status === "completed").length}/{todayTasks.length}
+                  {todayTasks.filter((t) => t.status === "approved").length}/{todayTasks.length}
                 </div>
                 <p className="text-orange-100 text-sm">完了したよ！</p>
               </div>

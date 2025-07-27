@@ -27,7 +27,7 @@ export default function ParentCalendarPage() {
       date: new Date(2025, 0, 15),
       childId: "taro",
       childName: "太郎",
-      status: "completed",
+      status: "approved",
       reward: 100,
       time: "18:00",
     },
@@ -37,7 +37,7 @@ export default function ParentCalendarPage() {
       date: new Date(2025, 0, 15),
       childId: "hanako",
       childName: "花子",
-      status: "pending",
+      status: "submitted",
       reward: 80,
       time: "19:00",
     },
@@ -47,7 +47,7 @@ export default function ParentCalendarPage() {
       date: new Date(2025, 0, 16),
       childId: "taro",
       childName: "太郎",
-      status: "pending",
+      status: "submitted",
       reward: 150,
       time: "17:00",
     },
@@ -57,7 +57,7 @@ export default function ParentCalendarPage() {
       date: new Date(2025, 0, 17),
       childId: "hanako",
       childName: "花子",
-      status: "completed",
+      status: "approved",
       reward: 50,
       time: "20:00",
     },
@@ -228,8 +228,8 @@ export default function ParentCalendarPage() {
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, index) => {
                 const dayTasks = getTasksForDate(day)
-                const hasCompletedTasks = dayTasks.some((task) => task.status === "completed")
-                const hasPendingTasks = dayTasks.some((task) => task.status === "pending")
+                const hasCompletedTasks = dayTasks.some((task) => task.status === "approved")
+                const hasPendingTasks = dayTasks.some((task) => task.status === "submitted")
                 const hasOverdueTasks = dayTasks.some((task) => task.status === "overdue")
 
                 return (
@@ -299,14 +299,14 @@ export default function ParentCalendarPage() {
                   <div className="text-right">
                     <Badge
                       className={
-                        task.status === "completed"
+                        task.status === "approved"
                           ? "bg-green-100 text-green-600"
                           : task.status === "overdue"
                             ? "bg-red-100 text-red-600"
                             : "bg-yellow-100 text-yellow-600"
                       }
                     >
-                      {task.status === "completed" ? "✅ 完了" : task.status === "overdue" ? "⚠️ 期限切れ" : "⏳ 進行中"}
+                      {task.status === "approved" ? "✅ 完了" : task.status === "overdue" ? "⚠️ 期限切れ" : "⏳ 進行中"}
                     </Badge>
                     <div className="text-sm text-gray-600 mt-1">{task.reward}P</div>
                   </div>

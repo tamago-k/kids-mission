@@ -15,14 +15,14 @@ class Task extends Model
         'child_id',
         'task_category_id',
         'reward_amount',
-        'completed_at',
+        'approved_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'completed_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     public function parent()

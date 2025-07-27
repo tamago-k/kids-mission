@@ -59,7 +59,9 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::delete('/task_categories/{id}', [TaskCategoryController::class, 'destroy']);
 
         // task_submission
-        Route::post('/tasks/{task}/submit', [TaskSubmissionController::class, 'store']);
+        Route::post('/task/{task}/submit', [TaskSubmissionController::class, 'store']);
+        Route::put('/task_submissions/{taskId}/approve', [TaskSubmissionController::class, 'approve']);
+        Route::put('/task_submissions/{taskId}/reject', [TaskSubmissionController::class, 'reject']);
 
         // comment
         Route::get('/tasks/{taskId}/comments', [TaskCommentController::class, 'index']);

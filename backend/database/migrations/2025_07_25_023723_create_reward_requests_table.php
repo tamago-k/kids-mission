@@ -15,7 +15,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('reward_id');
-            $table->enum('status', ['pending', 'approved', 'rejected']);
+            $table->enum('status', ['submitted', 'approved', 'rejected']);
             $table->timestamp('requested_at');
             $table->timestamp('updated_at')->useCurrent();
 

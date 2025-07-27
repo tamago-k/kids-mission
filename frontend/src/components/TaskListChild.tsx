@@ -10,7 +10,7 @@ interface Task {
   title: string
   description?: string | null
   status: string
-  completed_at?: string | null
+  approved_at?: string | null
   reward_amount: number | null
   due_date?: string | null
   child?: {
@@ -116,7 +116,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                 コメント
               </Button>
               {
-                task.completion_status === 'pending' ? (
+                task.completion_status === 'submitted' ? (
                   <Button size="sm" disabled className="flex-1 bg-yellow-400 text-white rounded-2xl">
                     <ClipboardCheck className="w-4 h-4 mr-1" />
                     申請中

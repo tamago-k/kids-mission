@@ -20,7 +20,7 @@ export default function ChildCalendarPage() {
       id: 1,
       title: "算数の宿題",
       date: new Date(2024, 0, 15),
-      status: "completed",
+      status: "approved",
       reward: 100,
       time: "18:00",
       emoji: "📚",
@@ -29,7 +29,7 @@ export default function ChildCalendarPage() {
       id: 2,
       title: "お手伝い（食器洗い）",
       date: new Date(2024, 0, 15),
-      status: "pending",
+      status: "submitted",
       reward: 50,
       time: "20:00",
       emoji: "🍽️",
@@ -38,7 +38,7 @@ export default function ChildCalendarPage() {
       id: 3,
       title: "理科レポート",
       date: new Date(2024, 0, 16),
-      status: "pending",
+      status: "submitted",
       reward: 150,
       time: "17:00",
       emoji: "🔬",
@@ -47,7 +47,7 @@ export default function ChildCalendarPage() {
       id: 4,
       title: "漢字練習",
       date: new Date(2024, 0, 17),
-      status: "pending",
+      status: "submitted",
       reward: 80,
       time: "19:00",
       emoji: "✏️",
@@ -56,7 +56,7 @@ export default function ChildCalendarPage() {
       id: 5,
       title: "読書感想文",
       date: new Date(2024, 0, 18),
-      status: "pending",
+      status: "submitted",
       reward: 120,
       time: "16:00",
       emoji: "📖",
@@ -176,8 +176,8 @@ export default function ChildCalendarPage() {
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, index) => {
                 const dayTasks = getTasksForDate(day)
-                const hasCompletedTasks = dayTasks.some((task) => task.status === "completed")
-                const hasPendingTasks = dayTasks.some((task) => task.status === "pending")
+                const hasCompletedTasks = dayTasks.some((task) => task.status === "approved")
+                const hasPendingTasks = dayTasks.some((task) => task.status === "submitted")
 
                 return (
                   <div
@@ -235,14 +235,14 @@ export default function ChildCalendarPage() {
                 <div
                   key={task.id}
                   className={`p-4 rounded-2xl border-2 ${
-                    task.status === "completed" ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"
+                    task.status === "approved" ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">{task.emoji}</div>
                       <div>
-                        <h3 className={`font-bold text-gray-800 ${task.status === "completed" ? "line-through" : ""}`}>
+                        <h3 className={`font-bold text-gray-800 ${task.status === "approved" ? "line-through" : ""}`}>
                           {task.title}
                         </h3>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -254,15 +254,15 @@ export default function ChildCalendarPage() {
                     <div className="text-right">
                       <Badge
                         className={
-                          task.status === "completed" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
+                          task.status === "approved" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
                         }
                       >
-                        {task.status === "completed" ? "✅ 完了" : "⏳ がんばろう"}
+                        {task.status === "approved" ? "✅ 完了" : "⏳ がんばろう"}
                       </Badge>
                       <div className="text-sm text-gray-600 mt-1 font-bold">💰 {task.reward}P</div>
                     </div>
                   </div>
-                  {task.status === "pending" && (
+                  {task.status === "submitted" && (
                     <Link href="/child/tasks/" className="flex-1">
                       <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
                         タスクページへ

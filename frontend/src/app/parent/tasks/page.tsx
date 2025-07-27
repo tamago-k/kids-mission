@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TaskListParent } from "@/components/TaskListParent"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert } from "lucide-react"
+import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert, Ban } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TaskCommentModal } from "@/components/TaskCommentModal"
@@ -46,6 +46,9 @@ export default function ParentTasksPage() {
   const [tasks, setTasks] = useState<any[]>([])
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
   const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<typeof notifications[0] | null>(null);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
 
@@ -55,6 +58,24 @@ export default function ParentTasksPage() {
     if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
   }
+
+  const fetchTasks = async () => {
+    const csrfToken = getCookie("XSRF-TOKEN");
+    const res = await fetch(`${apiBaseUrl}/api/tasks`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": csrfToken ?? "",
+      },
+    });
+    if (!res.ok) {
+      alert("タスク取得に失敗しました");
+      return;
+    }
+    const data = await res.json();
+    setTasks(data);
+  };
   
   useEffect(() => {
     const fetchChildren = async () => {
@@ -73,25 +94,6 @@ export default function ParentTasksPage() {
       }
       const data = await res.json()
       setChildren(data)
-    }
-
-    const fetchTasks = async () => {
-      const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/tasks`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
-        },
-      });
-      if (!res.ok) {
-        alert("タスク取得に失敗しました")
-        return
-      }
-      const data = await res.json()
-
-      setTasks(data)
     }
 
     const fetchTaskCategories = async () => {
@@ -245,14 +247,6 @@ export default function ParentTasksPage() {
     }
   }
 
-  const handleRecurringDayChange = (dayId: string, checked: boolean) => {
-    if (checked) {
-      setRecurringDays([...recurringDays, dayId])
-    } else {
-      setRecurringDays(recurringDays.filter((id) => id !== dayId))
-    }
-  }
-
   const handleAddComment = () => {
     setCommentDialogOpen(false)
     setNewComment("")
@@ -276,11 +270,6 @@ export default function ParentTasksPage() {
       setAssignedTaskCategory(task.task_category_id || "")
       setIsRecurring(Boolean(task.recurrence || task.isRecurring))
       setRecurringType(task.recurrence || task.recurringType || "")
-      setRecurringDays(
-        task.weekdays?.length
-          ? task.weekdays.map((n: number) => weekDays[n]?.id).filter(Boolean)
-          : (task.recurringDays || [])
-      )
     } else {
       resetForm()
     }
@@ -306,6 +295,49 @@ export default function ParentTasksPage() {
 
     return `${yyyy}-${mm}-${dd}`;
   }
+
+  const handleApprove = async (taskId: number) => {
+    try {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      const res = await fetch(`${apiBaseUrl}/api/task_submissions/${taskId}/approve`, {
+        method: "PUT", // またはPATCH
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+        body: JSON.stringify({ status: "approved" }), // 必要に応じて送信
+      });
+      if (!res.ok) throw new Error("承認更新に失敗しました");
+      const updatedTask = await res.json();
+      await fetchTasks();
+    } catch (error) {
+      console.error(error);
+      alert("承認処理でエラーが発生しました");
+    }
+  };
+
+  const handleReject = async (taskId: number) => {
+    try {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      const res = await fetch(`${apiBaseUrl}/api/task_submissions/${taskId}/reject`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken ?? "",
+        },
+        body: JSON.stringify({ status: "rejected" }),
+      });
+      if (!res.ok) throw new Error("却下更新に失敗しました");
+
+      const updatedTask = await res.json();
+      await fetchTasks();
+    } catch (error) {
+      console.error(error);
+      alert("却下処理でエラーが発生しました");
+    }
+  };
 
   if (!user) return null;
   
@@ -341,7 +373,7 @@ export default function ParentTasksPage() {
           </Card>
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{tasks.filter((t) => t.status === "submitted").length}</div>
+              <div className="text-2xl font-bold">{tasks.filter((t) => t.completion_status === "submitted").length}</div>
               <div className="text-sm text-green-100">申請待ち</div>
             </CardContent>
           </Card>
@@ -356,7 +388,7 @@ export default function ParentTasksPage() {
             <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               申請中
             </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+            <TabsTrigger value="approved" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               完了済み
             </TabsTrigger>
           </TabsList>
@@ -364,7 +396,7 @@ export default function ParentTasksPage() {
           {/* 進行中タスク */}
           <TabsContent value="active">
             <TaskListParent
-              tasks={tasks.filter(t => !t.completed_at)}
+              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
               onEdit={openEditDialog}
               onDelete={(task) => {
                 setSelectedTask(task)
@@ -377,18 +409,29 @@ export default function ParentTasksPage() {
           {/* 申請中タスク */}
           <TabsContent value="submission">
             <TaskListParent
-              tasks={tasks.filter(t => t.completed_at)}
+              tasks={tasks.filter(t => t.completion_status === "submitted")}
+              onEdit={openEditDialog}
+              onDelete={(task) => {
+                setSelectedTask(task)
+                setDeleteTaskOpen(true)
+              }}
+              onApprove={(task) => {
+                setSelectedNotification(task);
+                setIsApproveModalOpen(true);
+              }}
+              onReject={(task) => {
+                setSelectedNotification(task);
+                setIsRejectModalOpen(true);
+              }}
               onComment={openCommentDialog}
-              allowEdit={false}
             />
           </TabsContent>
 
           {/* 完了済みタスク */}
-          <TabsContent value="completed">
+          <TabsContent value="approved">
             <TaskListParent
-              tasks={tasks.filter(t => t.completed_at)}
+              tasks={tasks.filter(t => t.completion_status === "approved")}
               onComment={openCommentDialog}
-              allowEdit={false}
             />
           </TabsContent>
         </Tabs>
@@ -588,6 +631,76 @@ export default function ParentTasksPage() {
                 }}
               >
                 削除する <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* 承認モーダル */}
+      <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-green-600 flex justify-center gap-2">
+              <ClipboardCheck className="w-6 h-6" />
+              タスクの承認
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <p className="text-gray-700">
+              「<strong>{selectedNotification?.title}</strong>」を承認してもよろしいですか？
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-2xl"
+                onClick={() => setIsApproveModalOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-2xl"
+                onClick={() => {
+                  handleApprove(selectedNotification!.id)
+                  setIsApproveModalOpen(false)
+                }}
+              >
+                承認する
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 却下モーダル */}
+      <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2">
+              <Ban className="w-6 h-6" />
+              タスクの却下
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <p className="text-gray-700">
+              「<strong>{selectedNotification?.title}</strong>」を却下してもよろしいですか？
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-2xl"
+                onClick={() => setIsRejectModalOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
+                onClick={() => {
+                  handleReject(selectedNotification!.id)
+                  setIsRejectModalOpen(false)
+                }}
+              >
+                却下する
               </Button>
             </div>
           </div>
