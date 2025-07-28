@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('parent_id')->constrained('users')->onDelete('cascade')->after('recurrence');
             $table->foreignId('child_id')->constrained('users')->onDelete('cascade')->after('parent_id');
             $table->integer('reward_amount')->default(0)->after('child_id');
-            $table->timestamp('approved_at')->nullable()->after('reward_amount');
             $table->foreignId('task_category_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('reward_id');
             $table->enum('status', ['submitted', 'approved', 'rejected']);
             $table->timestamp('requested_at');
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('reward_id')->references('id')->on('rewards')->onDelete('cascade');

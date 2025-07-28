@@ -54,4 +54,16 @@ class Task extends Model
     {
         return $this->hasOne(TaskSubmission::class)->latestOfMany();
     }
+
+    protected $appends = ['isRecurring', 'recurringType'];
+
+    public function getIsRecurringAttribute()
+    {
+        return !empty($this->recurrence);
+    }
+
+    public function getRecurringTypeAttribute()
+    {
+        return $this->recurrence;
+    }
 }

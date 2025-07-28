@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\ChildController;
 use App\Http\Controllers\Api\RewardController;
+use App\Http\Controllers\Api\RewardBalanceController;
+use App\Http\Controllers\Api\RewardRequestController;
 use App\Http\Controllers\Api\BadgeController;
 use App\Http\Controllers\Api\TaskCategoryController;
 use App\Http\Controllers\Api\TaskCommentController;
@@ -51,17 +53,17 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
         Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
-        // task_categories
-        Route::get('/task_categories', [TaskCategoryController::class, 'index']);
-        Route::post('/task_categories', [TaskCategoryController::class, 'store']);
-        Route::get('/task_categories/{id}', [TaskCategoryController::class, 'show']);
-        Route::put('/task_categories/{id}', [TaskCategoryController::class, 'update']);
-        Route::delete('/task_categories/{id}', [TaskCategoryController::class, 'destroy']);
+        // task-categories
+        Route::get('/task-categories', [TaskCategoryController::class, 'index']);
+        Route::post('/task-categories', [TaskCategoryController::class, 'store']);
+        Route::get('/task-categories/{id}', [TaskCategoryController::class, 'show']);
+        Route::put('/task-categories/{id}', [TaskCategoryController::class, 'update']);
+        Route::delete('/task-categories/{id}', [TaskCategoryController::class, 'destroy']);
 
-        // task_submission
+        // task-submission
         Route::post('/task/{task}/submit', [TaskSubmissionController::class, 'store']);
-        Route::put('/task_submissions/{taskId}/approve', [TaskSubmissionController::class, 'approve']);
-        Route::put('/task_submissions/{taskId}/reject', [TaskSubmissionController::class, 'reject']);
+        Route::patch('/task-submissions/{taskId}/approve', [TaskSubmissionController::class, 'approve']);
+        Route::put('/task-submissions/{taskId}/reject', [TaskSubmissionController::class, 'reject']);
 
         // comment
         Route::get('/tasks/{taskId}/comments', [TaskCommentController::class, 'index']);
@@ -73,6 +75,15 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::get('/rewards/{reward}', [RewardController::class, 'show']);
         Route::put('/rewards/{reward}', [RewardController::class, 'update']);
         Route::delete('/rewards/{reward}', [RewardController::class, 'destroy']);
+
+        //reward-requests
+        Route::get('/reward-requests', [RewardRequestController::class, 'index']);
+        Route::post('/reward-requests', [RewardRequestController::class, 'store']);
+        Route::post('/reward-requests/{id}/approve', [RewardRequestController::class, 'approve']);
+        Route::post('/reward-requests/{id}/reject', [RewardRequestController::class, 'reject']);
+
+        //reward-balance
+        Route::get('/reward-balance', [RewardBalanceController::class, 'index']);
 
         //badges
         Route::get('/badges', [BadgeController::class, 'index']);

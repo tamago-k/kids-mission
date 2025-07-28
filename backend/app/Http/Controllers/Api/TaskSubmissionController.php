@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\TaskSubmission;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\RewardBalance;
+use App\Models\RewardBalanceHistory;
 
 class TaskSubmissionController extends Controller
 {
@@ -49,8 +52,52 @@ class TaskSubmissionController extends Controller
             return response()->json(['message' => '申請が見つかりません'], 404);
         }
 
+        $task = $submission->task;
+        // 繰り返し設定がある場合、次回のタスクを自動作成
+        if ($task->recurrence) {
+            $nextDate = $this->calculateNextDueDate($task);
+
+            if ($nextDate) {
+                Task::create([
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'child_id' => $task->child_id,
+                    'reward_amount' => $task->reward_amount,
+                    'task_category_id' => $task->task_category_id,
+                    'parent_id' => $task->parent_id,
+                    'due_date' => $nextDate,
+                    'recurrence' => $task->recurrence,
+                ]);
+            }
+        }
+
         $submission->status = 'approved';
         $submission->save();
+
+        $childId = $task->child_id;
+        $rewardAmount = $task->reward_amount ?? 0;
+
+        $balance = RewardBalance::firstOrCreate(
+            ['user_id' => $childId],
+            ['balance' => 0]
+        );
+        // RewardBalance を更新（または新規作成）
+        $balance = RewardBalance::firstOrCreate(
+            ['user_id' => $childId],
+            ['balance' => 0]
+        );
+
+        $balance->balance += $rewardAmount;
+        $balance->save();
+
+        // RewardBalanceHistory に履歴追加
+        RewardBalanceHistory::create([
+            'user_id'     => $childId,
+            'change_type' => 'add',
+            'amount'      => $rewardAmount,
+            'related_id'  => $submission->id,
+            'changed_at'  => now(),
+        ]);
 
         return response()->json($submission);
     }
@@ -72,4 +119,17 @@ class TaskSubmissionController extends Controller
         return response()->json($submission);
     }
 
+    private function calculateNextDueDate(Task $task): ?Carbon
+    {
+        $current = Carbon::parse($task->due_date);
+
+        return match ($task->recurrence) {
+            'daily' => $current->addDay(),
+            'weekly' => $current->addWeek(),
+            'monthly' => $current->addMonthNoOverflow(), // 例: 1/31 → 2/29 or 3/1
+            'weekdays' => $current->nextWeekday(),
+            'weekends' => $current->dayOfWeek === 6 ? $current->addDay() : $current->next(Carbon::SATURDAY),
+            default => null,
+        };
+    }
 }
