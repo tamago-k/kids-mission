@@ -15,11 +15,21 @@ class RewardRequestController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $requests = RewardRequest::with('reward')
-            ->where('user_id', $user->id)
-            ->orderByDesc('requested_at')
-            ->get();
-        return response()->json($requests);
+
+        if ($user->role === 'parent') {
+            $requests = RewardRequest::with(['reward', 'user'])
+                ->orderByDesc('requested_at')
+                ->get();
+            return response()->json(['requests' => $requests]);
+        } else {
+        $user = auth()->user();
+            $requests = RewardRequest::with('reward')
+                ->where('user_id', $user->id)
+                ->orderByDesc('requested_at')
+                ->get();
+            return response()->json($requests);
+        }
+
     }
 
     // 申請作成
@@ -65,7 +75,7 @@ class RewardRequestController extends Controller
     {
         $rewardRequest = RewardRequest::findOrFail($id);
 
-        if ($rewardRequest->status !== 'pending') {
+        if ($rewardRequest->status !== 'submitted') {
             return response()->json(['message' => '既に処理済みです'], 422);
         }
 
@@ -101,7 +111,7 @@ class RewardRequestController extends Controller
     {
         $rewardRequest = RewardRequest::findOrFail($id);
 
-        if ($rewardRequest->status !== 'pending') {
+        if ($rewardRequest->status !== 'submitted') {
             return response()->json(['message' => '既に処理済みです'], 422);
         }
 

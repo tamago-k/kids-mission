@@ -125,10 +125,10 @@ export default function ChildRewardsPage() {
       <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white m-4">
         <CardContent className="p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold mb-1"><ThumbsUp className="w-12 h-12" /> ポイント残高</h2>
+            <h2 className="text-lg font-bold flex gap-1 items-center"><PiggyBank className="w-6 h-6" /> ポイント残高</h2>
             <div className="text-4xl font-bold">{currentBalance} P</div>
           </div>
-          <div className="text-6xl opacity-20"><PiggyBank className="w-12 h-12" /></div>
+          <div className="text-6xl opacity-20"><ThumbsUp className="w-15 h-15" /></div>
         </CardContent>
       </Card>
 
@@ -214,7 +214,13 @@ export default function ChildRewardsPage() {
               <div className="text-right">
                 <div
                   className={`font-bold ${
-                    item.status === "earned" ? "text-green-600" : item.status === "approved" ? "text-purple-600" : "text-yellow-600"
+                    item.status === "approved" 
+                    ? "text-green-600" 
+                    : item.status === "submitted" 
+                    ? "text-yellow-600"
+                    : item.status === "rejected"
+                    ? "text-red-600"
+                    : "text-purple-600" 
                   }`}
                 >
                   {item.status === "earned" ? "+" : "-"}
@@ -226,6 +232,8 @@ export default function ChildRewardsPage() {
                       ? "bg-green-100 text-green-600"
                       : item.status === "submitted"
                       ? "bg-yellow-100 text-yellow-600"
+                      : item.status === "rejected"
+                      ? "bg-red-100 text-red-600"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -233,7 +241,9 @@ export default function ChildRewardsPage() {
                     ? "承認済み"
                     : item.status === "submitted"
                     ? "申請中"
-                    : item.status === "却下"}
+                    : item.status === "rejected"
+                    ? "却下"
+                    : ""}
                 </Badge>
               </div>
             </div>

@@ -15,26 +15,26 @@ export function ParentNavigation() {
     { href: "/parent/dashboard", icon: Home, label: "ホーム" },
     { href: "/parent/tasks", icon: BarChart3, label: "タスク" },
     { href: "/parent/rewards", icon: PiggyBank, label: "報酬" },
-    { href: "/parent/badges", icon: Medal, label: "バッチ" },
+    { href: "/parent/report", icon: BarChart3, label: "レポート" },
   ]
 
   const menuItems = [
-    { href: "/parent/children", icon: Users, label: "子ども" },
     { href: "/parent/calendar", icon: Calendar, label: "カレンダー" },
-    { href: "/parent/report", icon: BarChart3, label: "レポート" },
     {
       label: "履歴", icon: History,
       children: [
         { label: "タスク履歴", href: "/parent/history/tasks" },
-        { label: "ポイント履歴", href: "/parent/history/rewards" }
+        { label: "ポイント履歴", href: "/parent/history/rewards" },
+        { label: "バッジ履歴", href: "/parent/history/badges" }
       ]
     },
     {
       label: "マスタ設定", icon: Settings,
       children: [
+        { label: "子どもマスタ", href: "/parent/master/children" },
         { label: "タスクカテゴリマスタ", href: "/parent/master/categories" },
         { label: "報酬マスタ", href: "/parent/master/rewards" },
-        { label: "バッジマスタ", href: "/parent/master/badges" }
+        { label: "バッジマスタ", href: "/parent/master/badges" },
       ]
     }
   ]

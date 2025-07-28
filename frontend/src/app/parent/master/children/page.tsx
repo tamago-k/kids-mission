@@ -260,34 +260,6 @@ export default function ChildrenPage() {
                     </div>
                   </div>
                 )}
-
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className={`p-4 rounded-xl ${theme.bg}`}>
-                      <div className={`text-2xl font-bold ${theme.text}`}>{child.points}</div>
-                      <div className="text-sm text-gray-600">獲得ポイント</div>
-                    </div>
-                    <div className={`p-4 rounded-xl ${theme.bg}`}>
-                      <div className={`text-2xl font-bold ${theme.text}`}>{completionRate}%</div>
-                      <div className="text-sm text-gray-600">完了率</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>今週のタスク進捗</span>
-                      <span>
-                        {child.approvedTasks}/{child.totalTasks}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`bg-gradient-to-r ${theme.gradient} h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${completionRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
               </Card>
             )
           })}

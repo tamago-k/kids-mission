@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\RewardBalanceController;
 use App\Http\Controllers\Api\RewardRequestController;
 use App\Http\Controllers\Api\BadgeController;
+use App\Http\Controllers\Api\BadgeAssignmentController;
 use App\Http\Controllers\Api\TaskCategoryController;
 use App\Http\Controllers\Api\TaskCommentController;
 use App\Http\Controllers\Api\TaskSubmissionController;
@@ -92,9 +93,10 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::put('/badges/{badge}', [BadgeController::class, 'update']);
         Route::delete('/badges/{badge}', [BadgeController::class, 'destroy']);
         Route::patch('/badges/{badge}', [BadgeController::class, 'update']);
+        Route::post('/badges/{id}/grant', [BadgeController::class, 'grant'])->middleware('auth');
 
         //badge_assignments
-        Route::post('/badges/{id}/grant', [BadgeController::class, 'grant'])->middleware('auth');
+        Route::post('/badge-assignments/{id}/receive', [BadgeAssignmentController::class, 'receive']);
 
     });
 

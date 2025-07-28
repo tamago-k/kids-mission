@@ -5,13 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Badge;
-use App\Services\BadgeService;
+use App\Models\BadgeAssignment;
+use Illuminate\Support\Facades\Auth;
 
 class BadgeController extends Controller
 {
     public function index()
     {
-        return Badge::all();
+        $user = Auth::user();
+
+        $assignments = BadgeAssignment::with('badge')
+            ->where('user_id', $user->id)
+            ->get();
+
+        return response()->json($assignments);
     }
 
     public function store(Request $request)

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { CheckCircle, Clock, Star, MessageCircle, Gift, Target } from "lucide-react"
+import { PiggyBank, ClipboardCheck, Star, CheckCircle, Gift, ThumbsUp } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildDashboard() {
@@ -107,10 +107,6 @@ export default function ChildDashboard() {
                 <h1 className="text-xl font-bold text-gray-800">今日もがんばろう！</h1>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-purple-600">{currentBalance}</div>
-              <div className="text-xs text-gray-600">ポイント</div>
-            </div>
           </div>
         </div>
       </div>
@@ -122,13 +118,13 @@ export default function ChildDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold mb-1">🎯 今日のタスク</h2>
+                <h2 className="text-lg font-bold mb-1 flex gap-1 items-center"><CheckCircle className="w-4 h-4" />今日のタスク</h2>
                 <div className="text-3xl font-bold">
                   {todayTasks.filter((t) => t.status === "approved").length}/{todayTasks.length}
                 </div>
                 <p className="text-orange-100 text-sm">完了したよ！</p>
               </div>
-              <div className="text-6xl opacity-20">📋</div>
+              <div className="text-6xl opacity-20"><ClipboardCheck className="w-15 h-15" /></div>
             </div>
           </CardContent>
         </Card>
@@ -138,16 +134,16 @@ export default function ChildDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold mb-1">💰 ポイント残高</h2>
+                <h2 className="text-lg font-bold flex gap-1 items-center"><PiggyBank className="w-6 h-6" /> ポイント残高</h2>
                 <div className="text-3xl font-bold">{currentBalance} P</div>
                 <p className="text-purple-100 text-sm mt-1">よくがんばったね！</p>
               </div>
-              <div className="text-6xl opacity-20">💎</div>
+              <div className="text-6xl opacity-20"><ThumbsUp className="w-15 h-15" /></div>
             </div>
             <Link href="/child/rewards/" className="flex-1">
               <Button className="w-full mt-4 bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-2xl h-12">
                 <Gift className="w-5 h-5 mr-2" />
-                ポイントを使う ✨
+                ポイントを使う
               </Button>
             </Link>
           </CardContent>

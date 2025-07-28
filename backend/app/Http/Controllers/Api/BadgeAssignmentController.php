@@ -18,4 +18,22 @@ class BadgeAssignmentController extends Controller
 
         return response()->json($assignments);
     }
+    public function receive($id)
+    {
+        $user = auth()->user();
+
+        $assignment = BadgeAssignment::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if ($assignment->received_at !== null) {
+            return response()->json(['message' => 'すでに受け取っています'], 400);
+        }
+
+        $assignment->received_at = now();
+        $assignment->status = 'received'; // ← ここを追加
+        $assignment->save();
+
+        return response()->json($assignment);
+    }
 }

@@ -20,9 +20,6 @@ class ChildController extends Controller
                 'name' => $child->name,
                 'colorTheme' => $child->theme,
                 'icon' => $child->avatar,
-                'points' => 100, // 仮のポイント（本来はDBに持たせる or 計算）
-                'approvedTasks' => 5,  // 仮データ
-                'totalTasks' => 10,     // 仮データ
                 'password' => $child->password,
             ];
         });
@@ -69,10 +66,7 @@ class ChildController extends Controller
             'id' => $child->id,
             'name' => $child->name,
             'colorTheme' => $child->theme ?? 'blue',
-            'icon' => $child->avatar ?? '👦',
-            'points' => 100,         // 仮データ
-            'approvedTasks' => 0,   // 新規なので0にしたほうが自然
-            'totalTasks' => 0,       // 仮データ
+            'icon' => $child->avatar ?? '',
             'password' => $child->password,
         ];
 
