@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TaskListParent } from "@/components/TaskListParent"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert, Ban } from "lucide-react"
+import { Plus, Trash2, Repeat, ClipboardCheck, TriangleAlert, Ban, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TaskCommentModal } from "@/components/TaskCommentModal"
@@ -41,6 +41,7 @@ export default function ParentTasksPage() {
   const [assignedChild, setAssignedChild] = useState("")
   const [assignedTaskCategory, setAssignedTaskCategory] = useState("")
   const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrence, setRecurrence] = useState("daily")
   const [recurringType, setRecurringType] = useState("")
   const [recurringDays, setRecurringDays] = useState<string[]>([])
   const [tasks, setTasks] = useState<any[]>([])
@@ -98,7 +99,7 @@ export default function ParentTasksPage() {
 
     const fetchTaskCategories = async () => {
       const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/task_categories`, {
+      const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -299,8 +300,8 @@ export default function ParentTasksPage() {
   const handleApprove = async (taskId: number) => {
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/task_submissions/${taskId}/approve`, {
-        method: "PUT", // またはPATCH
+      const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/approve`, {
+        method: "PATCH", // またはPATCH
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -320,7 +321,7 @@ export default function ParentTasksPage() {
   const handleReject = async (taskId: number) => {
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
-      const res = await fetch(`${apiBaseUrl}/api/task_submissions/${taskId}/reject`, {
+      const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/reject`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -345,19 +346,26 @@ export default function ParentTasksPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="p-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><ClipboardCheck className="w-6 h-6" /> タスク管理</h1>
-            <p className="text-sm text-gray-600">子どもたちのタスクを管理</p>
+        <div className="p-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <ClipboardCheck className="w-6 h-6" /> 
+                タスク管理
+              </h1>
+              <p className="text-sm text-gray-600">子どもたちのタスクを管理</p>
+            </div>
+            <Button
+              className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl flex items-center gap-2"
+              onClick={() => openTaskModal()}
+            >
+              <Plus className="w-4 h-4" />
+              新規作成
+            </Button>
           </div>
-
-          <Button
-            className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl flex items-center gap-2"
-            onClick={() => openTaskModal()}
-          >
-            <Plus className="w-4 h-4" />
-            新規作成
-          </Button>
         </div>
       </div>
 
@@ -567,8 +575,10 @@ export default function ParentTasksPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-white shadow-md border rounded-xl z-50">
                         <SelectItem value="daily">毎日</SelectItem>
-                        <SelectItem value="weekly">毎週</SelectItem>
-                        <SelectItem value="monthly">毎月</SelectItem>
+                        {/*<SelectItem value="weekly">毎週</SelectItem>
+                        <SelectItem value="monthly">毎月</SelectItem>*/}
+                        <SelectItem value="weekdays">平日</SelectItem>
+                        <SelectItem value="weekends">土日</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

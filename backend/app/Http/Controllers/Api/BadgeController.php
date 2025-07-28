@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Badge;
+use App\Services\BadgeService;
 
 class BadgeController extends Controller
 {
@@ -46,4 +47,21 @@ class BadgeController extends Controller
         $badge->delete();
         return response()->noContent();
     }
+    
+    public function grant($id)
+    {
+        $user = auth()->user();
+
+        $assignment = BadgeAssignment::where('user_id', $user->id)
+            ->where('badge_id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $assignment->status = 'granted';
+        $assignment->assigned_at = now();
+        $assignment->save();
+
+        return response()->json($assignment);
+    }
+
 }

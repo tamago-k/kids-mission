@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\TaskSubmission;
 use App\Models\RewardBalance;
 use App\Models\RewardBalanceHistory;
+use App\Services\BadgeService;
 
 class TaskSubmissionController extends Controller
 {
@@ -22,7 +23,7 @@ class TaskSubmissionController extends Controller
         }
 
         $alreadyPending = TaskSubmission::where('task_id', $task->id)
-            ->where('submitted_by', $user->id)
+            ->where('user_id', $user->id)
             ->where('status', 'submitted')
             ->exists();
 
@@ -32,7 +33,7 @@ class TaskSubmissionController extends Controller
 
         $submission = TaskSubmission::create([
             'task_id' => $task->id,
-            'submitted_by' => $user->id,
+            'user_id' => $user->id,
             'status' => 'submitted',
             'submitted_at' => now(),
         ]);
@@ -99,6 +100,11 @@ class TaskSubmissionController extends Controller
             'changed_at'  => now(),
         ]);
 
+        // バッジ判定
+        $badgeService = new BadgeService();
+        $badgeService->checkAndAssignBadges($submission->user_id);
+
+
         return response()->json($submission);
     }
 
@@ -126,7 +132,7 @@ class TaskSubmissionController extends Controller
         return match ($task->recurrence) {
             'daily' => $current->addDay(),
             'weekly' => $current->addWeek(),
-            'monthly' => $current->addMonthNoOverflow(), // 例: 1/31 → 2/29 or 3/1
+            'monthly' => $current->addMonthNoOverflow(), 
             'weekdays' => $current->nextWeekday(),
             'weekends' => $current->dayOfWeek === 6 ? $current->addDay() : $current->next(Carbon::SATURDAY),
             default => null,

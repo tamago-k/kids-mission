@@ -16,14 +16,14 @@ class CreateTaskSubmissionsTable extends Migration
         Schema::create('task_submissions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('task_id');
-            $table->unsignedBigInteger('submitted_by');
+            $table->unsignedBigInteger('user_id');
             $table->enum('status', ['submitted', 'approved', 'rejected'])->default('submitted');
             $table->timestamp('submitted_at');
             $table->timestamps();
 
             // 外部キー制約（必要に応じて）
             $table->foreign('task_id')->references('id')->on('tasks')->onDelete('cascade');
-            $table->foreign('submitted_by')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

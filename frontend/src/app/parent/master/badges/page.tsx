@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2,  Award, Medal } from "lucide-react"
+import { Plus, Edit, Trash2,  Award, Medal, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { badgeIconOptions } from "@/components/OptionThemes"
 
@@ -175,11 +175,14 @@ export default function ParentMasterPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Medal className="w-5 h-5 text-yellow-500" />
-                バッジマスター
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Medal className="w-6 h-6" /> 
+                バッジマスタ
               </h1>
               <p className="text-sm text-gray-600">条件達成で付与されるバッジの管理</p>
             </div>
@@ -238,7 +241,7 @@ export default function ParentMasterPage() {
                   id="badgeName"
                   value={badgeName}
                   onChange={(e) => setBadgeName(e.target.value)}
-                  placeholder="例：早起きマスター"
+                  placeholder="例：早起きマスタ"
                   className="mt-1 rounded-2xl"
                 />
               </div>
@@ -313,20 +316,18 @@ export default function ParentMasterPage() {
                         {badge.is_active ? "有効" : "無効"}
                       </Button>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                              badge.is_active ? "bg-yellow-100" : "bg-gray-100"
-                            }`}
-                          >
-                            {Icon ? <Icon className="w-6 h-6 text-yellow-600" /> : "未設定"}
-                          </div>
-                          <div>
-                            <h3 className={`font-medium ${badge.is_active ? "text-gray-800" : "text-gray-500"}`}>
-                              {badge.name}
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-1">条件: {badge.condition}</p>
-                          </div>
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+                            badge.is_active ? "bg-yellow-100" : "bg-gray-100"
+                          }`}
+                        >
+                          {Icon ? <Icon className="w-6 h-6 text-yellow-600" /> : "未設定"}
+                        </div>
+                        <div className="max-w-[60%]">
+                          <h3 className={`font-medium ${badge.is_active ? "text-gray-800" : "text-gray-500"}`}>
+                            {badge.name}
+                          </h3>
+                          <p className="text-xs text-gray-400 mt-1">条件: {badge.condition}</p>
                         </div>
                         <div className="flex justify-end flex-col items-center gap-2">
                           <Button

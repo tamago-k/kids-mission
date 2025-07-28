@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation";
 import Link from "next/link"
-import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut } from "lucide-react"
+import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut, PiggyBank, Medal } from "lucide-react"
 import { useState } from "react"
 
 export function ParentNavigation() {
@@ -13,16 +13,30 @@ export function ParentNavigation() {
 
   const navItems = [
     { href: "/parent/dashboard", icon: Home, label: "ホーム" },
-    { href: "/parent/children", icon: Users, label: "子ども" },
     { href: "/parent/tasks", icon: BarChart3, label: "タスク" },
-    { href: "/parent/notifications", icon: Bell, label: "通知" },
+    { href: "/parent/rewards", icon: PiggyBank, label: "報酬" },
+    { href: "/parent/badges", icon: Medal, label: "バッチ" },
   ]
 
   const menuItems = [
+    { href: "/parent/children", icon: Users, label: "子ども" },
     { href: "/parent/calendar", icon: Calendar, label: "カレンダー" },
-    { href: "/parent/stats", icon: BarChart3, label: "レポート" },
-    { href: "/parent/history", icon: History, label: "履歴" },
-    { href: "/parent/master", icon: Settings, label: "マスタ設定" },
+    { href: "/parent/report", icon: BarChart3, label: "レポート" },
+    {
+      label: "履歴", icon: History,
+      children: [
+        { label: "タスク履歴", href: "/parent/history/tasks" },
+        { label: "ポイント履歴", href: "/parent/history/rewards" }
+      ]
+    },
+    {
+      label: "マスタ設定", icon: Settings,
+      children: [
+        { label: "タスクカテゴリマスタ", href: "/parent/master/categories" },
+        { label: "報酬マスタ", href: "/parent/master/rewards" },
+        { label: "バッジマスタ", href: "/parent/master/badges" }
+      ]
+    }
   ]
 
   const router = useRouter();
@@ -74,25 +88,59 @@ export function ParentNavigation() {
           <div className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href
+              const hasChildren = Array.isArray(item.children) && item.children.length > 0
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                      : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              )
+              if (hasChildren) {
+                // 親項目はリンクなし見出しとして表示、子リンクをネストして表示
+                return (
+                  <div key={item.label}>
+                    <div className="flex items-center gap-4 px-4 py-2 text-gray-600 font-semibold select-none">
+                      {Icon && <Icon className="w-5 h-5" />}
+                      <span>{item.label}</span>
+                    </div>
+                    <div className="ml-8 space-y-1">
+                      {item.children.map((child) => {
+                        const isActive = pathname === child.href
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => setIsMenuOpen(false)}
+                            className={`block px-4 py-2 rounded-md transition ${
+                              isActive
+                                ? "bg-purple-100 text-purple-800 font-medium"
+                                : "text-gray-700 hover:text-purple-600 hover:bg-purple-50"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              } else {
+                // childrenがない＝単一リンクとして表示
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center gap-4 px-4 py-2 rounded-xl transition ${
+                      isActive
+                        ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
+                        : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                    }`}
+                  >
+                    {Icon && <Icon className="w-5 h-5" />}
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                )
+              }
             })}
           </div>
+
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <button onClick={handleLogout} className="flex items-center gap-4 p-4 rounded-xl text-red-600 hover:bg-red-50 w-full">

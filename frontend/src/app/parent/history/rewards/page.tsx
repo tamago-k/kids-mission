@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Wallet, ArrowLeft } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet, ArrowLeft, History } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentPointsPage() {
@@ -112,7 +112,7 @@ export default function ParentPointsPage() {
             </Button>
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Wallet className="w-6 h-6" /> 
+                <History className="w-6 h-6" /> 
                 ポイント履歴
               </h1>
               <p className="text-sm text-gray-600">ポイントの獲得・使用履歴</p>

@@ -113,7 +113,13 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                             ? "毎日"
                             : task.recurringType === "weekly"
                             ? "毎週"
-                            : "毎月"}
+                            : task.recurringType === "monthly"
+                            ? "毎月"
+                            : task.recurringType === "weekdays"
+                            ? "平日"
+                            : task.recurringType === "weekends"
+                            ? "土日"
+                            : ""}
                         </Badge>
                       )}
                     </div>

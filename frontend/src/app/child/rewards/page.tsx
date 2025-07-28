@@ -1,200 +1,286 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Gift, History, Star, Trophy } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Gift, History, Star, Trophy, PiggyBank, ThumbsUp, ArrowLeft } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
+import { rewardIconOptions } from "@/components/OptionThemes"
 
 export default function ChildRewardsPage() {
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
-  const [rewardItem, setRewardItem] = useState("")
-  const [rewardAmount, setRewardAmount] = useState("")
+  const [rewardItem, setRewardItem] = useState<{ id: number; name: string; need_reward: number; icon: string } | null>(null)
+  const [currentBalance, setCurrentBalance] = useState(0)
+  const [rewardHistory, setRewardHistory] = useState([])
+  const [suggestedRewards, setSuggestedRewards] = useState([])
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const currentBalance = 450
-  const totalEarned = 1250
+  // クッキーからCSRFトークンを取得するユーティリティ
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!)
+    return null
+  }
 
-  const rewardHistory = [
-    {
-      id: 1,
-      type: "earned",
-      title: "算数の宿題完了",
-      amount: 100,
-      date: "今日",
-      status: "approved",
-    },
-    {
-      id: 2,
-      type: "spent",
-      title: "ゲーム時間30分",
-      amount: -150,
-      date: "昨日",
-      status: "approved",
-    },
-    {
-      id: 3,
-      type: "earned",
-      title: "漢字練習完了",
-      amount: 80,
-      date: "昨日",
-      status: "approved",
-    },
-    {
-      id: 4,
-      type: "spent",
-      title: "お菓子",
-      amount: -100,
-      date: "2日前",
-      status: "submitted",
-    },
-  ]
+  // 初回ロード時にAPIからデータ取得
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const suggestedRewards = [
-    { name: "ゲーム時間30分", points: 150, emoji: "🎮" },
-    { name: "お菓子", points: 100, emoji: "🍭" },
-    { name: "好きなテレビ番組", points: 120, emoji: "📺" },
-    { name: "おもちゃ", points: 300, emoji: "🧸" },
-    { name: "外食", points: 500, emoji: "🍔" },
-    { name: "映画鑑賞", points: 200, emoji: "🎬" },
-  ]
+  async function fetchData() {
+    const csrfToken = getCookie("XSRF-TOKEN") ?? ""
+
+    try {
+      // ポイント残高取得
+      const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
+        credentials: 'include',
+        headers: { "X-XSRF-TOKEN": csrfToken },
+      })
+      if (!resBalance.ok) throw new Error("ポイント残高の取得に失敗しました")
+      const balanceData = await resBalance.json()
+      setCurrentBalance(balanceData.balance)
+
+      // おすすめ報酬取得
+      const resRewards = await fetch(`${apiBaseUrl}/api/rewards`, {
+        credentials: 'include',
+        headers: { "X-XSRF-TOKEN": csrfToken },
+      })
+      if (!resRewards.ok) throw new Error("報酬の取得に失敗しました")
+      const rewardsData = await resRewards.json()
+      setSuggestedRewards(rewardsData)
+
+      // ポイント履歴は別API想定
+      const resHistory = await fetch(`${apiBaseUrl}/api/reward-requests`, {
+        credentials: 'include',
+        headers: { "X-XSRF-TOKEN": csrfToken },
+      })
+      if (!resHistory.ok) throw new Error("履歴の取得に失敗しました")
+      const historyData = await resHistory.json()
+      setRewardHistory(historyData)
+
+    } catch (e: any) {
+      alert(e.message ?? "データの取得に失敗しました")
+    }
+  }
+
+  // 報酬申請処理
+  const handleRequestReward = async () => {
+    if (!rewardItem) return alert("報酬を選択してください")
+
+    if (rewardItem.need_reward > currentBalance) {
+      return alert("ポイントが足りません")
+    }
+
+    const csrfToken = getCookie("XSRF-TOKEN") ?? ""
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/reward-requests`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken,
+        },
+        body: JSON.stringify({
+          reward_id: rewardItem.id,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || "申請に失敗しました")
+      }
+
+      setRewardDialogOpen(false)
+      fetchData() // 最新情報取得（残高、履歴更新）
+    } catch (e: any) {
+      alert(e.message ?? "申請に失敗しました")
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto pb-[100px]">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">💰 ポイント</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <PiggyBank className="w-6 h-6" /> 
+                ポイント
+              </h1>
               <p className="text-sm text-gray-600">がんばったぶんだけたまるよ！</p>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-purple-600">{currentBalance}</div>
-              <div className="text-xs text-gray-600">ポイント</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* メインコンテンツ */}
-      <div className="p-4 space-y-6 pb-24">
-        {/* ポイント残高カード */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold mb-1">💎 ポイント残高</h2>
-                <div className="text-4xl font-bold">{currentBalance} P</div>
-              </div>
-              <div className="text-6xl opacity-20">💰</div>
-            </div>
+      {/* ポイント残高カード */}
+      <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white m-4">
+        <CardContent className="p-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold mb-1"><ThumbsUp className="w-12 h-12" /> ポイント残高</h2>
+            <div className="text-4xl font-bold">{currentBalance} P</div>
+          </div>
+          <div className="text-6xl opacity-20"><PiggyBank className="w-12 h-12" /></div>
+        </CardContent>
+      </Card>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-white/20 rounded-2xl p-3 text-center">
-                <div className="text-2xl font-bold">{totalEarned}</div>
-                <div className="text-sm text-purple-100">合計獲得</div>
-              </div>
-              <div className="bg-white/20 rounded-2xl p-3 text-center">
-                <div className="text-2xl font-bold">{totalEarned - currentBalance}</div>
-                <div className="text-sm text-purple-100">使ったポイント</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* おすすめ報酬 */}
+      <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm m-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Star className="w-5 h-5 text-yellow-500" />
+            おすすめ報酬
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            {suggestedRewards.map((reward: any) => {
+              const rewardIconObj = rewardIconOptions.find((icon) => icon.id === reward.icon);
+              const IconComponent = rewardIconObj ? rewardIconObj.Icon : null;
 
-        {/* おすすめ報酬 */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Star className="w-5 h-5 text-yellow-500" />
-              おすすめ報酬
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {suggestedRewards.map((reward, index) => (
+              return (
                 <Button
-                  key={index}
+                  key={reward.id}
                   variant="outline"
                   className={`h-auto p-4 rounded-2xl border-2 flex flex-col items-center gap-2 ${
-                    currentBalance >= reward.points
+                    currentBalance >= reward.need_reward
                       ? "border-green-200 hover:border-green-300 hover:bg-green-50"
                       : "border-gray-200 opacity-50 cursor-not-allowed"
                   }`}
-                  disabled={currentBalance < reward.points}
+                  disabled={currentBalance < reward.need_reward}
                   onClick={() => {
-                    setRewardItem(reward.name)
-                    setRewardAmount(reward.points.toString())
-                    setRewardDialogOpen(true)
+                    setRewardItem(reward);
+                    setRewardDialogOpen(true);
                   }}
                 >
-                  <span className="text-3xl">{reward.emoji}</span>
+                  {/* Iconがあれば表示、なければ「未設定」 */}
+                  {IconComponent ? <IconComponent className="min-w-[30px] min-h-[30px]" /> : "未設定"}
+
                   <div className="text-center">
                     <div className="font-medium text-sm">{reward.name}</div>
-                    <div className="text-xs text-gray-600">{reward.points}P</div>
+                    <div className="text-xs text-gray-600">{reward.need_reward}P</div>
                   </div>
                 </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* ポイント履歴 */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <History className="w-5 h-5 text-blue-500" />
-              ポイント履歴
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {rewardHistory.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      item.type === "earned" ? "bg-green-100" : "bg-purple-100"
-                    }`}
-                  >
-                    {item.type === "earned" ? (
-                      <Trophy className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <Gift className="w-5 h-5 text-purple-600" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-800">{item.title}</h4>
-                    <p className="text-sm text-gray-600">{item.date}</p>
-                  </div>
+      {/* ポイント履歴 */}
+      <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm m-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <History className="w-5 h-5 text-blue-500" />
+            ポイント履歴
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {rewardHistory.map((item: any) => (
+            <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    item.status === "earned" ? "bg-green-100" : "bg-purple-100"
+                  }`}
+                >
+                  {item.status === "earned" ? (
+                    <Trophy className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Gift className="w-5 h-5 text-purple-600" />
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className={`font-bold ${item.amount > 0 ? "text-green-600" : "text-purple-600"}`}>
-                    {item.amount > 0 ? "+" : ""}
-                    {item.amount}P
-                  </div>
-                  <Badge
-                    className={`text-xs ${
-                      item.status === "approved"
-                        ? "bg-green-100 text-green-600"
-                        : item.status === "approved"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-yellow-100 text-yellow-600"
-                    }`}
-                  >
-                    {item.status === "approved" ? "完了" : item.status === "approved" ? "承認済み" : "申請中"}
-                  </Badge>
+                <div>
+                  <h4 className="font-medium text-gray-800">{item.reward?.name || item.reward_name || item.title}</h4>
+                  <p className="text-sm text-gray-600">
+                    {item.requested_at
+                      ? new Date(item.requested_at).toLocaleDateString("ja-JP", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })
+                      : item.date}
+                  </p>
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+              <div className="text-right">
+                <div
+                  className={`font-bold ${
+                    item.status === "earned" ? "text-green-600" : item.status === "approved" ? "text-purple-600" : "text-yellow-600"
+                  }`}
+                >
+                  {item.status === "earned" ? "+" : "-"}
+                  {item.reward?.need_reward}P
+                </div>
+                <Badge
+                  className={`text-xs ${
+                    item.status === "approved"
+                      ? "bg-green-100 text-green-600"
+                      : item.status === "submitted"
+                      ? "bg-yellow-100 text-yellow-600"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {item.status === "approved"
+                    ? "承認済み"
+                    : item.status === "submitted"
+                    ? "申請中"
+                    : item.status === "却下"}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
-      {/* ナビゲーション */}
+      {/* 報酬申請モーダル */}
+      <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-green-600 flex justify-center gap-2">
+              <Gift className="w-5 h-5" /> 報酬の申請
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            {(() => {
+              const rewardIconObj = rewardIconOptions.find((icon) => icon.id === rewardItem?.icon);
+              const IconComponent = rewardIconObj?.Icon;
+
+              return (
+                <p className="text-gray-700">
+                  「<strong className="inline-flex items-center gap-2 justify-center">
+                    {IconComponent ? <IconComponent className="w-4 h-4" /> : <span>未設定</span>}
+                    {rewardItem?.name}
+                  </strong>」を申請しますか？
+                </p>
+              );
+            })()}
+            <p className="text-gray-600 text-sm">
+              必要ポイント：<span className="font-bold">{rewardItem?.need_reward}P</span>
+            </p>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => setRewardDialogOpen(false)}>
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-2xl"
+                onClick={handleRequestReward}
+              >
+                申請する
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ChildNavigation />
     </div>
   )

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, Gift, TriangleAlert } from "lucide-react"
+import { Plus, Edit, Trash2, Gift, TriangleAlert, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { rewardIconOptions } from "@/components/OptionThemes"
 
@@ -143,11 +143,14 @@ export default function ParentMasterPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Gift className="w-5 h-5 text-purple-500" />
-                報酬マスター
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Gift className="w-6 h-6" /> 
+                報酬マスタ
               </h1>
               <p className="text-sm text-gray-600">ポイントで交換できる報酬の設定</p>
             </div>

@@ -92,6 +92,10 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::put('/badges/{badge}', [BadgeController::class, 'update']);
         Route::delete('/badges/{badge}', [BadgeController::class, 'destroy']);
         Route::patch('/badges/{badge}', [BadgeController::class, 'update']);
+
+        //badge_assignments
+        Route::post('/badges/{id}/grant', [BadgeController::class, 'grant'])->middleware('auth');
+
     });
 
 });

@@ -93,7 +93,6 @@ export default function ChildNotificationsPage() {
                 おしらせ
                 {unreadCount > 0 && <Badge className="bg-red-500 text-white">{unreadCount}</Badge>}
               </h1>
-              <p className="text-sm text-gray-600">きみへのおしらせだよ！</p>
             </div>
             <Button
               variant="outline"

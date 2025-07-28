@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react"
+import { ArrowLeft, Calendar, Clock } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildCalendarPage() {
@@ -131,19 +131,16 @@ export default function ChildCalendarPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Calendar className="w-6 h-6" /> カレンダー</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Calendar className="w-6 h-6" /> 
+                おしらせ
+              </h1>
               <p className="text-sm text-gray-600">きみのタスクをチェック！</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} className="rounded-full">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="text-lg font-bold text-gray-800 min-w-[120px] text-center">{formatDate(currentDate)}</div>
-              <Button variant="outline" size="icon" onClick={() => navigateMonth("next")} className="rounded-full">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             </div>
           </div>
         </div>

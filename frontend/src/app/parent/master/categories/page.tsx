@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, CopyPlus, TriangleAlert } from "lucide-react"
+import { Plus, Edit, Trash2, CopyPlus, TriangleAlert, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentMasterPage() {
@@ -34,7 +34,7 @@ export default function ParentMasterPage() {
   const fetchTaskCategorys = async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     try {
-      const res = await fetch(`${apiBaseUrl}/api/task_categories`, {
+      const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
         credentials: 'include',
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export default function ParentMasterPage() {
     try {
       let res;
       if (editingTaskCategoryId === null) {
-        res = await fetch(`${apiBaseUrl}/api/task_categories`, {
+        res = await fetch(`${apiBaseUrl}/api/task-categories`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -74,7 +74,7 @@ export default function ParentMasterPage() {
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch(`${apiBaseUrl}/api/task_categories/${editingTaskCategoryId}`, {
+        res = await fetch(`${apiBaseUrl}/api/task-categories/${editingTaskCategoryId}`, {
           method: 'PUT',
           credentials: 'include',
           headers: {
@@ -119,7 +119,7 @@ export default function ParentMasterPage() {
     const csrfToken = getCookie("XSRF-TOKEN");
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/task_categories/${id}`, {
+      const res = await fetch(`${apiBaseUrl}/api/task-categories/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -141,10 +141,13 @@ export default function ParentMasterPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <CopyPlus className="w-5 h-5 text-purple-500" />
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <CopyPlus className="w-6 h-6" /> 
                 タスクカテゴリマスタ
               </h1>
               <p className="text-sm text-gray-600">タスクのカテゴリを管理</p>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts"
-import { Star, Target, TrendingUp, Award } from "lucide-react"
+import { Star, Target, TrendingUp, Award, ArrowLeft } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildStatsPage() {
@@ -33,7 +33,7 @@ export default function ChildStatsPage() {
   ]
 
   const achievements = [
-    { title: "連続達成マスター", description: "5日連続でタスクを完了", emoji: "🔥", earned: true },
+    { title: "連続達成マスタ", description: "5日連続でタスクを完了", emoji: "🔥", earned: true },
     { title: "ポイントコレクター", description: "1000ポイント獲得", emoji: "💰", earned: true },
     { title: "宿題キング", description: "宿題を10回連続完了", emoji: "📚", earned: false },
     { title: "お手伝いヒーロー", description: "お手伝いを20回完了", emoji: "🦸", earned: false },
@@ -53,9 +53,15 @@ export default function ChildStatsPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">📊 きみのせいせき</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Award className="w-6 h-6" /> 
+                きみのせいせき
+              </h1>
               <p className="text-sm text-gray-600">がんばりがみえるよ！</p>
             </div>
             <div className="flex gap-2">

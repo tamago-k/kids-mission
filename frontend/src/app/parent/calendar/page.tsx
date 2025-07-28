@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar, Clock, User, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentCalendarPage() {
@@ -142,24 +142,20 @@ export default function ParentCalendarPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Calendar className="w-6 h-6" /> カレンダー</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Calendar className="w-6 h-6" /> 
+                カレンダー
+              </h1>
               <p className="text-sm text-gray-600">タスクの予定を確認</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} className="rounded-full">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="text-lg font-bold text-gray-800 min-w-[120px] text-center">{formatDate(currentDate)}</div>
-              <Button variant="outline" size="icon" onClick={() => navigateMonth("next")} className="rounded-full">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
-
           {/* 子ども選択 */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 overflow-x-auto mt-2">
             <Button
               variant={selectedChild === "all" ? "default" : "outline"}
               className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
@@ -212,7 +208,17 @@ export default function ParentCalendarPage() {
             <div className="text-center mt-2 text-xs text-gray-500">📅 タスクがある日付をタップして詳細を確認</div>
           </CardContent>
         </Card>
+        
         {/* カレンダーグリッド */}
+        <div className="flex justify-center items-center gap-2 mt-2 mb-2">
+          <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} className="rounded-full">
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div className="text-lg font-bold text-gray-800 min-w-[120px] text-center">{formatDate(currentDate)}</div>
+          <Button variant="outline" size="icon" onClick={() => navigateMonth("next")} className="rounded-full">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
         <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm mb-6">
           <CardContent className="p-4">
             {/* 曜日ヘッダー */}

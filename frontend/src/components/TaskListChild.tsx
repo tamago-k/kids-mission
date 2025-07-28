@@ -86,6 +86,22 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                 <div className="flex items-center gap-1 text-xs mt-2">
                   <Calendar className="w-4 h-4" />
                   {task.due_date ? formatDateForDisplay(task.due_date) : "なし"}
+                  {task.isRecurring && (
+                    <Badge className="bg-purple-100 text-purple-600 text-xs">
+                      <Repeat className="w-3 h-3 mr-1" />
+                      {task.recurringType === "daily"
+                        ? "毎日"
+                        : task.recurringType === "weekly"
+                        ? "毎週"
+                        : task.recurringType === "monthly"
+                        ? "毎月"
+                        : task.recurringType === "weekdays"
+                        ? "平日"
+                        : task.recurringType === "weekends"
+                        ? "土日"
+                        : ""}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <div className="flex item-center flex-col">

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation";
 import Link from "next/link"
-import { Home, CheckSquare, Calendar, Gift, Menu, Bell, BarChart3, LogOut } from "lucide-react"
+import { Home, CheckSquare, Calendar, PiggyBank, Menu, Medal, BarChart3, LogOut } from "lucide-react"
 import { useState } from "react"
 
 export function ChildNavigation() {
@@ -14,8 +14,8 @@ export function ChildNavigation() {
   const navItems = [
     { href: "/child/dashboard", icon: Home, label: "ホーム" },
     { href: "/child/tasks", icon: CheckSquare, label: "タスク" },
-    { href: "/child/rewards", icon: Gift, label: "報酬" },
-    { href: "/child/notifications", icon: Bell, label: "通知" },
+    { href: "/child/rewards", icon: PiggyBank, label: "報酬" },
+    { href: "/child/badges", icon: Medal, label: "バッジ" },
   ]
 
   const menuItems = [

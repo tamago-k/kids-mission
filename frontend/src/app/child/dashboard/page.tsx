@@ -104,8 +104,7 @@ export default function ChildDashboard() {
                 👦
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">こんにちは、太郎！</h1>
-                <p className="text-sm text-gray-600">今日もがんばろう 🌟</p>
+                <h1 className="text-xl font-bold text-gray-800">今日もがんばろう！</h1>
               </div>
             </div>
             <div className="text-right">

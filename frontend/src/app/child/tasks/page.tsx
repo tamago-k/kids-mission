@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CalendarSearch, Sun, SwatchBook, ClipboardCheck, PartyPopper, PiggyBank } from "lucide-react"
+import { CalendarSearch, Sun, SwatchBook, ClipboardCheck, PartyPopper, PiggyBank, ArrowLeft } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 import { TaskCommentModal } from "@/components/TaskCommentModal"
 import { TaskListChild } from "@/components/TaskListChild"
@@ -53,7 +53,7 @@ export default function ChildTasksPage() {
   const fetchTaskCategories = async () => {
     if (!user) return;
     const csrfToken = getCookie("XSRF-TOKEN");
-    const res = await fetch(`${apiBaseUrl}/api/task_categories`, {
+    const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -148,7 +148,7 @@ export default function ChildTasksPage() {
     if (!dateStr) return false;
     const date = new Date(dateStr);
     const dayAfterTomorrow = new Date();
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
     // 今度は明日の次の日以降のタスク（期限がそれ以降）
     return date >= dayAfterTomorrow;
   };
@@ -176,7 +176,7 @@ export default function ChildTasksPage() {
       );
     } else if (filter === "upcoming") {
       const dayAfterTomorrow = new Date(today);
-      dayAfterTomorrow.setDate(today.getDate() + 2);
+      dayAfterTomorrow.setDate(today.getDate() + 1);
       return dueDate >= dayAfterTomorrow;
     }
 
@@ -189,16 +189,16 @@ export default function ChildTasksPage() {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2"><ClipboardCheck className="w-6 h-6" /> タスク一覧</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <ClipboardCheck className="w-6 h-6" /> 
+                タスク一覧
+              </h1>
               <p className="text-sm text-gray-600">がんばってクリアしよう！</p>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-orange-600">
-                {tasks.filter(t => isToday(t.due_date)).filter(t => t.completion_status === "approved").length} / {tasks.filter(t => isToday(t.due_date)).length}
-              </div>
-              <div className="text-xs text-gray-600">完了</div>
             </div>
           </div>
         </div>
