@@ -45,10 +45,17 @@ class Task extends Model
         return $this->belongsTo(TaskCategory::class, 'task_category_id');
     }
     
+    // 全件取得用
     public function submissions()
     {
         return $this->hasMany(TaskSubmission::class);
     }
+
+    // ログインユーザー用
+    public function submission()
+    {
+        return $this->hasOne(TaskSubmission::class)->where('user_id', auth()->id());
+}
 
     public function latestSubmission()
     {

@@ -106,4 +106,16 @@ class TaskController extends Controller
         $task->delete();
         return response()->json(['message' => '削除しました']);
     }
+
+    public function todayTasks(Request $request)
+    {
+        $user = $request->user();
+
+        $tasks = Task::with('submission')
+            ->where('child_id', $user->id)
+            ->whereDate('due_date', now())
+            ->get();
+
+        return response()->json($tasks);
+    }
 }
