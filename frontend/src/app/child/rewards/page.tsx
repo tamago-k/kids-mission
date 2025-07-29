@@ -13,7 +13,7 @@ export default function ChildRewardsPage() {
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
   const [rewardItem, setRewardItem] = useState<{ id: number; name: string; need_reward: number; icon: string } | null>(null)
   const [currentBalance, setCurrentBalance] = useState(0)
-  const [rewardHistory, setRewardHistory] = useState([])
+  const [rewardHistory, setRewardHistory] = useState<any[]>([]);
   const [suggestedRewards, setSuggestedRewards] = useState([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -59,7 +59,7 @@ export default function ChildRewardsPage() {
       })
       if (!resHistory.ok) throw new Error("履歴の取得に失敗しました")
       const historyData = await resHistory.json()
-      setRewardHistory(historyData)
+      setRewardHistory(historyData.requests ?? [])
 
     } catch (e: any) {
       alert(e.message ?? "データの取得に失敗しました")
@@ -237,10 +237,10 @@ export default function ChildRewardsPage() {
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {item.status === "approved"
-                    ? "承認済み"
-                    : item.status === "submitted"
+                  {item.status === "submitted"
                     ? "申請中"
+                    : item.status === "approved"
+                    ? "承認済み"
                     : item.status === "rejected"
                     ? "却下"
                     : ""}

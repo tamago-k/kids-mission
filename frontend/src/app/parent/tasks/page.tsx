@@ -358,19 +358,19 @@ export default function ParentTasksPage() {
               </h1>
               <p className="text-sm text-gray-600">子どもたちのタスクを管理</p>
             </div>
-            <Button
-              className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl flex items-center gap-2"
-              onClick={() => openTaskModal()}
-            >
-              <Plus className="w-4 h-4" />
-              新規作成
-            </Button>
           </div>
         </div>
       </div>
 
       {/* メインコンテンツ */}
       <div className="p-4 space-y-4 pb-24">
+      <Button
+        className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl flex items-center gap-2"
+        onClick={() => openTaskModal()}
+        >
+        <Plus className="w-4 h-4" />
+        新規作成
+      </Button>
         {/* 統計カード */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-blue-400 to-purple-400 text-white">
@@ -388,31 +388,18 @@ export default function ParentTasksPage() {
         </div>
 
         {/* タスク一覧タブ */}
-        <Tabs defaultValue="active" className="w-full">
+        <Tabs defaultValue="submission" className="w-full">
           <TabsList className="grid grid-cols-3 mb-4 rounded-xl bg-gray-100 p-1">
-            <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
-              進行中
-            </TabsTrigger>
             <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               申請中
+            </TabsTrigger>
+            <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+              進行中
             </TabsTrigger>
             <TabsTrigger value="approved" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               完了済み
             </TabsTrigger>
           </TabsList>
-
-          {/* 進行中タスク */}
-          <TabsContent value="active">
-            <TaskListParent
-              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
-              onEdit={openEditDialog}
-              onDelete={(task) => {
-                setSelectedTask(task)
-                setDeleteTaskOpen(true)
-              }}
-              onComment={openCommentDialog}
-            />
-          </TabsContent>
 
           {/* 申請中タスク */}
           <TabsContent value="submission">
@@ -430,6 +417,19 @@ export default function ParentTasksPage() {
               onReject={(task) => {
                 setSelectedNotification(task);
                 setIsRejectModalOpen(true);
+              }}
+              onComment={openCommentDialog}
+            />
+          </TabsContent>
+
+          {/* 進行中タスク */}
+          <TabsContent value="active">
+            <TaskListParent
+              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
+              onEdit={openEditDialog}
+              onDelete={(task) => {
+                setSelectedTask(task)
+                setDeleteTaskOpen(true)
               }}
               onComment={openCommentDialog}
             />

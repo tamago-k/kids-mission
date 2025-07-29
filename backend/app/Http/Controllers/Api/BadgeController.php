@@ -12,13 +12,7 @@ class BadgeController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-
-        $assignments = BadgeAssignment::with('badge')
-            ->where('user_id', $user->id)
-            ->get();
-
-        return response()->json($assignments);
+        return Badge::all();
     }
 
     public function store(Request $request)

@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Calendar, Clock, User, ArrowLeft } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar, PiggyBank, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
+import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 export default function ParentCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 15))
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedChild, setSelectedChild] = useState("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -19,59 +20,38 @@ export default function ParentCalendarPage() {
     { id: "hanako", name: "花子", avatar: "👧", color: "bg-pink-100 text-pink-600" },
   ]
 
-  // カレンダー用のタスクデータ
-  const tasks = [
-    {
-      id: 1,
-      title: "算数の宿題",
-      date: new Date(2025, 0, 15),
-      childId: "taro",
-      childName: "太郎",
-      status: "approved",
-      reward: 100,
-      time: "18:00",
-    },
-    {
-      id: 2,
-      title: "漢字練習",
-      date: new Date(2025, 0, 15),
-      childId: "hanako",
-      childName: "花子",
-      status: "submitted",
-      reward: 80,
-      time: "19:00",
-    },
-    {
-      id: 3,
-      title: "理科レポート",
-      date: new Date(2025, 0, 16),
-      childId: "taro",
-      childName: "太郎",
-      status: "submitted",
-      reward: 150,
-      time: "17:00",
-    },
-    {
-      id: 4,
-      title: "お手伝い",
-      date: new Date(2025, 0, 17),
-      childId: "hanako",
-      childName: "花子",
-      status: "approved",
-      reward: 50,
-      time: "20:00",
-    },
-    {
-      id: 5,
-      title: "読書感想文",
-      date: new Date(2025, 0, 18),
-      childId: "taro",
-      childName: "太郎",
-      status: "overdue",
-      reward: 120,
-      time: "16:00",
-    },
-  ]
+  const [tasks, setTasks] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`,
+          { credentials: "include" }
+        )
+        if (!res.ok) throw new Error("タスク取得失敗")
+        const data = await res.json()
+        const parsed = data.map((task: any) => ({
+          id: task.id,
+          title: task.title,
+          date: new Date(task.due_date),
+          child: task.child,
+          childId: String(task.child_id),
+          childName: task.child?.name || "未設定",
+          status: task.completion_status ?? "none",
+          reward: task.reward_amount ?? 0,
+          time: task.latest_submission?.submitted_at
+            ? new Date(task.latest_submission.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : "未提出",
+        }))
+        setTasks(parsed)
+      } catch (e) {
+        console.error("取得エラー", e)
+      }
+    }
+
+    fetchTasks()
+  }, [currentDate])
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -134,6 +114,11 @@ export default function ParentCalendarPage() {
     setIsModalOpen(true)
   }
 
+  const getBgClassByTheme = (themeValue?: string) => {
+    const theme = colorThemes.find(t => t.value === themeValue)
+    return theme ? theme.gradient : "bg-gray-100"
+  }
+
   const days = getDaysInMonth(currentDate)
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"]
 
@@ -154,60 +139,11 @@ export default function ParentCalendarPage() {
               <p className="text-sm text-gray-600">タスクの予定を確認</p>
             </div>
           </div>
-          {/* 子ども選択 */}
-          <div className="flex gap-2 overflow-x-auto mt-2">
-            <Button
-              variant={selectedChild === "all" ? "default" : "outline"}
-              className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
-                selectedChild === "all"
-                  ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                  : "border-2 border-gray-200"
-              }`}
-              onClick={() => setSelectedChild("all")}
-            >
-              全員
-            </Button>
-            {children.map((child) => (
-              <Button
-                key={child.id}
-                variant={selectedChild === child.id ? "default" : "outline"}
-                className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
-                  selectedChild === child.id
-                    ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                    : "border-2 border-gray-200"
-                }`}
-                onClick={() => setSelectedChild(child.id)}
-              >
-                <span className="mr-2">{child.avatar}</span>
-                {child.name}
-              </Button>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* メインコンテンツ */}
       <div className="p-4 pb-24">
-        {/* 凡例 */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-2 bg-green-400 rounded-full"></div>
-                <span className="text-gray-600">完了</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-2 bg-yellow-400 rounded-full"></div>
-                <span className="text-gray-600">進行中</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-2 bg-red-400 rounded-full"></div>
-                <span className="text-gray-600">期限切れ</span>
-              </div>
-            </div>
-            <div className="text-center mt-2 text-xs text-gray-500">📅 タスクがある日付をタップして詳細を確認</div>
-          </CardContent>
-        </Card>
         
         {/* カレンダーグリッド */}
         <div className="flex justify-center items-center gap-2 mt-2 mb-2">
@@ -236,8 +172,7 @@ export default function ParentCalendarPage() {
                 const dayTasks = getTasksForDate(day)
                 const hasCompletedTasks = dayTasks.some((task) => task.status === "approved")
                 const hasPendingTasks = dayTasks.some((task) => task.status === "submitted")
-                const hasOverdueTasks = dayTasks.some((task) => task.status === "overdue")
-
+                const hasNotSubmittedTasks = dayTasks.some((task) => task.status === "none")
                 return (
                   <div
                     key={index}
@@ -250,9 +185,9 @@ export default function ParentCalendarPage() {
                       <div className="h-full flex flex-col">
                         <div className="text-sm font-medium text-gray-800 text-center mb-1">{day.getDate()}</div>
                         <div className="flex-1 flex flex-col gap-1">
-                          {hasOverdueTasks && <div className="w-full h-1 bg-red-400 rounded-full"></div>}
-                          {hasPendingTasks && <div className="w-full h-1 bg-yellow-400 rounded-full"></div>}
                           {hasCompletedTasks && <div className="w-full h-1 bg-green-400 rounded-full"></div>}
+                          {hasPendingTasks && <div className="w-full h-1 bg-yellow-400 rounded-full"></div>}
+                          {hasNotSubmittedTasks && <div className="w-full h-1 bg-gray-400 rounded-full"></div>}
                           {dayTasks.length > 0 && (
                             <div className="text-xs text-center text-gray-600 font-bold mt-1">{dayTasks.length}</div>
                           )}
@@ -269,7 +204,7 @@ export default function ParentCalendarPage() {
 
       {/* 日付詳細モーダル */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="rounded-3xl max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="rounded-3xl max-w-md max-h-[80vh] overflow-y-auto pt-10">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -286,42 +221,49 @@ export default function ParentCalendarPage() {
                 <p className="text-gray-600">この日にタスクはありません</p>
               </div>
             ) : (
-              getTasksForSelectedDate().map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                      {children.find((c) => c.id === task.childId)?.avatar}
-                    </div>
-                    <div>
+              getTasksForSelectedDate().map((task) => {
+                  const childInfo = task.child;
+                  console.log(childInfo);
+                  const iconObj = childInfo ? iconOptions.find(icon => icon.id === childInfo.avatar) : null;
+                return (
+                  <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                    <div className="flex flex-col gap-3 items-start">
+                      <div
+                        className={`text-sm flex items-center gap-1 rounded-2xl p-1 pr-3 pl-3 bg-gradient-to-r text-white ${
+                          getBgClassByTheme(childInfo?.theme)
+                        }`}
+                      >
+                        {iconObj ? <iconObj.Icon className="w-4 h-4" /> : "未設定"}
+                        {childInfo?.name || "未設定"}
+                      </div>
                       <h3 className="font-medium text-gray-800">{task.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <User className="w-3 h-3" />
-                        {task.childName}
-                        <Clock className="w-3 h-3 ml-2" />
-                        {task.time}
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        className={
+                          task.status === "approved"
+                            ? "bg-green-100 text-green-600"
+                            : task.status === "overdue"
+                            ? "bg-yellow-100 text-yellow-600"
+                            : "bg-gray-100"
+                        }
+                      >
+                        {task.status === "approved" ? "完了" : task.status === "submitted" ? "申請中" : "進行中"}
+                      </Badge>
+                      <div className="text-sm text-gray-600 mt-1">
+                        <Badge className="mt-1 text-xs px-3 bg-purple-100 text-purple-600">
+                          <PiggyBank className="w-4 h-4 mr-2" /> {task.reward}P
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <Badge
-                      className={
-                        task.status === "approved"
-                          ? "bg-green-100 text-green-600"
-                          : task.status === "overdue"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-yellow-100 text-yellow-600"
-                      }
-                    >
-                      {task.status === "approved" ? "✅ 完了" : task.status === "overdue" ? "⚠️ 期限切れ" : "⏳ 進行中"}
-                    </Badge>
-                    <div className="text-sm text-gray-600 mt-1">{task.reward}P</div>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </DialogContent>
       </Dialog>
+
 
       <ParentNavigation />
     </div>

@@ -300,7 +300,7 @@ export default function ChildTasksPage() {
         taskId={selectedTask?.id}
         taskTitle={selectedTask?.title}
         onAddComment={handleAddComment}
-        currentUserId={user!.id}
+        currentUserId={user?.id}
       />
 
       {/* ナビゲーション */}

@@ -50,6 +50,7 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         // task
         Route::get('/tasks', [TaskController::class, 'index']);
         Route::get('/tasks/today', [TaskController::class, 'todayTasks']);
+        Route::get('/tasks/weekday', [TaskController::class, 'weekdayTasks']);
         Route::post('/tasks', [TaskController::class, 'store']);
         Route::get('/tasks/{id}', [TaskController::class, 'show']);
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
@@ -97,6 +98,7 @@ Route::middleware(['web', 'api', EnsureFrontendRequestsAreStateful::class])->gro
         Route::post('/badges/{id}/grant', [BadgeController::class, 'grant'])->middleware('auth');
 
         //badge_assignments
+        Route::get('/badge-assignments', [BadgeAssignmentController::class, 'index']);
         Route::post('/badge-assignments/{id}/receive', [BadgeAssignmentController::class, 'receive']);
 
     });

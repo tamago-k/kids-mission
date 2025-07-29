@@ -12,24 +12,29 @@ use Carbon\Carbon;
 
 class RewardRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $query = RewardRequest::with(['reward', 'user'])->orderByDesc('requested_at');
 
         if ($user->role === 'parent') {
-            $requests = RewardRequest::with(['reward', 'user'])
-                ->orderByDesc('requested_at')
-                ->get();
-            return response()->json(['requests' => $requests]);
+            // 親は子どもの申請だけ取得したい場合、子どもIDを絞るロジックがあれば入れる
+            // 例: $childIds = $user->children()->pluck('id');
+            // $query->whereIn('user_id', $childIds);
         } else {
-        $user = auth()->user();
-            $requests = RewardRequest::with('reward')
-                ->where('user_id', $user->id)
-                ->orderByDesc('requested_at')
-                ->get();
-            return response()->json($requests);
+            // 子は自分の申請のみ
+            $query->where('user_id', $user->id);
         }
 
+        // ステータス絞り込み（例：submitted）
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            $query->where('status', $status);
+        }
+
+        $requests = $query->get();
+
+        return response()->json(['requests' => $requests]);
     }
 
     // 申請作成

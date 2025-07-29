@@ -85,4 +85,5 @@ class ChildController extends Controller
 
         return response()->json(['message' => '削除しました'], 200);
     }
+    
 }

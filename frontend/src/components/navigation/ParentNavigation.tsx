@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation";
 import Link from "next/link"
-import { Home, Users, BarChart3, Calendar, Menu, Bell, Settings, History, LogOut, PiggyBank, Medal } from "lucide-react"
+import { Home, Users, BarChart3, Calendar, Menu, ClipboardCheck, Settings, History, LogOut, PiggyBank } from "lucide-react"
 import { useState } from "react"
 
 export function ParentNavigation() {
@@ -13,21 +13,21 @@ export function ParentNavigation() {
 
   const navItems = [
     { href: "/parent/dashboard", icon: Home, label: "ホーム" },
-    { href: "/parent/tasks", icon: BarChart3, label: "タスク" },
+    { href: "/parent/tasks", icon: ClipboardCheck, label: "タスク" },
     { href: "/parent/rewards", icon: PiggyBank, label: "報酬" },
-    { href: "/parent/report", icon: BarChart3, label: "レポート" },
+    /*{ href: "/parent/report", icon: BarChart3, label: "レポート" },*/
+    { href: "/parent/calendar", icon: Calendar, label: "カレンダー" },
   ]
 
   const menuItems = [
-    { href: "/parent/calendar", icon: Calendar, label: "カレンダー" },
-    {
+    /*{
       label: "履歴", icon: History,
       children: [
         { label: "タスク履歴", href: "/parent/history/tasks" },
         { label: "ポイント履歴", href: "/parent/history/rewards" },
         { label: "バッジ履歴", href: "/parent/history/badges" }
       ]
-    },
+    },*/
     {
       label: "マスタ設定", icon: Settings,
       children: [

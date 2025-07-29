@@ -54,8 +54,8 @@ class Task extends Model
     // ログインユーザー用
     public function submission()
     {
-        return $this->hasOne(TaskSubmission::class)->where('user_id', auth()->id());
-}
+        return $this->hasOne(TaskSubmission::class);
+    }
 
     public function latestSubmission()
     {

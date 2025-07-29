@@ -20,7 +20,7 @@ export function ChildNavigation() {
 
   const menuItems = [
     { href: "/child/calendar", icon: Calendar, label: "カレンダー" },
-    { href: "/child/report", icon: BarChart3, label: "レポート" },
+    /*{  href: "/child/report", icon: BarChart3, label: "レポート" },*/
   ]
 
   const router = useRouter();

@@ -315,19 +315,21 @@ export default function ParentMasterPage() {
                       >
                         {badge.is_active ? "有効" : "無効"}
                       </Button>
-                      <div className="flex items-center justify-between">
-                        <div
-                          className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                            badge.is_active ? "bg-yellow-100" : "bg-gray-100"
-                          }`}
-                        >
-                          {Icon ? <Icon className="w-6 h-6 text-yellow-600" /> : "未設定"}
-                        </div>
-                        <div className="max-w-[60%]">
-                          <h3 className={`font-medium ${badge.is_active ? "text-gray-800" : "text-gray-500"}`}>
-                            {badge.name}
-                          </h3>
-                          <p className="text-xs text-gray-400 mt-1">条件: {badge.condition}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-start gap-2">
+                          <div
+                            className={`min-w-12 min-h-12 rounded-full flex items-center justify-center text-2xl ${
+                              badge.is_active ? "bg-yellow-100" : "bg-gray-100"
+                            }`}
+                          >
+                            {Icon ? <Icon className="w-6 h-6 text-yellow-600" /> : "未設定"}
+                          </div>
+                          <div className="flex-grow">
+                            <h3 className={`font-medium ${badge.is_active ? "text-gray-800" : "text-gray-500"}`}>
+                              {badge.name}
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-1">条件: {badge.condition}</p>
+                          </div>
                         </div>
                         <div className="flex justify-end flex-col items-center gap-2">
                           <Button

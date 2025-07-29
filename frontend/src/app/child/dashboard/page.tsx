@@ -5,21 +5,24 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PiggyBank, ClipboardCheck, Star, CheckCircle, Gift, ThumbsUp } from "lucide-react"
+import { PiggyBank, ClipboardCheck, Star, CheckCircle, Gift, ThumbsUp, Smile } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildDashboard() {
   const [todayTasks, setTodayTasks] = useState<any[]>([])
   const [currentBalance, setCurrentBalance] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    task_completed: 0,
+    points_earned: 0,
+    consecutive_days: 0,
+  })
   const router = useRouter()
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  // 役割チェック + データ取得
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ユーザーロール確認
         const resUser = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
         if (!resUser.ok) {
           router.push("/")
@@ -35,7 +38,6 @@ export default function ChildDashboard() {
         const resTasks = await fetch(`${apiBaseUrl}/api/tasks/today`, { credentials: "include" })
         if (!resTasks.ok) throw new Error("タスク取得失敗")
         const tasksData = await resTasks.json()
-      console.log(tasksData);
 
         // ポイント残高取得
         const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, { credentials: "include" })
@@ -50,7 +52,21 @@ export default function ChildDashboard() {
         router.push("/")
       }
     }
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/tasks/weekday`, {
+          credentials: "include",
+        })
+        const data = await res.json()
+        setStats(data)
+      } catch (error) {
+        console.error("データ取得失敗", error)
+      }
+    }
+
     fetchData()
+    fetchStats()
   }, [])
 
   if (loading) {
@@ -66,8 +82,8 @@ export default function ChildDashboard() {
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-2xl">
-                👦
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-2xl text-white">
+                <Smile className="w-6 h-6" /> 
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-800">今日もがんばろう！</h1>
@@ -134,27 +150,18 @@ export default function ChildDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 gap-4 text-center">
               <div className="bg-blue-50 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-blue-600">
-                  {/* ここはAPIで取得したデータに差し替えてください */}
-                  8
+                  {stats.task_completed}
                 </div>
                 <div className="text-sm text-gray-600">完了タスク</div>
               </div>
               <div className="bg-yellow-50 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-yellow-600">
-                  {/* ここはAPIで取得したデータに差し替えてください */}
-                  680
+                  {stats.points_earned}
                 </div>
                 <div className="text-sm text-gray-600">獲得ポイント</div>
-              </div>
-              <div className="bg-purple-50 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-purple-600">
-                  {/* ここはAPIで取得したデータに差し替えてください */}
-                  5
-                </div>
-                <div className="text-sm text-gray-600">連続達成日</div>
               </div>
             </div>
           </CardContent>

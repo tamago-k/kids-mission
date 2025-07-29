@@ -1,67 +1,50 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowLeft, Calendar, Clock } from "lucide-react"
+import { ArrowLeft, Calendar, PiggyBank, ChevronLeft, ChevronRight } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 15)) // 2025年1月15日
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [myTasks, setMyTasks] = useState<any[]>([])
 
-  // 太郎のタスクデータ例
-  const myTasks = [
-    {
-      id: 1,
-      title: "算数の宿題",
-      date: new Date(2024, 0, 15),
-      status: "approved",
-      reward: 100,
-      time: "18:00",
-      emoji: "📚",
-    },
-    {
-      id: 2,
-      title: "お手伝い（食器洗い）",
-      date: new Date(2024, 0, 15),
-      status: "submitted",
-      reward: 50,
-      time: "20:00",
-      emoji: "🍽️",
-    },
-    {
-      id: 3,
-      title: "理科レポート",
-      date: new Date(2024, 0, 16),
-      status: "submitted",
-      reward: 150,
-      time: "17:00",
-      emoji: "🔬",
-    },
-    {
-      id: 4,
-      title: "漢字練習",
-      date: new Date(2024, 0, 17),
-      status: "submitted",
-      reward: 80,
-      time: "19:00",
-      emoji: "✏️",
-    },
-    {
-      id: 5,
-      title: "読書感想文",
-      date: new Date(2024, 0, 18),
-      status: "submitted",
-      reward: 120,
-      time: "16:00",
-      emoji: "📖",
-    },
-  ]
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const toJSTDate = (utcDateStr: string) => {
+    const date = new Date(utcDateStr)
+    date.setHours(date.getHours() + 9)
+    return date
+  }
+
+  const fetchTasks = async (year: number, month: number) => {
+    try {
+      const res = await fetch(
+        `${apiBaseUrl}/api/tasks?year=${year}&month=${month + 1}`, // 月は1から
+        { credentials: "include" }
+      )
+      if (!res.ok) throw new Error("タスク取得失敗")
+      const data = await res.json()
+      const tasks = data.map((task: any) => ({
+        ...task,
+        date: toJSTDate(task.due_date),
+      }))
+      console.log(tasks);
+      setMyTasks(tasks)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchTasks(currentDate.getFullYear(), currentDate.getMonth())
+  }, [currentDate])
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -149,14 +132,16 @@ export default function ChildCalendarPage() {
       {/* メインコンテンツ */}
       <div className="p-4 space-y-6 pb-24">
 
+        <div className="flex justify-center items-center gap-2 mt-2 mb-2">
+          <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} className="rounded-full">
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div className="text-lg font-bold text-gray-800 min-w-[120px] text-center">{formatDate(currentDate)}</div>
+          <Button variant="outline" size="icon" onClick={() => navigateMonth("next")} className="rounded-full">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
 
-        {/* 使い方の説明 */}
-        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl mb-2">💡</div>
-            <p className="text-gray-600 text-sm">📅 タスクがある日をタップすると詳細が見れるよ！</p>
-          </CardContent>
-        </Card>
         {/* カレンダーグリッド */}
         <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
           <CardContent className="p-4">
@@ -173,8 +158,9 @@ export default function ChildCalendarPage() {
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, index) => {
                 const dayTasks = getTasksForDate(day)
-                const hasCompletedTasks = dayTasks.some((task) => task.status === "approved")
-                const hasPendingTasks = dayTasks.some((task) => task.status === "submitted")
+                const hasCompletedTasks = dayTasks.some((task) => task.completion_status === "approved")
+                const hasPendingTasks = dayTasks.some((task) => task.completion_status === "submitted")
+                const hasNotSubmittedTasks = dayTasks.some((task) => task.completion_status === null)
 
                 return (
                   <div
@@ -192,6 +178,7 @@ export default function ChildCalendarPage() {
                             <div className="flex gap-1">
                               {hasCompletedTasks && <div className="w-2 h-2 bg-green-400 rounded-full"></div>}
                               {hasPendingTasks && <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>}
+                              {hasNotSubmittedTasks && <div className="w-2 h-2 bg-gray-400 rounded-full" />}
                             </div>
                           )}
                           {dayTasks.length > 0 && (
@@ -210,7 +197,7 @@ export default function ChildCalendarPage() {
 
       {/* 日付詳細モーダル */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="rounded-3xl max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="rounded-3xl max-w-md max-h-[80vh] overflow-y-auto pt-10">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -232,34 +219,46 @@ export default function ChildCalendarPage() {
                 <div
                   key={task.id}
                   className={`p-4 rounded-2xl border-2 ${
-                    task.status === "approved" ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"
+                  task.completion_status === "approved"
+                    ? "border-green-200 bg-green-50"
+                    : task.completion_status === "submitted"
+                    ? "border-orange-200 bg-orange-50"
+                    : "border-gray-200"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">{task.emoji}</div>
                       <div>
-                        <h3 className={`font-bold text-gray-800 ${task.status === "approved" ? "line-through" : ""}`}>
+                        <h3 className={`font-bold text-gray-800 ${task.completion_status === "approved" ? "line-through" : ""}`}>
                           {task.title}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Clock className="w-3 h-3" />
-                          {task.time}まで
-                        </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <Badge
                         className={
-                          task.status === "approved" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
+                        task.completion_status === "approved"
+                          ? "bg-green-100 text-green-600"
+                          : task.completion_status === "submitted"
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "bg-gray-100"
                         }
                       >
-                        {task.status === "approved" ? "✅ 完了" : "⏳ がんばろう"}
+                      {task.completion_status === "approved"
+                        ? "おわり"
+                        : task.completion_status === "submitted"
+                        ? "かくにん中"
+                        : "がんばろう！"}
                       </Badge>
-                      <div className="text-sm text-gray-600 mt-1 font-bold">💰 {task.reward}P</div>
+                      <div>
+                      <Badge className="mt-1 text-xs px-3 bg-purple-100 text-purple-600">
+                        <PiggyBank className="w-4 h-4 mr-2" /> {task.reward_amount}P
+                      </Badge>
+                      </div>
                     </div>
                   </div>
-                  {task.status === "submitted" && (
+                  {task.completion_status !== "submitted" && task.completion_status !== "approved" && (
                     <Link href="/child/tasks/" className="flex-1">
                       <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
                         タスクページへ

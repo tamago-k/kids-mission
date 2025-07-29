@@ -31,7 +31,7 @@ class BadgeAssignmentController extends Controller
         }
 
         $assignment->received_at = now();
-        $assignment->status = 'received'; // ← ここを追加
+        $assignment->status = 'received';
         $assignment->save();
 
         return response()->json($assignment);

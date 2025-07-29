@@ -1,102 +1,73 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, XCircle, Clock, Bell, Wallet, User, Users, BarChart3, PiggyBank } from "lucide-react"
+import { Clock, Wallet, User, BarChart3, PiggyBank, Gift } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
+import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 export default function ParentDashboard() {
   const [selectedChild, setSelectedChild] = useState("all")
   const router = useRouter()
+  const [children, setChildren] = useState<{ id: string, name: string, avatar: string }[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  const children = [
-    { id: "taro", name: "太郎", avatar: "👦", color: "bg-blue-100 text-blue-600" },
-    { id: "hanako", name: "花子", avatar: "👧", color: "bg-pink-100 text-pink-600" },
-  ]
-
-  const allPendingTasks = [
-    {
-      id: 1,
-      child: "太郎",
-      childId: "taro",
-      task: "算数の宿題",
-      reward: 100,
-      submittedAt: "2時間前",
-      type: "task",
-    },
-    {
-      id: 2,
-      child: "花子",
-      childId: "hanako",
-      task: "漢字練習",
-      reward: 80,
-      submittedAt: "30分前",
-      type: "task",
-    },
-  ]
-
-  const allRewardRequests = [
-    {
-      id: 1,
-      child: "太郎",
-      childId: "taro",
-      item: "ゲーム時間30分",
-      amount: 150,
-      submittedAt: "1時間前",
-      type: "reward",
-    },
-    {
-      id: 2,
-      child: "花子",
-      childId: "hanako",
-      item: "お菓子",
-      amount: 100,
-      submittedAt: "3時間前",
-      type: "reward",
-    },
-  ]
-
-  // 通知データに childId を追加
-  const allNotifications = [
-    {
-      id: 1,
-      child: "太郎",
-      childId: "taro",
-      task: "算数の宿題が完了しました",
-      submittedAt: "2時間前",
-      type: "task_approved",
-    },
-    {
-      id: 2,
-      child: "花子",
-      childId: "hanako",
-      task: "報酬を申請しました",
-      submittedAt: "1時間前",
-      type: "reward_request",
-    },
-  ]
-
-  // 選択された子どもでフィルタリング
-  const notifications =
-    selectedChild === "all"
-      ? allNotifications
-      : allNotifications.filter((notification) => notification.childId === selectedChild)
-
-  // 選択された子どもでフィルタリング
-  const submittedTasks =
-    selectedChild === "all" ? allPendingTasks : allPendingTasks.filter((task) => task.childId === selectedChild)
-
-  const rewardRequests =
-    selectedChild === "all"
-      ? allRewardRequests
-      : allRewardRequests.filter((request) => request.childId === selectedChild)
+  const [rewardRequests, setRewardRequests] = useState<any[]>([])
+  const [submittedTasks, setSubmittedTasks] = useState<any[]>([])
 
   useEffect(() => {
+    const fetchPendingTasks = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/tasks?status=submitted`, {
+          credentials: "include",
+        })
+        if (!res.ok) throw new Error("タスク取得失敗")
+        const data = await res.json()
+        const parsed = data.map((task: any) => ({
+          id: task.id,
+          title: task.title,
+          date: new Date(task.due_date),
+          child: task.child,
+          childId: String(task.child_id),
+          childName: task.child?.name || "未設定",
+          status: task.completion_status ?? "none",
+          reward: task.reward_amount ?? 0,
+        }))
+        setSubmittedTasks(parsed)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    
+    const fetchRewardRequests = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/reward-requests?status=submitted`, {
+          credentials: "include",
+        })
+        if (!res.ok) throw new Error("報酬申請取得に失敗")
+        const json = await res.json();
+        const data = json.requests ?? [];
+        console.log(data);
+        const parsed = data.map((r: any) => ({
+          id: r.id,
+          child: r.user ?? null,
+          childId: String(r.user?.id ?? ""),
+          item: r.reward?.name ?? "不明",
+          icon: r.reward?.icon ?? "",
+          amount: r.reward?.need_reward ?? 0,
+          status: r.status ?? "none",
+          type: "reward",
+        }));
+        setRewardRequests(parsed)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
     const checkRole = async () => {
       const res = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
       if (!res.ok) {
@@ -109,8 +80,16 @@ export default function ParentDashboard() {
         router.push("/")
       }
     }
+
+    fetchPendingTasks()
+    fetchRewardRequests()
     checkRole()
-  }, [router])
+  }, [])
+
+  const getBgClassByTheme = (themeValue?: string) => {
+    const theme = colorThemes.find(t => t.value === themeValue)
+    return theme ? theme.gradient : "bg-gray-100"
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
@@ -127,36 +106,6 @@ export default function ParentDashboard() {
               </div>
             </div>
           </div>
-
-          {/* 子ども選択 */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <Button
-              variant={selectedChild === "all" ? "default" : "outline"}
-              className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
-                selectedChild === "all"
-                  ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                  : "border-2 border-gray-200 hover:border-purple-300"
-              }`}
-              onClick={() => setSelectedChild("all")}
-            >
-              全員
-            </Button>
-            {children.map((child) => (
-              <Button
-                key={child.id}
-                variant={selectedChild === child.id ? "default" : "outline"}
-                className={`rounded-full px-4 py-2 h-auto whitespace-nowrap ${
-                  selectedChild === child.id
-                    ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                    : "border-2 border-gray-200 hover:border-purple-300"
-                }`}
-                onClick={() => setSelectedChild(child.id)}
-              >
-                <span className="mr-2 text-lg">{child.avatar}</span>
-                {child.name}
-              </Button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -171,16 +120,16 @@ export default function ParentDashboard() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="bg-blue-50 rounded-2xl p-3">
                 <div className="text-2xl font-bold text-blue-600">
-                  {allPendingTasks.length + allRewardRequests.length}
+                  {submittedTasks.length + rewardRequests.length}
                 </div>
                 <div className="text-sm text-gray-600">要対応</div>
               </div>
               <div className="bg-green-50 rounded-2xl p-3">
-                <div className="text-2xl font-bold text-green-600">{allPendingTasks.length}</div>
+                <div className="text-2xl font-bold text-green-600">{submittedTasks.length}</div>
                 <div className="text-sm text-gray-600">タスク申請</div>
               </div>
               <div className="bg-purple-50 rounded-2xl p-3">
-                <div className="text-2xl font-bold text-purple-600">{allRewardRequests.length}</div>
+                <div className="text-2xl font-bold text-purple-600">{rewardRequests.length}</div>
                 <div className="text-sm text-gray-600">報酬申請</div>
               </div>
             </div>
@@ -188,18 +137,12 @@ export default function ParentDashboard() {
         </Card>
 
         <Tabs defaultValue="tasks" className="space-y-4">
-          <TabsList  className="grid grid-cols-4 mb-4 rounded-xl bg-gray-100 p-1">
+          <TabsList  className="grid grid-cols-2 mb-4 rounded-xl bg-gray-100 p-1">
             <TabsTrigger value="tasks" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <BarChart3 className="w-4 h-4 mr-2" /> タスク
             </TabsTrigger>
-            <TabsTrigger value="children" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
-              <Users className="w-4 h-4 mr-2" /> 子ども
-            </TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
               <PiggyBank className="w-4 h-4 mr-2" /> 報酬
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
-              <Bell className="w-4 h-4 mr-2" /> 通知
             </TabsTrigger>
           </TabsList>
 
@@ -228,77 +171,39 @@ export default function ParentDashboard() {
                     </p>
                   </div>
                 ) : (
-                  submittedTasks.map((task) => (
+                  submittedTasks.map((task) => {
+                    const childInfo = task.child
+                    const iconObj = childInfo ? iconOptions.find(icon => icon.id === childInfo.avatar) : null
+                    return (
                     <Card key={task.id} className="border border-gray-200 rounded-2xl">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              {children.find((c) => c.id === task.childId)?.avatar}
+                          <div className="flex flex-col gap-3 items-start">
+                            <div
+                              className={`text-sm flex items-center gap-1 rounded-2xl p-1 pr-3 pl-3 bg-gradient-to-r text-white ${
+                                getBgClassByTheme(childInfo?.theme)
+                              }`}
+                            >
+                              {iconObj ? <iconObj.Icon className="w-4 h-4" /> : "未設定"}
+                              {childInfo?.name || "未設定"}
                             </div>
-                            <div>
-                              <h3 className="font-medium text-gray-800">{task.task}</h3>
-                              <p className="text-sm text-gray-600">
-                                {task.child} • {task.submittedAt}
-                              </p>
-                            </div>
+                            <h3 className="font-medium text-gray-800">{task.title}</h3>
                           </div>
-                          <Badge className="bg-green-100 text-green-600">💰 {task.reward}円</Badge>
+                          <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {task.reward}P</Badge>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            承認
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50 rounded-xl bg-transparent"
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            却下
-                          </Button>
+                          <Link href="/parent/tasks/" className="flex-1">
+                            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
+                              タスクページへ
+                            </Button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>
-                  ))
+                  )})
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="children" className="space-y-4">
-            <div className="grid gap-4">
-              {(selectedChild === "all" ? children : children.filter((c) => c.id === selectedChild)).map((child) => (
-                <Card key={child.id} className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-2xl">
-                        {child.avatar}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800">{child.name}</h3>
-                        <p className="text-gray-600">今週のタスク完了率: 85%</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div className="bg-blue-50 rounded-2xl p-3">
-                        <div className="text-2xl font-bold text-blue-600">12</div>
-                        <div className="text-sm text-gray-600">完了タスク</div>
-                      </div>
-                      <div className="bg-green-50 rounded-2xl p-3">
-                        <div className="text-2xl font-bold text-green-600">850</div>
-                        <div className="text-sm text-gray-600">獲得ポイント</div>
-                      </div>
-                      <div className="bg-purple-50 rounded-2xl p-3">
-                        <div className="text-2xl font-bold text-purple-600">3</div>
-                        <div className="text-sm text-gray-600">連続達成</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </TabsContent>
 
           <TabsContent value="rewards" className="space-y-4">
@@ -318,7 +223,7 @@ export default function ParentDashboard() {
               <CardContent className="space-y-3">
                 {rewardRequests.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-2">🎁</div>
+                    <div className="text-4xl mb-2 flex justify-center"><Gift className="w-10 h-10" /></div>
                     <p className="text-gray-600">
                       {selectedChild === "all"
                         ? "報酬申請はありません！"
@@ -326,72 +231,42 @@ export default function ParentDashboard() {
                     </p>
                   </div>
                 ) : (
-                  rewardRequests.map((request) => (
-                    <Card key={request.id} className="border border-gray-200 rounded-2xl">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                              {children.find((c) => c.id === request.childId)?.avatar}
+                  rewardRequests.map((reward) => {
+                    const childInfo = reward.child
+                    console.log("childInfo", rewardRequests);
+                    const iconObj = childInfo ? iconOptions.find(icon => icon.id === childInfo.avatar) : null
+                    return (
+                    <Card key={reward.id} className="border border-gray-200 rounded-2xl">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex flex-col gap-3 items-start">
+                                <div
+                                  className={`text-sm flex items-center gap-1 rounded-2xl p-1 pr-3 pl-3 bg-gradient-to-r text-white ${
+                                    getBgClassByTheme(childInfo?.theme)
+                                  }`}
+                                >
+                                  {iconObj ? <iconObj.Icon className="w-4 h-4" /> : "未設定"}
+                                  {childInfo?.name || "未設定"}
+                                </div>
+                                <h3 className="font-medium text-gray-800">{reward.item || reward.title || "未設定"}</h3>
+                              </div>  
+                              <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {reward.amount ?? 0}P</Badge>
                             </div>
-                            <div>
-                              <h3 className="font-medium text-gray-800">{request.item}</h3>
-                              <p className="text-sm text-gray-600">
-                                {request.child} • {request.submittedAt}
-                              </p>
+                            <div className="flex gap-2">
+                              <Link href="/parent/rewards/" className="flex-1">
+                                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
+                                  報酬ページへ
+                                </Button>
+                              </Link>
                             </div>
-                          </div>
-                          <Badge className="bg-purple-100 text-purple-600">💎 {request.amount}P</Badge>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            承認
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50 rounded-xl bg-transparent"
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            却下
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                          </CardContent>
+                        </Card>
+                  )})
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="notifications" className="space-y-4">
-            <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Bell className="w-5 h-5 text-blue-500" />
-                  通知一覧
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-3">
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-2xl">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
-                        {notification.type === "task_approved" ? "✅" : "💰"}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-800">
-                          {notification.child}が{notification.task}
-                        </p>
-                        <p className="text-xs text-gray-600">{notification.submittedAt}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Models\TaskWeeklyRecurrence;
@@ -11,24 +12,32 @@ use App\Models\TaskWeeklyRecurrence;
 class TaskController extends Controller
 {
     // 一覧取得
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
+        $query = Task::with(['child', 'task_category', 'latestSubmission']);
+
+        // ユーザーの権限に応じて絞り込み
         if ($user->role === 'parent') {
-            $tasks = Task::with(['child', 'task_category', 'latestSubmission'])
-                ->where('parent_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query->where('parent_id', $user->id);
         } elseif ($user->role === 'child') {
-            $tasks = Task::with(['child', 'task_category', 'latestSubmission'])
-                ->where('child_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query->where('child_id', $user->id);
         } else {
             return response()->json(['message' => '不正なユーザー'], 403);
         }
 
+        // status フィルター
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            $query->whereHas('latestSubmission', function ($q) use ($status) {
+                $q->where('status', $status);
+            });
+        }
+
+        $tasks = $query->orderBy('created_at', 'desc')->get();
+
+        // latestSubmissionのstatusをcompletion_statusにセット
         $tasks->transform(function ($task) {
             $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
             return $task;
@@ -109,13 +118,36 @@ class TaskController extends Controller
 
     public function todayTasks(Request $request)
     {
+        
         $user = $request->user();
-
         $tasks = Task::with('submission')
             ->where('child_id', $user->id)
             ->whereDate('due_date', now())
             ->get();
 
         return response()->json($tasks);
+    }
+
+    public function weekdayTasks(Request $request)
+    {
+        $user = $request->user();
+        $completedTasks = Task::where('child_id', $user->id)
+            ->whereHas('submission', function (Builder $query) {
+                $query->where('status', 'approved');
+            })
+            ->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->count();
+
+        $points = Task::where('child_id', $user->id)
+            ->whereHas('submission', function (Builder $query) {
+                $query->where('status', 'approved');
+            })
+            ->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->sum('reward_amount');
+
+        return response()->json([
+            'task_completed' => $completedTasks,
+            'points_earned' => $points,
+        ]);
     }
 }
