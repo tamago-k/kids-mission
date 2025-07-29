@@ -8,7 +8,7 @@ COPY composer.json composer.lock artisan ./
 COPY bootstrap ./bootstrap
 COPY routes ./routes
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --verbose
+RUN composer install --no-dev --optimize-autoloader --no-interaction --verbose --no-scripts
 
 COPY . .
 
