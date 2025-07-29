@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -37,7 +37,7 @@ export default function ChildBadgesPage() {
   }
 
   // バッジ一覧取得
-  const fetchBadgeAssignments = async () => {
+  const fetchBadgeAssignments = useCallback(async () => {
     if (!user) return
     const csrfToken = getCookie("XSRF-TOKEN")
     const res = await fetch(`${apiBaseUrl}/api/badge-assignments`, {
@@ -54,11 +54,11 @@ export default function ChildBadgesPage() {
     }
     const data = await res.json()
     setBadgeAssignments(data)
-  }
+  }, [user, apiBaseUrl])
 
   useEffect(() => {
     fetchBadgeAssignments()
-  }, [user?.id])
+  }, [fetchBadgeAssignments])
 
   // 受け取りボタン押下時
   const handleReceive = async (badgeAssignmentId: number) => {

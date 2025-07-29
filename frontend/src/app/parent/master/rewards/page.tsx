@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,24 +16,26 @@ export default function ParentMasterPage() {
   const [rewardName, setRewardName] = useState("")
   const [rewardPoints, setRewardPoints] = useState("")
   const [editingRewardId, setEditingRewardId] = useState<number | null>(null)
-  const [rewards, setRewards] = useState([])
+  const [rewards, setRewards] = useState<Reward[]>([])
   const [formRewardIcon, setFormRewardIcon] = useState(rewardIconOptions[0].id)
   const [deleteRewardOpen, setDeleteRewardOpen] = useState(false)
   const [deletingReward, setDeletingReward] = useState<{ id: number; name: string } | null>(null);
 
-  // 初期データ読み込み
-  useEffect(() => {
-    fetchRewards();
-  }, []);
+  type Reward = {
+    id: number;
+    name: string;
+    need_reward: number;
+    icon: string;
+  }
 
-  const getCookie = (name: string) => {
+  function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift()!);
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
-  };
+  }
 
-  const fetchRewards = async () => {
+  const fetchRewards = useCallback(async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     try {
       const res = await fetch(`${apiBaseUrl}/api/rewards`, {
@@ -47,9 +49,19 @@ export default function ParentMasterPage() {
       const data = await res.json();
       setRewards(Array.isArray(data) ? data : data.rewards ?? []);
     } catch (e) {
-      alert(e.message || "報酬の取得に失敗しました");
-    }
-  };
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("報酬の取得に失敗しました");
+      }
+      }
+  }, [apiBaseUrl]);
+
+  // 初期データ読み込み
+  useEffect(() => {
+    fetchRewards();
+  }, [fetchRewards]);
+
 
   // 保存（新規 or 更新）
   const handleSaveReward = async () => {
@@ -103,12 +115,16 @@ export default function ParentMasterPage() {
       setFormRewardIcon(rewardIconOptions[0].id);
 
     } catch (error) {
-      alert(error.message || "保存に失敗しました");
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("保存に失敗しました");
+      }
     }
   };
 
   // 編集時フォームにセット
-  const handleEditReward = (reward: { id: number; name: string; points: number; icon: string }) => {
+  const handleEditReward = (reward: { id: number; name: string; need_reward: number; icon: string }) => {
     setEditingRewardId(reward.id);
     setRewardName(reward.name);
     setRewardPoints(reward.need_reward?.toString() ?? "");
@@ -132,8 +148,12 @@ export default function ParentMasterPage() {
       if (!res.ok) throw new Error('削除失敗');
       setRewards(prev => prev.filter(r => r.id !== id));
       setDeleteRewardOpen(false);
-    } catch (error) {
-      alert(error.message || "削除に失敗しました");
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("削除に失敗しました");
+      }
     }
   };
 

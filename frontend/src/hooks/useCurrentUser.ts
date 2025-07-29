@@ -21,7 +21,7 @@ export const useCurrentUser = () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user`, {
+        const res = await fetch(`${apiBaseUrl}/api/user`, {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -37,7 +37,7 @@ export const useCurrentUser = () => {
       }
     };
     fetchUser();
-  }, []);
+  }, [apiBaseUrl]);
 
   return user;
 };

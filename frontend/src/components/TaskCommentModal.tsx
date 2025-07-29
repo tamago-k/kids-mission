@@ -5,19 +5,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea"
 
 type Props = {
-  taskId: number;
+  taskId?: number;
   currentUserId: number;
   open: boolean;
   onOpenChange: (value: boolean) => void;
   taskTitle?: string;
+  onAddComment?: () => void;
 };
 
 export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, taskTitle }: Props) {
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState<string>("")
   const commentBoxRef = useRef<HTMLDivElement | null>(null);
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [_autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  type Comment = {
+    id: number;
+    user_id: number;
+    content: string;
+    created_at: string;
+  };
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
@@ -33,30 +41,6 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     setAutoScrollEnabled(isAtBottom);
   };
 
-  useEffect(() => {
-    if (!taskId || !open) return;
-
-    const fetchAndScroll = async () => {
-      await fetchComments();
-
-      const box = commentBoxRef.current;
-      if (box) {
-        box.scrollTop = box.scrollHeight;
-      }
-    };
-
-    fetchAndScroll();
-  }, [taskId, open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const box = commentBoxRef.current;
-    if (box) {
-      box.scrollTop = box.scrollHeight;
-    }
-  }, [comments, open])
-
   const fetchComments = async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     const res = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/comments`, {
@@ -71,6 +55,28 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
       setComments(data);
     }
   };
+
+  useEffect(() => {
+    if (!taskId || !open) return;
+
+    const fetchAndScroll = async () => {
+      await fetchComments();
+
+      const box = commentBoxRef.current;
+      if (box) {
+        box.scrollTop = box.scrollHeight;
+      }
+    };
+    if (!open) return;
+
+    const box = commentBoxRef.current;
+    if (box) {
+      box.scrollTop = box.scrollHeight;
+    }
+
+    fetchAndScroll();
+  }, [taskId, comments, open, fetchComments]);
+
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;

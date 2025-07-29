@@ -29,10 +29,10 @@ export default function LoginPage() {
     setPin("")
     }
 
-  function getCookie(name) {
+  function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
   }
 
@@ -64,7 +64,6 @@ export default function LoginPage() {
       });
 
     if (!res.ok) {
-      const data = await res.json();
       setErrorMessage("入力情報が違います。");
       return;
     }
@@ -140,7 +139,7 @@ export default function LoginPage() {
     };
 
     checkLogin();
-  }, []);
+  }, [apiBaseUrl, router]);
 
 
   return (

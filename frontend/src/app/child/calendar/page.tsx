@@ -13,7 +13,44 @@ export default function ChildCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [myTasks, setMyTasks] = useState<any[]>([])
+  const [myTasks, setMyTasks] = useState<Task[]>([]);
+
+  type Child = {
+    avatar: string;
+    created_at: string;
+    id: number;
+    name: string;
+    role: string;
+    theme: string;
+    updated_at: string;
+  };
+
+  type TaskCategory = {
+    created_at: string;
+    id: number;
+    name: string;
+    slug: string;
+    updated_at: string;
+  };
+
+  type Task = {
+    child: Child;
+    child_id: number;
+    completion_status: string | null;
+    created_at: string;
+    description: string;
+    due_date: string;
+    id: number;
+    isRecurring: boolean;
+    parent_id: number;
+    recurrence: string;
+    recurringType: string;
+    reward_amount: number;
+    task_category: TaskCategory;
+    task_category_id: number;
+    title: string;
+    updated_at: string;
+  };
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -30,13 +67,8 @@ export default function ChildCalendarPage() {
         { credentials: "include" }
       )
       if (!res.ok) throw new Error("タスク取得失敗")
-      const data = await res.json()
-      const tasks = data.map((task: any) => ({
-        ...task,
-        date: toJSTDate(task.due_date),
-      }))
-      console.log(tasks);
-      setMyTasks(tasks)
+      const data: Task[] = await res.json();
+      setMyTasks(data)
     } catch (error) {
       console.error(error)
     }
@@ -44,7 +76,7 @@ export default function ChildCalendarPage() {
 
   useEffect(() => {
     fetchTasks(currentDate.getFullYear(), currentDate.getMonth())
-  }, [currentDate])
+  }, [currentDate, apiBaseUrl])
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -72,7 +104,7 @@ export default function ChildCalendarPage() {
   const getTasksForDate = (date: Date | null) => {
     if (!date) return []
     return myTasks.filter((task) => {
-      const taskDate = task.date
+      const taskDate = toJSTDate(task.due_date)
       return (
         taskDate.getDate() === date.getDate() &&
         taskDate.getMonth() === date.getMonth() &&
@@ -228,7 +260,7 @@ export default function ChildCalendarPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-2xl">{task.emoji}</div>
+                      <div className="text-2xl">{task.child.avatar}</div>
                       <div>
                         <h3 className={`font-bold text-gray-800 ${task.completion_status === "approved" ? "line-through" : ""}`}>
                           {task.title}

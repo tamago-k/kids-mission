@@ -12,26 +12,81 @@ import { colorThemes, iconOptions } from "@/components/OptionThemes"
 export default function ParentCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [selectedChild, setSelectedChild] = useState("all")
+  const [selectedChild, _setSelectedChild] = useState("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [tasks, setTasks] = useState<CalendarTask[]>([])
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const children = [
-    { id: "taro", name: "太郎", avatar: "👦", color: "bg-blue-100 text-blue-600" },
-    { id: "hanako", name: "花子", avatar: "👧", color: "bg-pink-100 text-pink-600" },
-  ]
+  type Child = {
+    avatar: string;
+    created_at: string;
+    id: number;
+    name: string;
+    role: string;
+    theme: string;
+    updated_at: string;
+  };
 
-  const [tasks, setTasks] = useState<any[]>([])
+  type TaskCategory = {
+    created_at: string;
+    id: number;
+    name: string;
+    slug: string;
+    updated_at: string;
+  };
+
+  type Submission = {
+    created_at: string;
+    id: number;
+    status: string;
+    submitted_at: string;
+    task_id: number;
+    updated_at: string;
+    user_id: number;
+  };
+
+  type Task = {
+    child: Child;
+    child_id: number;
+    completion_status: string;
+    created_at: string;
+    description: string;
+    due_date: string;
+    id: number;
+    isRecurring: boolean;
+    latest_submission: Submission | null;
+    parent_id: number;
+    recurrence: string;
+    recurringType: string;
+    reward_amount: number;
+    task_category: TaskCategory;
+    task_category_id: number;
+    title: string;
+    updated_at: string;
+  };
+
+  type CalendarTask = {
+    id: number;
+    title: string;
+    date: Date;
+    child: Child;
+    childId: string;
+    childName: string;
+    status: string;
+    reward: number;
+    time: string;
+  };
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`,
+          `${apiBaseUrl}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`,
           { credentials: "include" }
         )
         if (!res.ok) throw new Error("タスク取得失敗")
         const data = await res.json()
-        const parsed = data.map((task: any) => ({
+        const parsed: CalendarTask[] = data.map((task: Task) => ({
           id: task.id,
           title: task.title,
           date: new Date(task.due_date),
@@ -43,7 +98,7 @@ export default function ParentCalendarPage() {
           time: task.latest_submission?.submitted_at
             ? new Date(task.latest_submission.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : "未提出",
-        }))
+        }));
         setTasks(parsed)
       } catch (e) {
         console.error("取得エラー", e)
@@ -51,7 +106,7 @@ export default function ParentCalendarPage() {
     }
 
     fetchTasks()
-  }, [currentDate])
+  }, [currentDate, apiBaseUrl])
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -79,7 +134,7 @@ export default function ParentCalendarPage() {
   const getTasksForDate = (date: Date | null) => {
     if (!date) return []
     return tasks.filter((task) => {
-      const taskDate = task.date
+      const taskDate = task.date;
       const isSameDate =
         taskDate.getDate() === date.getDate() &&
         taskDate.getMonth() === date.getMonth() &&

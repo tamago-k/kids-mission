@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,23 +15,25 @@ export default function ParentMasterPage() {
   const [categoryName, setTaskCategoryName] = useState("")
   const [categorySlug, setTaskCategorySlug] = useState("")
   const [editingTaskCategoryId, setEditingTaskCategoryId] = useState<number | null>(null)
-  const [task_categories, setTaskCategorys] = useState([])
+  const [task_categories, setTaskCategorys] = useState<TaskCategory[]>([]);
   const [deleteTaskCategoryOpen, setDeleteTaskCategoryOpen] = useState(false)
   const [deletingTaskCategory, setDeletingTaskCategory] = useState<{ id: number; name: string } | null>(null);
 
-  // 初期データ読み込み
-  useEffect(() => {
-    fetchTaskCategorys();
-  }, []);
-
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift()!);
-    return null;
+  type TaskCategory = {
+    id: number;
+    name: string;
+    slug: string;
   };
 
-  const fetchTaskCategorys = async () => {
+
+  function getCookie(name: string) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
+    return null;
+  }
+
+  const fetchTaskCategorys = useCallback(async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     try {
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
@@ -47,9 +49,19 @@ export default function ParentMasterPage() {
       
     console.log("取得したカテゴリ一覧:", data);
     } catch (e) {
-      alert(e.message || "カテゴリの取得に失敗しました");
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("カテゴリの取得に失敗しました");
+      }
     }
-  };
+  }, [apiBaseUrl]);
+
+  // 初期データ読み込み
+  useEffect(() => {
+    fetchTaskCategorys();
+  }, [fetchTaskCategorys]);
+
 
   // 保存（新規 or 更新）
   const handleSaveTaskCategory = async () => {
@@ -101,16 +113,19 @@ export default function ParentMasterPage() {
       setTaskCategorySlug("");
 
     } catch (error) {
-      alert(error.message || "保存に失敗しました");
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("保存に失敗しました");
+      }
     }
   };
 
   // 編集時フォームにセット
-  const handleEditTaskCategory = (task_categories: { id: number; name: string; slug: string;}) => {
-     console.log("編集するカテゴリ:", task_categories);
-    setEditingTaskCategoryId(task_categories.id);
-    setTaskCategoryName(task_categories.name);
-    setTaskCategorySlug(task_categories.slug);
+  const handleEditTaskCategory = (taskCategory: TaskCategory) => {
+    setEditingTaskCategoryId(taskCategory.id);
+    setTaskCategoryName(taskCategory.name);
+    setTaskCategorySlug(taskCategory.slug);
     setAddTaskCategoryOpen(true);
   };
 
@@ -130,8 +145,12 @@ export default function ParentMasterPage() {
       if (!res.ok) throw new Error('削除失敗');
       setTaskCategorys(prev => prev.filter(r => r.id !== id));
       setDeleteTaskCategoryOpen(false);
-    } catch (error) {
-      alert(error.message || "削除に失敗しました");
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("削除に失敗しました");
+      }
     }
   };
 

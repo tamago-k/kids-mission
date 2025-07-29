@@ -9,7 +9,7 @@ import { PiggyBank, ClipboardCheck, Star, CheckCircle, Gift, ThumbsUp, Smile } f
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildDashboard() {
-  const [todayTasks, setTodayTasks] = useState<any[]>([])
+  const [todayTasks, setTodayTasks] = useState<Task[]>([])
   const [currentBalance, setCurrentBalance] = useState(0)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
@@ -19,6 +19,33 @@ export default function ChildDashboard() {
   })
   const router = useRouter()
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  type Submission = {
+    created_at: string;
+    id: number;
+    status: string;
+    submitted_at: string;
+    task_id: number;
+    updated_at: string;
+    user_id: number;
+  };
+
+  type Task = {
+    child_id: number;
+    created_at: string;
+    description: string;
+    due_date: string;
+    id: number;
+    isRecurring: boolean;
+    parent_id: number;
+    recurrence: string | null;
+    recurringType: string | null;
+    reward_amount: number;
+    submission: Submission | null;
+    task_category_id: number;
+    title: string;
+    updated_at: string;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +94,7 @@ export default function ChildDashboard() {
 
     fetchData()
     fetchStats()
-  }, [])
+  }, [apiBaseUrl])
 
   if (loading) {
     return (

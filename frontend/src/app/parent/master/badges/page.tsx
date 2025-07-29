@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,24 +16,27 @@ export default function ParentMasterPage() {
   const [badgeName, setBadgeName] = useState("")
   const [badgeCondition, setBadgeCondition] = useState("")
   const [editingBadgeId, setEditingBadgeId] = useState<number | null>(null)
-  const [badges, setBadges] = useState([])
+  const [badges, setBadges] = useState<Badge[]>([])
   const [formBadgeIcon, setFormBadgeIcon] = useState(badgeIconOptions[0].id)
-  const [setDeleteBadgeOpen] = useState(false)
+  const [_deleteBadgeOpen, setDeleteBadgeOpen] = useState(false);
 
-  // 初期データ読み込み
-  useEffect(() => {
-    fetchBadges();
-  }, []);
+  type Badge = {
+    id: number
+    name: string
+    icon: string
+    condition: string
+    is_active: boolean
+  }
 
-  const getCookie = (name: string) => {
+  function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift()!);
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
-  };
+  }
 
   // バッジ一覧取得
-  const fetchBadges = async () => {
+  const fetchBadges = useCallback(async () => {
     const csrfToken = getCookie("XSRF-TOKEN");
     try {
       const res = await fetch(`${apiBaseUrl}/api/badges`, {
@@ -46,10 +49,19 @@ export default function ParentMasterPage() {
       if (!res.ok) throw new Error("バッジの取得に失敗しました");
       const data = await res.json();
       setBadges(Array.isArray(data) ? data : data.badges ?? []);
-    } catch (e) {
-      alert(e.message || "バッジの取得に失敗しました");
-    }
-  };
+      } catch (e) {
+        if (e instanceof Error) {
+          alert(e.message);
+        } else {
+          alert("バッジの取得に失敗しました");
+        }
+      }
+  }, [apiBaseUrl]);
+
+  // 初期データ読み込み
+  useEffect(() => {
+    fetchBadges();
+  }, [fetchBadges]);
 
   // 保存（新規 or 更新）
   const handleSaveBadge = async () => {
@@ -103,7 +115,11 @@ export default function ParentMasterPage() {
       setBadgeCondition("");
 
     } catch (error) {
-      alert(error.message || "保存に失敗しました");
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("保存に失敗しました");
+      }
     }
   };
 
@@ -139,7 +155,11 @@ export default function ParentMasterPage() {
       setBadges((prev) => prev.filter((b) => b.id !== id));
       setDeleteBadgeOpen(false);
     } catch (e) {
-      alert(e.message || "削除に失敗しました");
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("削除に失敗しました");
+      }
     }
   };
 
@@ -165,8 +185,12 @@ export default function ParentMasterPage() {
 
       const data = await res.json();
       setBadges((prev) => prev.map(b => (b.id === id ? data : b)));
-    } catch (error) {
-      alert(error.message || '更新に失敗しました');
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("更新に失敗しました");
+      }
     }
   };
 

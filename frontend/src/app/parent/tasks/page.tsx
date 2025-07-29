@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -32,8 +32,8 @@ export default function ParentTasksPage() {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [deleteTaskOpen, setDeleteTaskOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
-  const [newComment, setNewComment] = useState("")
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [_newComment, setNewComment] = useState<string>("")
   const [taskTitle, setTaskTitle] = useState("")
   const [taskDescription, setTaskDescription] = useState("")
   const [taskReward, setTaskReward] = useState("")
@@ -41,17 +41,61 @@ export default function ParentTasksPage() {
   const [assignedChild, setAssignedChild] = useState("")
   const [assignedTaskCategory, setAssignedTaskCategory] = useState("")
   const [isRecurring, setIsRecurring] = useState(false)
-  const [recurrence, setRecurrence] = useState("daily")
   const [recurringType, setRecurringType] = useState("")
   const [recurringDays, setRecurringDays] = useState<string[]>([])
-  const [tasks, setTasks] = useState<any[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
   const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<typeof notifications[0] | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<Task | null>(null);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  type Task = {
+    id: number
+    title: string
+    description: string
+    due_date: string
+    reward_amount: number
+    child_id: number
+    parent_id: number
+    task_category_id: number
+    recurrence: string | null
+    recurringType?: string
+    isRecurring?: boolean
+    completion_status: "none" | "submitted" | "approved" | "rejected" | null
+    created_at: string
+    updated_at: string
+    recurringDays?: string[]  
+
+    child: {
+      id: number
+      name: string
+      avatar: string
+      role: string
+      theme: string
+      created_at: string
+      updated_at: string
+    }
+
+    task_category: {
+      id: number
+      name: string
+      slug: string
+      created_at: string
+      updated_at: string
+    }
+
+    latest_submission?: {
+      id: number
+      task_id: number
+      user_id: number
+      submitted_at: string
+      status: "submitted" | "approved" | "rejected"
+      created_at: string
+      updated_at: string
+    } | null
+  }
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
@@ -147,17 +191,17 @@ export default function ParentTasksPage() {
     setSelectedTask(null)
   }
 
-  const openEditDialog = (task: any) => {
+  const openEditDialog = (task: Task) => {
     setSelectedTask(task)
     setTaskTitle(task.title)
     setTaskDescription(task.description)
-    setTaskReward(String(task.reward_amount || task.reward || ""))
-    setTaskDeadline(formatForInputDateTimeLocal(task.deadline || task.due_date))
-    setAssignedChild(task.child_id)
+    setTaskReward(String(task.reward_amount || ""))
+    setTaskDeadline(formatForInputDateTimeLocal(task.due_date))
+    setAssignedChild(String(task.child_id))
     setIsRecurring(Boolean(task.recurrence))
     setRecurringType(task.recurrence || "")
-    setRecurringDays(task.recurringDays || [])
-    setAssignedTaskCategory(task.task_category_id || "")
+    setRecurringDays(task.recurringDays ?? [])
+    setAssignedTaskCategory(String(task.task_category_id))
     setTaskModalOpen(true)
   }
 
@@ -254,21 +298,21 @@ export default function ParentTasksPage() {
     setSelectedTask(null)
   }
 
-  const openCommentDialog = (task: any) => {
+  const openCommentDialog = (task: Task) => {
     setSelectedTask(task)
     setTaskTitle(task.title);
     setCommentDialogOpen(true)
   }
 
-  const openTaskModal = (task?: any) => {
+  const openTaskModal = (task?: Task) => {
     if (task) {
       setSelectedTask(task)
       setTaskTitle(task.title)
       setTaskDescription(task.description)
-      setTaskReward(String(task.reward_amount || task.reward || ""))
-      setTaskDeadline(task.due_date || task.deadline || "")
-      setAssignedChild(task.child_id || task.assignedTo || "")
-      setAssignedTaskCategory(task.task_category_id || "")
+      setTaskReward(String(task.reward_amount || ""))
+      setTaskDeadline(task.due_date || task.due_date || "")
+      setAssignedChild(String(task.child_id))
+      setAssignedTaskCategory(String(task.task_category_id))
       setIsRecurring(Boolean(task.recurrence || task.isRecurring))
       setRecurringType(task.recurrence || task.recurringType || "")
     } else {
@@ -583,7 +627,7 @@ export default function ParentTasksPage() {
                     </Select>
                   </div>
 
-                  {recurringType === "weekly" && (
+                  {/*recurringType === "weekly" && (
                     <div>
                       <Label className="text-gray-700 font-medium">曜日を選択</Label>
                       <div className="grid grid-cols-7 gap-2 mt-2">
@@ -601,7 +645,7 @@ export default function ParentTasksPage() {
                         ))}
                       </div>
                     </div>
-                  )}
+                  )*/}
                 </div>
               )}
             </div>

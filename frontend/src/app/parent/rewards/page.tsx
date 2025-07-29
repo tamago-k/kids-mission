@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -9,14 +9,6 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { Badge } from "@/components/ui/badge"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
-interface RewardUsageRequest {
-  id: number
-  reward_name: string
-  points: number
-  child_name: string
-  requested_at: string
-  status: "submitted" | "approved" | "rejected"
-}
 
 export default function RewardUsageApproval() {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -27,9 +19,26 @@ export default function RewardUsageApproval() {
   const submittedRequests = requests.filter(req => req.status === "submitted")
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null)
 
-  useEffect(() => {
-    fetchRequests()
-  }, [])
+  type User = {
+    id: number;
+    name: string;
+    avatar: string;
+    theme?: string;
+  };
+
+  type RewardUsageRequest = {
+    id: number;
+    reward_name: string;
+    points: number;
+    child_name: string;
+    requested_at: string;
+    status: "submitted" | "approved" | "rejected";
+    user?: User;
+    reward?: {
+      name: string;
+      need_reward: number;
+    };
+  };
 
   const getCookieValue = (name: string) => {
     const value = `; ${document.cookie}`
@@ -38,7 +47,7 @@ export default function RewardUsageApproval() {
     return null
   }
 
-  async function fetchRequests() {
+  const fetchRequests = useCallback(async () => {
     setLoading(true)
     const csrfToken = getCookieValue("XSRF-TOKEN")
     try {
@@ -49,12 +58,21 @@ export default function RewardUsageApproval() {
       if (!res.ok) throw new Error("申請リストの取得に失敗しました")
       const data = await res.json()
       setRequests(data.requests ?? [])
-    } catch (e: any) {
-      alert(e.message || "申請リストの取得に失敗しました")
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        alert(e.message || "申請リストの取得に失敗しました")
+      } else {
+        alert("申請リストの取得に失敗しました")
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
+    fetchRequests()
+  }, [fetchRequests])
+
 
   const openDialog = (req: RewardUsageRequest, type: "approve" | "reject") => {
     setSelectedRequest(req)
@@ -81,8 +99,12 @@ export default function RewardUsageApproval() {
       setDialogOpen(false)
       setSelectedRequest(null)
       setActionType(null)
-    } catch (e: any) {
-      alert(e.message || "処理に失敗しました")
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        alert(e.message || "処理に失敗しました")
+      } else {
+        alert("処理に失敗しました")
+      }
     }
   }
 
@@ -126,7 +148,7 @@ export default function RewardUsageApproval() {
             </CardHeader>
             <CardContent className="space-y-4">
               {submittedRequests.map((req) => {
-                const iconObj = req.user ? iconOptions.find(icon => icon.id === req.user.avatar) : null
+                const iconObj = iconOptions.find(icon => icon.id === req.user?.avatar)
 
                 return (
                   <Card key={req.id} className="border border-gray-200 rounded-2xl mb-6 p-4">

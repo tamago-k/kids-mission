@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { History, Medal, ArrowLeft } from "lucide-react"
+import { Medal, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentBadgeHistoryPage() {

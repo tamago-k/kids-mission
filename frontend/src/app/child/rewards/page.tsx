@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,9 +13,40 @@ export default function ChildRewardsPage() {
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
   const [rewardItem, setRewardItem] = useState<{ id: number; name: string; need_reward: number; icon: string } | null>(null)
   const [currentBalance, setCurrentBalance] = useState(0)
-  const [rewardHistory, setRewardHistory] = useState<any[]>([]);
-  const [suggestedRewards, setSuggestedRewards] = useState([])
+  const [rewardHistory, setRewardHistory] = useState<RewardRequest[]>([]);
+  const [suggestedRewards, setSuggestedRewards] = useState<Reward[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  type Reward = {
+    id: number;
+    name: string;
+    icon: string;
+    need_reward: number;
+    created_at: string;
+    updated_at: string;
+  };
+
+  type User = {
+    id: number;
+    name: string;
+    role: string;
+    avatar: string;
+    theme: string;
+    created_at: string;
+    updated_at: string;
+  };
+
+  type RewardRequest = {
+    id: number;
+    reward_id: number;
+    status: string;
+    requested_at: string;
+    created_at: string;
+    updated_at: string;
+    reward: Reward;
+    user_id: number;
+    user: User;
+  };
 
   // クッキーからCSRFトークンを取得するユーティリティ
   const getCookie = (name: string) => {
@@ -25,12 +56,7 @@ export default function ChildRewardsPage() {
     return null
   }
 
-  // 初回ロード時にAPIからデータ取得
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     const csrfToken = getCookie("XSRF-TOKEN") ?? ""
 
     try {
@@ -61,10 +87,19 @@ export default function ChildRewardsPage() {
       const historyData = await resHistory.json()
       setRewardHistory(historyData.requests ?? [])
 
-    } catch (e: any) {
-      alert(e.message ?? "データの取得に失敗しました")
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message)
+      } else {
+        alert("データの取得に失敗しました")
+      }
     }
-  }
+  }, [apiBaseUrl])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
 
   // 報酬申請処理
   const handleRequestReward = async () => {
@@ -96,8 +131,12 @@ export default function ChildRewardsPage() {
 
       setRewardDialogOpen(false)
       fetchData() // 最新情報取得（残高、履歴更新）
-    } catch (e: any) {
-      alert(e.message ?? "申請に失敗しました")
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message)
+      } else {
+        alert("申請に失敗しました")
+      }
     }
   }
 
@@ -142,8 +181,8 @@ export default function ChildRewardsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            {suggestedRewards.map((reward: any) => {
-              const rewardIconObj = rewardIconOptions.find((icon) => icon.id === reward.icon);
+            {suggestedRewards.map((reward: Reward) => {
+              const rewardIconObj = rewardIconOptions.find(icon => icon.id === reward?.icon);
               const IconComponent = rewardIconObj ? rewardIconObj.Icon : null;
 
               return (
@@ -151,26 +190,26 @@ export default function ChildRewardsPage() {
                   key={reward.id}
                   variant="outline"
                   className={`h-auto p-4 rounded-2xl border-2 flex flex-col items-center gap-2 ${
-                    currentBalance >= reward.need_reward
+                    currentBalance >= (reward?.need_reward ?? 0)
                       ? "border-green-200 hover:border-green-300 hover:bg-green-50"
                       : "border-gray-200 opacity-50 cursor-not-allowed"
                   }`}
-                  disabled={currentBalance < reward.need_reward}
+                  disabled={currentBalance < (reward?.need_reward ?? 0)}
                   onClick={() => {
                     setRewardItem(reward);
                     setRewardDialogOpen(true);
                   }}
                 >
-                  {/* Iconがあれば表示、なければ「未設定」 */}
                   {IconComponent ? <IconComponent className="min-w-[30px] min-h-[30px]" /> : "未設定"}
 
                   <div className="text-center">
-                    <div className="font-medium text-sm">{reward.name}</div>
-                    <div className="text-xs text-gray-600">{reward.need_reward}P</div>
+                    <div className="font-medium text-sm">{reward?.name ?? "名前なし"}</div>
+                    <div className="text-xs text-gray-600">{reward?.need_reward ?? 0}P</div>
                   </div>
                 </Button>
               );
             })}
+
           </div>
         </CardContent>
       </Card>
@@ -184,7 +223,7 @@ export default function ChildRewardsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {rewardHistory.map((item: any) => (
+          {rewardHistory.map((item: RewardRequest) => (
             <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
               <div className="flex items-center gap-3">
                 <div
@@ -199,7 +238,7 @@ export default function ChildRewardsPage() {
                   )}
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800">{item.reward?.name || item.reward_name || item.title}</h4>
+                  <h4 className="font-medium text-gray-800">{item.reward?.name}</h4>
                   <p className="text-sm text-gray-600">
                     {item.requested_at
                       ? new Date(item.requested_at).toLocaleDateString("ja-JP", {
@@ -207,7 +246,7 @@ export default function ChildRewardsPage() {
                           month: "2-digit",
                           day: "2-digit",
                         })
-                      : item.date}
+                      : "不明"}
                   </p>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation";
 import Link from "next/link"
-import { Home, Users, BarChart3, Calendar, Menu, ClipboardCheck, Settings, History, LogOut, PiggyBank } from "lucide-react"
+import { Home, Calendar, Menu, ClipboardCheck, Settings, LogOut, PiggyBank } from "lucide-react"
 import { useState } from "react"
 
 export function ParentNavigation() {
@@ -41,10 +41,10 @@ export function ParentNavigation() {
 
   const router = useRouter();
 
-  function getCookie(name) {
+  function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
   }
 
@@ -120,27 +120,11 @@ export function ParentNavigation() {
                   </div>
                 )
               } else {
-                // childrenがない＝単一リンクとして表示
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-4 px-4 py-2 rounded-xl transition ${
-                      isActive
-                        ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white"
-                        : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
-                    }`}
-                  >
-                    {Icon && <Icon className="w-5 h-5" />}
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                )
+                // ここで item.href にアクセスしてしまうとエラーになるので避ける
+                // menuItems の親は href を持っていない想定ならここは不要
               }
             })}
           </div>
-
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <button onClick={handleLogout} className="flex items-center gap-4 p-4 rounded-xl text-red-600 hover:bg-red-50 w-full">

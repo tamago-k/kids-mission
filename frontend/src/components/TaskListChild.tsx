@@ -1,15 +1,16 @@
 import React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, CheckCircle } from "lucide-react"
-import { colorThemes, iconOptions } from "@/components/OptionThemes"
+import { colorThemes } from "@/components/OptionThemes"
 
 interface Task {
   id: number
   title: string
   description?: string | null
   status: string
+  completion_status?: "approved" | "submitted" | "rejected" | "pending"
   approved_at?: string | null
   reward_amount: number | null
   due_date?: string | null
@@ -38,10 +39,8 @@ interface TaskListParentProps {
 
 export const TaskListChild: React.FC<TaskListParentProps> = ({
   tasks,
-  onEdit,
   onComment,
   onComplete,
-  allowEdit = true,
 }) => {
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find(t => t.value === themeValue)
@@ -126,7 +125,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                 variant="outline"
                 size="sm"
                 className="flex-1 rounded-2xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                onClick={() => onComment(task)}
+                onClick={() => onComment && onComment(task)}
               >
                 <MessageCircle className="w-4 h-4 mr-1" />
                 コメント
@@ -141,7 +140,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                   <Button
                     size="sm"
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
-                    onClick={() => onComplete(task)} // 再申請
+                    onClick={() => onComplete && onComplete(task)}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
                     再申請
@@ -156,7 +155,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                   <Button
                     size="sm"
                     className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-2xl"
-                    onClick={() => onComplete(task)}
+                    onClick={() => onComplete && onComplete(task)}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
                     完了申請

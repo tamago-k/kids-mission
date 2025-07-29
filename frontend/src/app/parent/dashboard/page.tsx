@@ -12,12 +12,79 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 export default function ParentDashboard() {
-  const [selectedChild, setSelectedChild] = useState("all")
+  const [selectedChild, _setSelectedChild] = useState("all")
   const router = useRouter()
-  const [children, setChildren] = useState<{ id: string, name: string, avatar: string }[]>([])
+  const [children, _setChildren] = useState<{ id: string, name: string, avatar: string }[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const [rewardRequests, setRewardRequests] = useState<any[]>([])
-  const [submittedTasks, setSubmittedTasks] = useState<any[]>([])
+  const [rewardRequests, setRewardRequests] = useState<RewardRequest[]>([])
+  const [submittedTasks, setSubmittedTasks] = useState<Task[]>([])
+
+  type RewardRequest = {
+    id: number
+    reward_id: number
+    status: "submitted" | "approved" | "rejected"
+    requested_at: string
+    created_at: string
+    updated_at: string
+    reward: {
+      id: number
+      name: string
+      icon: string
+      need_reward: number
+      created_at: string
+      updated_at: string
+    }
+    user: {
+      id: number
+      name: string
+      avatar: string
+      role: "child"
+      theme: string
+      created_at: string
+      updated_at: string
+    }
+  }
+  type Task = {
+    id: number
+    title: string
+    description: string
+    due_date: string
+    reward_amount: number
+    isRecurring: boolean
+    recurrence: "daily" | "weekly" | "monthly" | "weekdays" | "weekends" | null
+    recurringType: string | null
+    completion_status: "none" | "submitted" | "approved" | "rejected"
+    child_id: number
+    parent_id: number
+    created_at: string
+    updated_at: string
+    task_category_id: number
+    task_category: {
+      id: number
+      name: string
+      slug: string
+      created_at: string
+      updated_at: string
+    }
+    child: {
+      id: number
+      name: string
+      avatar: string
+      theme: string
+      role: "child"
+      created_at: string
+      updated_at: string
+    }
+    latest_submission: {
+      id: number
+      task_id: number
+      user_id: number
+      status: "submitted" | "approved" | "rejected"
+      submitted_at: string
+      created_at: string
+      updated_at: string
+    } | null
+  }
 
   useEffect(() => {
     const fetchPendingTasks = async () => {
@@ -27,7 +94,7 @@ export default function ParentDashboard() {
         })
         if (!res.ok) throw new Error("タスク取得失敗")
         const data = await res.json()
-        const parsed = data.map((task: any) => ({
+        const parsed = data.map((task: Task) => ({
           id: task.id,
           title: task.title,
           date: new Date(task.due_date),
@@ -51,8 +118,7 @@ export default function ParentDashboard() {
         if (!res.ok) throw new Error("報酬申請取得に失敗")
         const json = await res.json();
         const data = json.requests ?? [];
-        console.log(data);
-        const parsed = data.map((r: any) => ({
+        const parsed = data.map((r: RewardRequest) => ({
           id: r.id,
           child: r.user ?? null,
           childId: String(r.user?.id ?? ""),
@@ -84,7 +150,7 @@ export default function ParentDashboard() {
     fetchPendingTasks()
     fetchRewardRequests()
     checkRole()
-  }, [])
+  }, [apiBaseUrl, router])
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find(t => t.value === themeValue)
@@ -189,7 +255,7 @@ export default function ParentDashboard() {
                             </div>
                             <h3 className="font-medium text-gray-800">{task.title}</h3>
                           </div>
-                          <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {task.reward}P</Badge>
+                          <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {task.reward_amount}P</Badge>
                         </div>
                         <div className="flex gap-2">
                           <Link href="/parent/tasks/" className="flex-1">
@@ -232,8 +298,7 @@ export default function ParentDashboard() {
                   </div>
                 ) : (
                   rewardRequests.map((reward) => {
-                    const childInfo = reward.child
-                    console.log("childInfo", rewardRequests);
+                    const childInfo = reward.user
                     const iconObj = childInfo ? iconOptions.find(icon => icon.id === childInfo.avatar) : null
                     return (
                     <Card key={reward.id} className="border border-gray-200 rounded-2xl">
@@ -248,9 +313,9 @@ export default function ParentDashboard() {
                                   {iconObj ? <iconObj.Icon className="w-4 h-4" /> : "未設定"}
                                   {childInfo?.name || "未設定"}
                                 </div>
-                                <h3 className="font-medium text-gray-800">{reward.item || reward.title || "未設定"}</h3>
+                                <h3 className="font-medium text-gray-800">{reward.reward?.name || "未設定"}</h3>
                               </div>  
-                              <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {reward.amount ?? 0}P</Badge>
+                              <Badge className="bg-purple-100 text-purple-600"><PiggyBank className="w-4 h-4 mr-2" /> {reward.reward?.need_reward ?? 0}P</Badge>
                             </div>
                             <div className="flex gap-2">
                               <Link href="/parent/rewards/" className="flex-1">

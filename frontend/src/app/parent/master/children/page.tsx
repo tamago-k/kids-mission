@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Settings, Check, Trash2, Users, TriangleAlert, ArrowLeft } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -23,10 +23,18 @@ export default function ChildrenPage() {
   const [deleteChildOpen, setDeleteChildOpen] = useState(false)
   const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
 
-  function getCookie(name) {
+  type Child = {
+    id: number;
+    name: string;
+    password: string;
+    icon: string;
+    colorTheme: string;
+  };
+
+  function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
     return null;
   }
 
@@ -49,27 +57,6 @@ export default function ChildrenPage() {
       setChildren(data)
     }
 
-    fetchChildren()
-  }, [])
-
-  //初期データ読み込み
-  useEffect(() => {
-    async function fetchChildren() {
-      try {
-        const res = await fetch(`${apiBaseUrl}/api/children`, { credentials: 'include' });
-        if (!res.ok) throw new Error('取得失敗');
-        const data = await res.json();
-        setChildren(data);
-      } catch (e) {
-        alert('読み込みに失敗しました');
-      }
-    }
-
-    fetchChildren();
-  }, []);
-
-  // 編集モード時、対象子どもの情報をフォームにセット
-  useEffect(() => {
     if (editChildId !== null) {
       const child = children.find((c) => c.id === editChildId)
       if (child) {
@@ -85,7 +72,9 @@ export default function ChildrenPage() {
       setFormIcon(iconOptions[0].id)
       setFormColorTheme(colorThemes[0].value)
     }
-  }, [editChildId, children])
+
+    fetchChildren()
+  }, [editChildId, children, apiBaseUrl]);
 
   const getThemeStyles = (colorTheme: string) => {
     const theme = colorThemes.find((t) => t.value === colorTheme)
@@ -133,8 +122,12 @@ export default function ChildrenPage() {
 
       setModalOpen(false);
       setEditChildId(null);
-    } catch (error) {
-      alert(error.message);
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("更新失敗");
+      }
     }
   };
 
@@ -153,8 +146,12 @@ export default function ChildrenPage() {
       if (!res.ok) throw new Error('削除に失敗しました');
       setChildren(prev => prev.filter(c => c.id !== id));
       setDeleteChildOpen(false);
-    } catch (error) {
-      alert(error.message);
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert("更新失敗");
+      }
     }
   };
 
@@ -194,7 +191,6 @@ export default function ChildrenPage() {
         <div className="space-y-4">
           {children.map((child) => {
             const theme = getThemeStyles(child.colorTheme)
-            const completionRate = child.totalTasks ? Math.round((child.approvedTasks / child.totalTasks) * 100) : 0
             const iconObj = iconOptions.find((icon) => icon.id === child.icon)
 
             return (

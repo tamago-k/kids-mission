@@ -5,20 +5,7 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, ArrowLeft } from "lucide-react"
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts"
 import { TrendingUp, Award, Target } from "lucide-react"
 
 const colorThemes = {
@@ -38,7 +25,7 @@ const children = [
 ]
 
 export default function StatsPage() {
-  const [selectedChild, setSelectedChild] = useState<string>("all")
+  const [selectedChild, setSelectedChild] = useState<number | string | null>("all");
   const [activeTab, setActiveTab] = useState<"progress" | "points">("progress")
 
   // サンプルデータ
@@ -65,11 +52,6 @@ export default function StatsPage() {
     { name: "運動", value: 20, color: colorThemes.orange.color },
     { name: "その他", value: 10, color: colorThemes.purple.color },
   ]
-
-  const getChildTheme = (childName: string) => {
-    const child = children.find((c) => c.name === childName)
-    return child ? colorThemes[child.colorTheme as keyof typeof colorThemes] : colorThemes.blue
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
@@ -218,7 +200,7 @@ export default function StatsPage() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     >
                       {categoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

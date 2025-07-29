@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,12 +15,34 @@ export default function ChildTasksPage() {
   const user = useCurrentUser()
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
-  const [newComment, setNewComment] = useState("")
-  const [tasks, setTasks] = useState<any[]>([])
-  const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [_newComment, setNewComment] = useState<string>("")
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [_taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const [filter, setFilter] = useState("today")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  type Task = {
+    id: number
+    title: string
+    description?: string | null
+    status: string
+    approved_at?: string | null
+    reward_amount: number | null
+    due_date?: string | null
+    child?: {
+      name: string
+      avatar: string
+      theme?: string
+    } | null
+    isRecurring?: boolean
+    recurringType?: "daily" | "weekly" | "monthly"
+    task_category?: {
+      id: number
+      name: string
+      slug: string
+    } | null
+  };
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
@@ -29,8 +51,7 @@ export default function ChildTasksPage() {
     return null;
   }
 
-  // fetchTasks をコンポーネントトップレベルで定義
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     if (!user) return;
     const csrfToken = getCookie("XSRF-TOKEN");
     const res = await fetch(`${apiBaseUrl}/api/tasks`, {
@@ -47,10 +68,9 @@ export default function ChildTasksPage() {
     }
     const data = await res.json();
     setTasks(data);
-  }
+  }, [apiBaseUrl,user]);
 
-  // 同様に fetchTaskCategories も必要に応じて外へ
-  const fetchTaskCategories = async () => {
+  const fetchTaskCategories = useCallback(async () => {
     if (!user) return;
     const csrfToken = getCookie("XSRF-TOKEN");
     const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
@@ -67,17 +87,15 @@ export default function ChildTasksPage() {
     }
     const data = await res.json();
     setTaskCategories(data);
-  }
+  }, [apiBaseUrl, user]);
 
-  // useEffect で呼び出し
   useEffect(() => {
     if (!user) return;
     fetchTasks();
     fetchTaskCategories();
-  }, [apiBaseUrl, user?.id]);
+  }, [user, fetchTasks, fetchTaskCategories]);
 
-  // handleCompleteTask からも fetchTasks を呼べるように
-  async function handleCompleteTask(task: any) {
+  async function handleCompleteTask(task: Task) {
     if (!task?.id) return;
 
     try {
@@ -112,12 +130,12 @@ export default function ChildTasksPage() {
     setSelectedTask(null)
   }
 
-  const openCompleteDialog = (task: any) => {
+  const openCompleteDialog = (task: Task) => {
     setSelectedTask(task)
     setCompleteDialogOpen(true)
   }
 
-  const openCommentDialog = (task: any) => {
+  const openCommentDialog = (task: Task) => {
     setSelectedTask(task)
     setCommentDialogOpen(true)
   }
@@ -183,6 +201,10 @@ export default function ChildTasksPage() {
     // デフォルトで全件返す
     return true;
   });
+
+  if (!user) {
+    return
+  }
 
   return (
      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
@@ -284,7 +306,7 @@ export default function ChildTasksPage() {
               </Button>
               <Button
                 className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-2xl"
-                onClick={() => handleCompleteTask(selectedTask)}
+                onClick={() => selectedTask && handleCompleteTask(selectedTask)}
               >
                 完了申請
               </Button>
@@ -294,15 +316,15 @@ export default function ChildTasksPage() {
       </Dialog>
 
       {/* コメントモーダル */}
-      <TaskCommentModal
-        open={commentDialogOpen}
-        onOpenChange={setCommentDialogOpen}
-        taskId={selectedTask?.id}
-        taskTitle={selectedTask?.title}
-        onAddComment={handleAddComment}
-        currentUserId={user?.id}
-      />
-
+      {selectedTask && (
+        <TaskCommentModal
+          open={commentDialogOpen}
+          onOpenChange={setCommentDialogOpen}
+          taskId={selectedTask.id}
+          taskTitle={selectedTask.title}
+          currentUserId={user!.id}
+        />
+      )}
       {/* ナビゲーション */}
       <ChildNavigation />
     </div>

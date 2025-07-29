@@ -22,7 +22,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     }
     checkAuth()
-  }, [pathname, router])
+  }, [pathname, router, apiBaseUrl])
 
   if (loading) return null
 

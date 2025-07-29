@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, User, Filter, ClipboardCheck, History } from "lucide-react"
+import { Calendar, User, Filter, History } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentHistoryPage() {
@@ -27,7 +27,6 @@ export default function ParentHistoryPage() {
       status: "approved",
       approvedAt: "2025年1月15日 18:30",
       submittedAt: "2025年1月15日 18:00",
-      approvedAt: "2025年1月15日 19:00",
       comment: "きちんと解けていました！",
     },
     {
@@ -40,7 +39,6 @@ export default function ParentHistoryPage() {
       status: "approved",
       approvedAt: "2025年1月15日 17:00",
       submittedAt: "2025年1月15日 17:15",
-      approvedAt: "2025年1月15日 17:30",
       comment: "とても丁寧に書けています",
     },
     {
@@ -53,7 +51,6 @@ export default function ParentHistoryPage() {
       status: "rejected",
       approvedAt: "2025年1月14日 20:00",
       submittedAt: "2025年1月14日 20:30",
-      rejectedAt: "2025年1月14日 21:00",
       comment: "まだ汚れが残っているので、もう一度お願いします",
     },
     {
@@ -66,7 +63,6 @@ export default function ParentHistoryPage() {
       status: "approved",
       approvedAt: "2025年1月13日 16:00",
       submittedAt: "2025年1月13日 16:30",
-      approvedAt: "2025年1月13日 17:00",
       comment: "感想がとても詳しく書けていて素晴らしいです！",
     },
   ]
@@ -224,7 +220,7 @@ export default function ParentHistoryPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
-                              {task.status === "approved" ? task.approvedAt : task.rejectedAt}
+                              {task.status === "approved" ? task.approvedAt : ""}
                             </div>
                           </div>
                         </div>
