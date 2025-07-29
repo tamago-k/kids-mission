@@ -50,7 +50,15 @@ export default function ChildDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resUser = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
+
+        const token = localStorage.getItem("token");
+
+        const resUser = await fetch(`${apiBaseUrl}/api/user`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (!resUser.ok) {
           router.push("/")
           return
@@ -62,12 +70,22 @@ export default function ChildDashboard() {
         }
 
         // 今日のタスク取得
-        const resTasks = await fetch(`${apiBaseUrl}/api/tasks/today`, { credentials: "include" })
+        const resTasks = await fetch(`${apiBaseUrl}/api/tasks/today`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (!resTasks.ok) throw new Error("タスク取得失敗")
         const tasksData = await resTasks.json()
 
         // ポイント残高取得
-        const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, { credentials: "include" })
+        const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (!resBalance.ok) throw new Error("残高取得失敗")
         const balanceData = await resBalance.json()
 
@@ -80,10 +98,14 @@ export default function ChildDashboard() {
       }
     }
 
+    const token = localStorage.getItem("token");
     const fetchStats = async () => {
       try {
         const res = await fetch(`${apiBaseUrl}/api/tasks/weekday`, {
-          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         })
         const data = await res.json()
         setStats(data)

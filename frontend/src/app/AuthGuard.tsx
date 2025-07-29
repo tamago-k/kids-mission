@@ -9,11 +9,15 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const checkAuth = async () => {
     const res = await fetch(`${apiBaseUrl}/api/user`, {
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
     });
       if (!res.ok && pathname !== '/') {
         router.push('/')

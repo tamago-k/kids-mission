@@ -41,22 +41,14 @@ export function ParentNavigation() {
 
   const router = useRouter();
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const handleLogout = async () => {
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       await fetch(`${apiBaseUrl}/api/logout`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       router.push("/");

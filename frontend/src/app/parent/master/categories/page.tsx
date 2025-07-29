@@ -25,29 +25,19 @@ export default function ParentMasterPage() {
     slug: string;
   };
 
-
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const fetchTaskCategorys = useCallback(async () => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error('カテゴリの取得に失敗');
       const data = await res.json();
       setTaskCategorys(Array.isArray(data) ? data : data.task_categories ?? []);
       
-    console.log("取得したカテゴリ一覧:", data);
     } catch (e) {
       if (e instanceof Error) {
         alert(e.message);
@@ -67,7 +57,7 @@ export default function ParentMasterPage() {
   const handleSaveTaskCategory = async () => {
     if (!categoryName || !categorySlug ) return alert("すべての項目を入力してください");
 
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const payload = {
       name: categoryName,
       slug: categorySlug,
@@ -78,20 +68,18 @@ export default function ParentMasterPage() {
       if (editingTaskCategoryId === null) {
         res = await fetch(`${apiBaseUrl}/api/task-categories`, {
           method: 'POST',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`${apiBaseUrl}/api/task-categories/${editingTaskCategoryId}`, {
           method: 'PUT',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -131,15 +119,14 @@ export default function ParentMasterPage() {
 
   // 削除
   const handleDeleteTaskCategory = async (id: number) => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
 
     try {
       const res = await fetch(`${apiBaseUrl}/api/task-categories/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error('削除失敗');

@@ -28,22 +28,14 @@ export default function ParentMasterPage() {
     is_active: boolean
   }
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   // バッジ一覧取得
   const fetchBadges = useCallback(async () => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/badges`, {
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error("バッジの取得に失敗しました");
@@ -67,7 +59,7 @@ export default function ParentMasterPage() {
   const handleSaveBadge = async () => {
     if (!badgeName || !formBadgeIcon|| !badgeCondition) return alert("すべての項目を入力してください");
 
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const payload = {
       name: badgeName,
       icon: formBadgeIcon,
@@ -79,20 +71,18 @@ export default function ParentMasterPage() {
       if (editingBadgeId === null) {
         res = await fetch(`${apiBaseUrl}/api/badges`, {
           method: 'POST',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`${apiBaseUrl}/api/badges/${editingBadgeId}`, {
           method: 'PUT',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -141,14 +131,13 @@ export default function ParentMasterPage() {
   const handleDeleteBadge = async (id: number) => {
     if (!confirm("このバッジを削除しますか？")) return;
 
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/badges/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error("削除に失敗しました");
@@ -171,13 +160,12 @@ export default function ParentMasterPage() {
     const updatedBadge = { ...badge, is_active: !badge.is_active };
 
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/badges/${id}`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'X-XSRF-TOKEN': csrfToken ?? '',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ is_active: updatedBadge.is_active }),
       });

@@ -27,13 +27,6 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     created_at: string;
   };
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const onScroll = () => {
     const box = commentBoxRef.current;
     if (!box) return;
@@ -42,12 +35,11 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
   };
 
   const fetchComments = async () => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/comments`, {
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     });
     if (res.ok) {
@@ -80,13 +72,12 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/comments`, {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ content: newComment }),
     });

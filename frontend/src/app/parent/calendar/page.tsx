@@ -79,10 +79,15 @@ export default function ParentCalendarPage() {
 
   useEffect(() => {
     const fetchTasks = async () => {
+      const token = localStorage.getItem("token");
       try {
         const res = await fetch(
-          `${apiBaseUrl}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`,
-          { credentials: "include" }
+          `${apiBaseUrl}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+          },
+         }
         )
         if (!res.ok) throw new Error("タスク取得失敗")
         const data = await res.json()
@@ -278,7 +283,6 @@ export default function ParentCalendarPage() {
             ) : (
               getTasksForSelectedDate().map((task) => {
                   const childInfo = task.child;
-                  console.log(childInfo);
                   const iconObj = childInfo ? iconOptions.find(icon => icon.id === childInfo.avatar) : null;
                 return (
                   <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">

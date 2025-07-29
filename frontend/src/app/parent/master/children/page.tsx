@@ -31,22 +31,14 @@ export default function ChildrenPage() {
     colorTheme: string;
   };
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   useEffect(() => {
     const fetchChildren = async () => {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/children`, {
         method: "GET",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) {
@@ -90,16 +82,15 @@ export default function ChildrenPage() {
       icon: formIcon,
       colorTheme: formColorTheme,
     };
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       if (editChildId === null) {
         const res = await fetch(`${apiBaseUrl}/api/children`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
-          credentials: 'include',
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('追加失敗');
@@ -110,9 +101,8 @@ export default function ChildrenPage() {
           method: 'PUT',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
-          credentials: 'include',
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('更新失敗');
@@ -133,14 +123,13 @@ export default function ChildrenPage() {
 
   const handleDelete = async (id: number) => {
 
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/children/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error('削除に失敗しました');

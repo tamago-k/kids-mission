@@ -49,11 +49,13 @@ export default function RewardUsageApproval() {
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
-    const csrfToken = getCookieValue("XSRF-TOKEN")
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/reward-requests`, {
-        credentials: "include",
-        headers: { "X-XSRF-TOKEN": csrfToken ?? "" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!res.ok) throw new Error("申請リストの取得に失敗しました")
       const data = await res.json()
@@ -82,15 +84,17 @@ export default function RewardUsageApproval() {
 
   const handleAction = async () => {
     if (!selectedRequest || !actionType) return
-    const csrfToken = getCookieValue("XSRF-TOKEN")
+    const token = localStorage.getItem("token");
 
     const url = `${apiBaseUrl}/api/reward-requests/${selectedRequest.id}/${actionType}`
 
     try {
       const res = await fetch(url, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json", "X-XSRF-TOKEN": csrfToken ?? "" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       })
 
       if (!res.ok) throw new Error(actionType === "approve" ? "承認に失敗しました" : "却下に失敗しました")

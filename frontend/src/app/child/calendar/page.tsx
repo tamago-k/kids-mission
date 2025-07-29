@@ -61,10 +61,15 @@ export default function ChildCalendarPage() {
   }
 
   const fetchTasks = async (year: number, month: number) => {
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(
-        `${apiBaseUrl}/api/tasks?year=${year}&month=${month + 1}`, // 月は1から
-        { credentials: "include" }
+        `${apiBaseUrl}/api/tasks?year=${year}&month=${month + 1}`, { 
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
       if (!res.ok) throw new Error("タスク取得失敗")
       const data: Task[] = await res.json();

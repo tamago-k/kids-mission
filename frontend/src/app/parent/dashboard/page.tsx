@@ -16,8 +16,8 @@ export default function ParentDashboard() {
   const router = useRouter()
   const [children, _setChildren] = useState<{ id: string, name: string, avatar: string }[]>([])
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const [rewardRequests, setRewardRequests] = useState<RewardRequest[]>([])
-  const [submittedTasks, setSubmittedTasks] = useState<Task[]>([])
+  const [rewardRequests, _setRewardRequests] = useState<RewardRequest[]>([])
+  const [submittedTasks, _setSubmittedTasks] = useState<Task[]>([])
 
   type RewardRequest = {
     id: number
@@ -87,70 +87,67 @@ export default function ParentDashboard() {
   }
 
   useEffect(() => {
-    const fetchPendingTasks = async () => {
-      try {
-        const res = await fetch(`${apiBaseUrl}/api/tasks?status=submitted`, {
-          credentials: "include",
-        })
-        if (!res.ok) throw new Error("タスク取得失敗")
-        const data = await res.json()
-        const parsed = data.map((task: Task) => ({
-          id: task.id,
-          title: task.title,
-          date: new Date(task.due_date),
-          child: task.child,
-          childId: String(task.child_id),
-          childName: task.child?.name || "未設定",
-          status: task.completion_status ?? "none",
-          reward: task.reward_amount ?? 0,
-        }))
-        setSubmittedTasks(parsed)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-    
-    const fetchRewardRequests = async () => {
-      try {
-        const res = await fetch(`${apiBaseUrl}/api/reward-requests?status=submitted`, {
-          credentials: "include",
-        })
-        if (!res.ok) throw new Error("報酬申請取得に失敗")
-        const json = await res.json();
-        const data = json.requests ?? [];
-        const parsed = data.map((r: RewardRequest) => ({
-          id: r.id,
-          child: r.user ?? null,
-          childId: String(r.user?.id ?? ""),
-          item: r.reward?.name ?? "不明",
-          icon: r.reward?.icon ?? "",
-          amount: r.reward?.need_reward ?? 0,
-          status: r.status ?? "none",
-          type: "reward",
-        }));
-        setRewardRequests(parsed)
-      } catch (err) {
-        console.error(err)
-      }
-    }
 
-    const checkRole = async () => {
-      const res = await fetch(`${apiBaseUrl}/api/user`, { credentials: "include" })
-      if (!res.ok) {
-        router.push("/")
-        return
+    const checkAuthAndFetch = async () => {
+    const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+        return;
       }
-      const user = await res.json()
-      console.log("user.role:", user.role) 
+
+      // ロールチェック
+      const resUser = await fetch(`${apiBaseUrl}/api/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (!resUser.ok) {
+        localStorage.removeItem("token");
+        router.push("/");
+        return;
+      }
+      const user = await resUser.json();
       if (user.role !== "parent") {
-        router.push("/")
+        localStorage.removeItem("token");
+        router.push("/");
+        return;
+      }
+
+      // 認証OKならデータ取得
+      try {
+        const resTasks = await fetch(`${apiBaseUrl}/api/tasks?status=submitted`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        if (!resTasks.ok) throw new Error("タスク取得失敗");
+      } catch (error) {
+        localStorage.removeItem("token");
+        router.push("/");
+        return;
+      }
+
+      try {
+        const resRewards = await fetch(`${apiBaseUrl}/api/reward-requests?status=submitted`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        if (!resRewards.ok) throw new Error("報酬申請取得失敗");
+      } catch (error) {
+        localStorage.removeItem("token");
+        router.push("/");
+        return;
       }
     }
 
-    fetchPendingTasks()
-    fetchRewardRequests()
-    checkRole()
-  }, [apiBaseUrl, router])
+    checkAuthAndFetch();
+  }, [apiBaseUrl, router]);
+
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find(t => t.value === themeValue)

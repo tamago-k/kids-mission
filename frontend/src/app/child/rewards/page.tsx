@@ -57,13 +57,14 @@ export default function ChildRewardsPage() {
   }
 
   const fetchData = useCallback(async () => {
-    const csrfToken = getCookie("XSRF-TOKEN") ?? ""
-
+    const token = localStorage.getItem("token");
     try {
       // ポイント残高取得
       const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
-        credentials: 'include',
-        headers: { "X-XSRF-TOKEN": csrfToken },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!resBalance.ok) throw new Error("ポイント残高の取得に失敗しました")
       const balanceData = await resBalance.json()
@@ -71,8 +72,10 @@ export default function ChildRewardsPage() {
 
       // おすすめ報酬取得
       const resRewards = await fetch(`${apiBaseUrl}/api/rewards`, {
-        credentials: 'include',
-        headers: { "X-XSRF-TOKEN": csrfToken },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!resRewards.ok) throw new Error("報酬の取得に失敗しました")
       const rewardsData = await resRewards.json()
@@ -80,8 +83,10 @@ export default function ChildRewardsPage() {
 
       // ポイント履歴は別API想定
       const resHistory = await fetch(`${apiBaseUrl}/api/reward-requests`, {
-        credentials: 'include',
-        headers: { "X-XSRF-TOKEN": csrfToken },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!resHistory.ok) throw new Error("履歴の取得に失敗しました")
       const historyData = await resHistory.json()
@@ -109,15 +114,14 @@ export default function ChildRewardsPage() {
       return alert("ポイントが足りません")
     }
 
-    const csrfToken = getCookie("XSRF-TOKEN") ?? ""
+    const token = localStorage.getItem("token");
 
     try {
       const res = await fetch(`${apiBaseUrl}/api/reward-requests`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           reward_id: rewardItem.id,

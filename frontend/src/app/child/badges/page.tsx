@@ -29,23 +29,19 @@ export default function ChildBadgesPage() {
   const receivedBadgeCount = badgeAssignments.filter(b => b.received_at !== null).length;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`
-    const parts = value.split(`; ${name}=`)
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(";").shift()!)
-    return null
-  }
-
   // バッジ一覧取得
   const fetchBadgeAssignments = useCallback(async () => {
     if (!user) return
-    const csrfToken = getCookie("XSRF-TOKEN")
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      alert("ログイン情報がありません。再ログインしてください。");
+      return;
+    }
     const res = await fetch(`${apiBaseUrl}/api/badge-assignments`, {
       method: "GET",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     })
     if (!res.ok) {
@@ -62,20 +58,22 @@ export default function ChildBadgesPage() {
 
   // 受け取りボタン押下時
   const handleReceive = async (badgeAssignmentId: number) => {
-    const csrfToken = getCookie("XSRF-TOKEN")
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      alert("ログイン情報がありません。再ログインしてください。");
+      return;
+    }
     const res = await fetch(`${apiBaseUrl}/api/badge-assignments/${badgeAssignmentId}/receive`, {
-      method: "POST", // もしくはPATCH
-      credentials: "include",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     })
     if (!res.ok) {
       alert("バッジ受け取りに失敗しました")
       return
     }
-    // 受け取り後リロード
     await fetchBadgeAssignments()
   }
 
@@ -152,7 +150,6 @@ export default function ChildBadgesPage() {
         ) : (
           filteredBadges.map(({ id, badge, received_at }) => {
             const Icon = badgeIconOptions.find(opt => opt.id === badge.icon)?.Icon
-            console.log("badge.icon:", badge.icon)
             return (
               <Card
                 key={id}

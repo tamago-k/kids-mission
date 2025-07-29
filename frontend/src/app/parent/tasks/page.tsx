@@ -97,21 +97,13 @@ export default function ParentTasksPage() {
     } | null
   }
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const fetchTasks = async () => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/tasks`, {
       method: "GET",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) {
@@ -124,13 +116,12 @@ export default function ParentTasksPage() {
   
   useEffect(() => {
     const fetchChildren = async () => {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/children`, {
         method: "GET",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) {
@@ -142,13 +133,12 @@ export default function ParentTasksPage() {
     }
 
     const fetchTaskCategories = async () => {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
         method: "GET",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) {
@@ -209,13 +199,12 @@ export default function ParentTasksPage() {
     if (!(taskTitle && taskDescription && taskReward && taskDeadline && assignedChild && assignedTaskCategory)) return
 
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/tasks`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: taskTitle,
@@ -242,13 +231,12 @@ export default function ParentTasksPage() {
   const handleUpdateTask = async () => {
     if (!selectedTask) return
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/tasks/${selectedTask.id}`, {
         method: "PUT",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: taskTitle,
@@ -274,13 +262,12 @@ export default function ParentTasksPage() {
   const handleDeleteTask = async () => {
     if (!selectedTask) return
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/tasks/${selectedTask.id}`, {
         method: "DELETE",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       })
       if (!res.ok) throw new Error("削除失敗")
@@ -343,18 +330,16 @@ export default function ParentTasksPage() {
 
   const handleApprove = async (taskId: number) => {
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/approve`, {
         method: "PATCH", // またはPATCH
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: "approved" }), // 必要に応じて送信
       });
       if (!res.ok) throw new Error("承認更新に失敗しました");
-      const updatedTask = await res.json();
       await fetchTasks();
     } catch (error) {
       console.error(error);
@@ -364,19 +349,17 @@ export default function ParentTasksPage() {
 
   const handleReject = async (taskId: number) => {
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/reject`, {
         method: "PUT",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: "rejected" }),
       });
       if (!res.ok) throw new Error("却下更新に失敗しました");
 
-      const updatedTask = await res.json();
       await fetchTasks();
     } catch (error) {
       console.error(error);

@@ -29,13 +29,6 @@ export default function LoginPage() {
     setPin("")
     }
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const handleParentLogin = async () => {
     setErrorMessage(null);
 
@@ -44,31 +37,32 @@ export default function LoginPage() {
       return;
     }
 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
     try {
-      // CSRF用クッキーを取得
-      await fetch(`${apiBaseUrl}/sanctum/csrf-cookie`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      const csrfToken = getCookie("XSRF-TOKEN");
-
-      const res = await fetch(`${apiBaseUrl}/api/parent-login`, {
+      const res = await fetch(`${apiBaseUrl}/api/login`, {
         method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
-        },
+        headers,
         body: JSON.stringify({ name, password }),
       });
 
-    if (!res.ok) {
-      setErrorMessage("入力情報が違います。");
-      return;
-    }
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Login failed:", errorData);
+        setErrorMessage(errorData.message || "入力情報が違います。");
+        return;
+      }
 
-      window.location.href = "/parent/dashboard";
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+    window.location.href = "/parent/dashboard";
     } catch (error) {
       console.error(error);
       alert("通信エラーが発生しました");
@@ -83,28 +77,25 @@ export default function LoginPage() {
     }
 
     try {
-      await fetch(`${apiBaseUrl}/sanctum/csrf-cookie`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      const csrfToken = getCookie("XSRF-TOKEN");
-
-      const res = await fetch(`${apiBaseUrl}/api/child-login`, {
+      const res = await fetch(`${apiBaseUrl}/api/login`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Accept: "application/json",
         },
         body: JSON.stringify({ name: selectedChild, password: pin }),
       });
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setErrorMessage("何かまちがえているよ");
+        return;
+      }
+
       const data = await res.json();
-      setErrorMessage("何かまちがえているよ");
-      return;
-    }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
 
       window.location.href = "/child/dashboard";
     } catch (error) {
@@ -115,16 +106,22 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkLogin = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) return;
+
       try {
         const res = await fetch(`${apiBaseUrl}/api/user`, {
-          method: "GET",
-          credentials: "include",
           headers: {
-            "Accept": "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!res.ok) return; // 未ログインなら何もしない
+        if (!res.ok) {
+          localStorage.removeItem("token");
+          return;
+        }
 
         const user = await res.json();
 
@@ -135,6 +132,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         console.error("ログインチェック失敗:", error);
+        localStorage.removeItem("token");
       }
     };
 

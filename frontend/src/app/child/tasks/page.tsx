@@ -43,23 +43,15 @@ export default function ChildTasksPage() {
       slug: string
     } | null
   };
-
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
+  
   const fetchTasks = useCallback(async () => {
     if (!user) return;
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/tasks`, {
       method: "GET",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) {
@@ -72,13 +64,12 @@ export default function ChildTasksPage() {
 
   const fetchTaskCategories = useCallback(async () => {
     if (!user) return;
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
       method: "GET",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-XSRF-TOKEN": csrfToken ?? "",
+        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) {
@@ -99,13 +90,12 @@ export default function ChildTasksPage() {
     if (!task?.id) return;
 
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/task/${task.id}/submit`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
 

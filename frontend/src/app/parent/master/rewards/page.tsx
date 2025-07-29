@@ -28,21 +28,13 @@ export default function ParentMasterPage() {
     icon: string;
   }
 
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
-    return null;
-  }
-
   const fetchRewards = useCallback(async () => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/rewards`, {
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error('報酬の取得に失敗');
@@ -67,7 +59,7 @@ export default function ParentMasterPage() {
   const handleSaveReward = async () => {
     if (!rewardName || !rewardPoints || !formRewardIcon) return alert("すべての項目を入力してください");
 
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
     const payload = {
       name: rewardName,
       icon: formRewardIcon,
@@ -79,20 +71,18 @@ export default function ParentMasterPage() {
       if (editingRewardId === null) {
         res = await fetch(`${apiBaseUrl}/api/rewards`, {
           method: 'POST',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`${apiBaseUrl}/api/rewards/${editingRewardId}`, {
           method: 'PUT',
-          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            "X-XSRF-TOKEN": csrfToken ?? "",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -134,15 +124,14 @@ export default function ParentMasterPage() {
 
   // 削除
   const handleDeleteReward = async (id: number) => {
-    const csrfToken = getCookie("XSRF-TOKEN");
+    const token = localStorage.getItem("token");
 
     try {
       const res = await fetch(`${apiBaseUrl}/api/rewards/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": csrfToken ?? "",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error('削除失敗');
