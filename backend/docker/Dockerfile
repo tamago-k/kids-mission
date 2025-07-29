@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y libpq-dev libzip-dev unzip \
 
 WORKDIR /var/www
 
-COPY composer.json composer.lock artisan ./
+COPY composer.json composer.lock artisan bootstrap/ ./
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --verbose
 
