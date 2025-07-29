@@ -242,7 +242,7 @@ export default function ParentHistoryPage() {
           </CardContent>
         </Card>
       </div>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

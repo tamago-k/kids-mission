@@ -365,7 +365,7 @@ export default function ParentMasterPage() {
           </DialogContent>
         </Dialog>
       </div>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

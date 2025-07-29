@@ -219,6 +219,7 @@ export default function ChildStatsPage() {
         </Card>
       </div>
 
+      {/* ナビゲーション */}
       <ChildNavigation />
     </div>
   )

@@ -19,28 +19,31 @@ class TaskCategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string',
         ]);
-        $taskCategory = TaskCategory::create($data);
-        return response()->json($taskCategory, 201);
+        $task_category = TaskCategory::create($data);
+        return response()->json($task_category, 201);
     }
 
-    public function show(TaskCategory $taskCategory)
+    public function show(TaskCategory $task_category)
     {
-        return $taskCategory;
+        return $task_category;
     }
 
-    public function update(Request $request, TaskCategory $taskCategory)
+    public function update(Request $request, TaskCategory $task_category)
     {
+
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'slug' => 'sometimes|required|string',
         ]);
-        $taskCategory->update($data);
-        return response()->json($taskCategory);
+
+        $task_category->update($data);
+
+        return response()->json(['message' => 'Updated successfully']);
     }
 
-    public function destroy(TaskCategory $taskCategory)
+    public function destroy(TaskCategory $task_category)
     {
-        $taskCategory->delete();
+        $task_category->delete();
         return response()->noContent();
     }
 }

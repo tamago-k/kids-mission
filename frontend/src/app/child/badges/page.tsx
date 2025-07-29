@@ -202,7 +202,7 @@ export default function ChildBadgesPage() {
         )}
       </div>
 
-
+      {/* ナビゲーション */}
       <ChildNavigation />
     </div>
   )

@@ -177,7 +177,7 @@ export default function ParentBadgeHistoryPage() {
           </CardContent>
         </Card>
       </div>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

@@ -53,12 +53,7 @@ export default function ParentMasterPage() {
 
 
   // 保存（新規 or 更新）
-const handleSaveCategory = async () => {
-    console.log("handleSaveCategoryが呼ばれました。");
-    console.log("入力されたカテゴリ名:", categoryName);
-    console.log("入力されたスラッグ:", categorySlug);
-    console.log("保存処理時の editingCategoryId の値:", editingCategoryId);
-
+  const handleSaveCategory = async () => {
     if (!categoryName || !categorySlug) return alert("すべての項目を入力してください");
 
     const token = localStorage.getItem("token");
@@ -90,14 +85,12 @@ const handleSaveCategory = async () => {
             throw new Error(editingCategoryId ? '更新失敗' : '追加失敗');
         }
 
-        const savedCategory = await res.json();
-        console.log("保存されたカテゴリデータ:", savedCategory);
-
         // リセット
         setAddCategoryOpen(false);
         setEditingCategoryId(null);
         sekCategoryName("");
         sekCategorySlug("");
+        await fetchCategories();
 
     } catch (error) {
         console.error("fetch API呼び出し中にエラーが発生しました:", error);
@@ -305,7 +298,7 @@ const handleSaveCategory = async () => {
           </DialogContent>
         </Dialog>
       </div>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

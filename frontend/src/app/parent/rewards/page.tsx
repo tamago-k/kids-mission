@@ -252,7 +252,7 @@ export default function RewardUsageApproval() {
           </div>
         </DialogContent>
       </Dialog>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

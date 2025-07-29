@@ -257,7 +257,7 @@ export default function StatsPage() {
           </div>
         )}
       </div>
-
+      {/* ナビゲーション */}
       <ParentNavigation />
     </div>
   )

@@ -334,6 +334,7 @@ export default function ChildRewardsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* ナビゲーション */}
       <ChildNavigation />
     </div>
   )

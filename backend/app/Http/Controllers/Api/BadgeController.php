@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Badge;
 use App\Models\BadgeAssignment;
-use Illuminate\Support\Facades\Auth;
 
 class BadgeController extends Controller
 {

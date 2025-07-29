@@ -47,9 +47,9 @@ Route::middleware(['auth:api'])->group(function () {
     // task-categories
     Route::get('/task-categories', [TaskCategoryController::class, 'index']);
     Route::post('/task-categories', [TaskCategoryController::class, 'store']);
-    Route::get('/task-categories/{id}', [TaskCategoryController::class, 'show']);
-    Route::put('/task-categories/{id}', [TaskCategoryController::class, 'update']);
-    Route::delete('/task-categories/{id}', [TaskCategoryController::class, 'destroy']);
+    Route::get('/task-categories/{task_category}', [TaskCategoryController::class, 'show']);
+    Route::put('/task-categories/{task_category}', [TaskCategoryController::class, 'update']);
+    Route::delete('/task-categories/{task_category}', [TaskCategoryController::class, 'destroy']);
 
     // task-submission
     Route::post('/task/{task}/submit', [TaskSubmissionController::class, 'store']);
