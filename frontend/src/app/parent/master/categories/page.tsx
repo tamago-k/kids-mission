@@ -63,21 +63,25 @@ export default function ParentMasterPage() {
     };
 
     try {
-        const url = `${apiBaseUrl}/api/task-categories/${editingCategoryId}`;
-
-        const res = await fetch(url, {
-            method: 'PUT',
+        let res;
+        if (editingCategoryId === null) {
+          res = await fetch(`${apiBaseUrl}/api/task-categories`, {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => null);
-            console.error("fetch レスポンスがOKではありません。エラーデータ:", errorData);
-            throw new Error(editingCategoryId ? '更新失敗' : '追加失敗');
+          });
+        } else {
+          res = await fetch(`${apiBaseUrl}/api/task-categories/${editingCategoryId}`, {
+            method: 'PUT',
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          });
         }
 
         // リセット
@@ -88,7 +92,6 @@ export default function ParentMasterPage() {
         await fetchCategories();
 
     } catch (error) {
-        console.error("fetch API呼び出し中にエラーが発生しました:", error);
         if (error instanceof Error) {
             alert(error.message);
         } else {
