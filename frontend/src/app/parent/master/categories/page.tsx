@@ -64,7 +64,6 @@ export default function ParentMasterPage() {
 
     try {
         const url = `${apiBaseUrl}/api/task-categories/${editingCategoryId}`;
-        console.log("テスト用URL:", url);
 
         const res = await fetch(url, {
             method: 'PUT',

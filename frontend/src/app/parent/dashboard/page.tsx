@@ -226,7 +226,7 @@ export default function ParentDashboard() {
               <CardContent className="space-y-3">
                 {submittedTasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-2"><PartyPopper className="w-10 h-10" /></div>
+                    <div className="text-4xl mb-2 flex justify-center"><PartyPopper className="w-10 h-10" /></div>
                     <p className="text-gray-600">
                       {selectedChild === "all"
                         ? "未承認の申請はありません！"
