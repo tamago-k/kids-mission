@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, Wallet, User, BarChart3, PiggyBank, Gift } from "lucide-react"
+import { Clock, Wallet, User, BarChart3, PiggyBank, Gift, PartyPopper } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
@@ -226,7 +226,7 @@ export default function ParentDashboard() {
               <CardContent className="space-y-3">
                 {submittedTasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-2">🎉</div>
+                    <div className="text-4xl mb-2"><PartyPopper className="w-10 h-10" /></div>
                     <p className="text-gray-600">
                       {selectedChild === "all"
                         ? "未承認の申請はありません！"

@@ -63,7 +63,6 @@ export default function ParentMasterPage() {
     };
 
     try {
-        // ★★★★ この部分をシンプルに書き換えてみてください ★★★★
         const url = `${apiBaseUrl}/api/task-categories/${editingCategoryId}`;
         console.log("テスト用URL:", url);
 
@@ -75,9 +74,6 @@ export default function ParentMasterPage() {
             },
             body: JSON.stringify(payload),
         });
-        // ★★★★ ここまで ★★★★
-
-        console.log("fetch APIからレスポンスが返ってきました。ステータス:", res.status);
 
         if (!res.ok) {
             const errorData = await res.json().catch(() => null);
