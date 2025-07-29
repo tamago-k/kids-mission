@@ -31,6 +31,27 @@ export default function ChildrenPage() {
     colorTheme: string;
   };
 
+  const handleOpenModal = () => {
+    setEditChildId(null);
+    setFormName("");
+    setFormPassword("");
+    setFormIcon(iconOptions[0].id);
+    setFormColorTheme(colorThemes[0].value);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (childId: number) => {
+    const child = children.find((c) => c.id === childId);
+    if (child) {
+      setEditChildId(child.id);
+      setFormName(child.name);
+      setFormPassword(String(child.password));
+      setFormIcon(child.icon || iconOptions[0].id);
+      setFormColorTheme(child.colorTheme);
+      setModalOpen(true);
+    }
+  };
+
   useEffect(() => {
     const fetchChildren = async () => {
       const token = localStorage.getItem("token");
@@ -42,31 +63,15 @@ export default function ChildrenPage() {
         },
       });
       if (!res.ok) {
-        alert("取得に失敗しました")
-        return
+        alert("取得に失敗しました");
+        return;
       }
-      const data = await res.json()
-      setChildren(data)
-    }
+      const data = await res.json();
+      setChildren(data);
+    };
 
-    if (editChildId !== null) {
-      const child = children.find((c) => c.id === editChildId)
-      if (child) {
-        setFormName(child.name)
-        setFormPassword(String(child.password))
-        setFormIcon(child.icon || iconOptions[0].id);
-        setFormColorTheme(child.colorTheme)
-      }
-    } else {
-      // 追加モード時リセット
-      setFormName("")
-      setFormPassword("")
-      setFormIcon(iconOptions[0].id)
-      setFormColorTheme(colorThemes[0].value)
-    }
-
-    fetchChildren()
-  }, [editChildId, children, apiBaseUrl]);
+    fetchChildren();
+  }, [apiBaseUrl]);
 
   const getThemeStyles = (colorTheme: string) => {
     const theme = colorThemes.find((t) => t.value === colorTheme)
@@ -163,10 +168,7 @@ export default function ChildrenPage() {
             </div>
             <Button
               className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-full px-4 py-2 h-auto"
-              onClick={() => {
-                setEditChildId(null)
-                setModalOpen(true)
-              }}
+              onClick={handleOpenModal}
             >
               <Plus className="w-4 h-4 mr-2" />
               子ども追加
@@ -199,10 +201,7 @@ export default function ChildrenPage() {
                         variant="ghost"
                         size="sm"
                         className="text-white hover:bg-white/20"
-                        onClick={() => {
-                          setEditChildId(child.id) // 編集モード
-                          setModalOpen(true)
-                        }}
+                        onClick={() => handleEdit(child.id)}
                       >
                         <Settings className="w-4 h-4" />
                       </Button>

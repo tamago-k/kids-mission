@@ -550,9 +550,9 @@ export default function ParentTasksPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-white shadow-md border rounded-xl z-50">
                   {children.map((child) => (
-                    <SelectItem key={child.id} value={child.id}>
+                    <SelectItem key={child.id} value={String(child.id)}>
                       <span className="flex items-center gap-2">
-                        {child.avatar} {child.name}
+                        {child.name}
                       </span>
                     </SelectItem>
                   ))}
@@ -567,10 +567,10 @@ export default function ParentTasksPage() {
                   <SelectValue placeholder="カテゴリ" />
                 </SelectTrigger>
                 <SelectContent className="bg-white shadow-md border rounded-xl z-50">
-                  {taskCategories.map((taskCategoty) => (
-                    <SelectItem key={taskCategoty.id} value={taskCategoty.id}>
+                  {taskCategories.map((taskCategory) => (
+                    <SelectItem key={taskCategory.id} value={String(taskCategory.id)}>
                       <span className="flex items-center gap-2">
-                        {taskCategoty.name}
+                        {taskCategory.name}
                       </span>
                     </SelectItem>
                   ))}

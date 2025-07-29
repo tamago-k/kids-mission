@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('badge_id');
             $table->string('status')->default('pending')->after('assigned_at');
             $table->timestamp('assigned_at');
-            $table->timestamp('received_at');
+            $table->timestamp('received_at')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

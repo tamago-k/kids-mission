@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2,  Award, Medal, ArrowLeft } from "lucide-react"
+import { Plus, Edit, Trash2,  Award, Medal, ArrowLeft, TriangleAlert } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { badgeIconOptions } from "@/components/OptionThemes"
 
@@ -18,7 +18,8 @@ export default function ParentMasterPage() {
   const [editingBadgeId, setEditingBadgeId] = useState<number | null>(null)
   const [badges, setBadges] = useState<Badge[]>([])
   const [formBadgeIcon, setFormBadgeIcon] = useState(badgeIconOptions[0].id)
-  const [_deleteBadgeOpen, setDeleteBadgeOpen] = useState(false);
+  const [deleteBadgeOpen, setDeleteBadgeOpen] = useState(false);
+  const [deletingBadge, setDeletingBadge] = useState<{ id: number; name: string } | null>(null);
 
   type Badge = {
     id: number
@@ -103,6 +104,7 @@ export default function ParentMasterPage() {
       setBadgeName("");
       setFormBadgeIcon(badgeIconOptions[0].id);
       setBadgeCondition("");
+      setDeleteBadgeOpen(false);
 
     } catch (error) {
       if (error instanceof Error) {
@@ -125,13 +127,13 @@ export default function ParentMasterPage() {
     setFormBadgeIcon(badge.icon);
     setBadgeCondition(badge.condition);
     setAddBadgeOpen(true);
+    setDeleteBadgeOpen(false);
   };
 
   // 削除
   const handleDeleteBadge = async (id: number) => {
-    if (!confirm("このバッジを削除しますか？")) return;
-
     const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(`${apiBaseUrl}/api/badges/${id}`, {
         method: 'DELETE',
@@ -140,8 +142,8 @@ export default function ParentMasterPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("削除に失敗しました");
-      setBadges((prev) => prev.filter((b) => b.id !== id));
+      if (!res.ok) throw new Error('削除失敗');
+      setBadges(prev => prev.filter(r => r.id !== id));
       setDeleteBadgeOpen(false);
     } catch (e) {
       if (e instanceof Error) {
@@ -253,7 +255,7 @@ export default function ParentMasterPage() {
                   id="badgeName"
                   value={badgeName}
                   onChange={(e) => setBadgeName(e.target.value)}
-                  placeholder="例：早起きマスタ"
+                  placeholder="例：タスク5個達成！"
                   className="mt-1 rounded-2xl"
                 />
               </div>
@@ -265,7 +267,7 @@ export default function ParentMasterPage() {
                   id="badgeCondition"
                   value={badgeCondition}
                   onChange={(e) => setBadgeCondition(e.target.value)}
-                  placeholder="例：early_bird_7"
+                  placeholder='例：{"task_approve":{"gte":5,"category":"help"}}'
                   className="mt-1 rounded-2xl"
                 />
               </div>
@@ -355,7 +357,10 @@ export default function ParentMasterPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteBadge(badge.id)}
+                            onClick={() => {
+                              setDeletingBadge(badge);
+                              setDeleteBadgeOpen(true);
+                            }}
                             className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -371,6 +376,38 @@ export default function ParentMasterPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 削除モーダル */}
+      <Dialog open={deleteBadgeOpen} onOpenChange={setDeleteBadgeOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2">
+              <TriangleAlert className="w-6 h-6" /> バッジの削除
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <p className="text-gray-700">
+              「<strong>{deletingBadge?.name}</strong>」を削除してもよろしいですか？
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => setDeleteBadgeOpen(false)}>
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
+                onClick={() => {
+                  if (!deletingBadge) return;
+                  handleDeleteBadge(deletingBadge.id);
+                  setDeletingBadge(null);
+                  setDeleteBadgeOpen(false);
+                }}
+              >
+                削除する <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ナビゲーション */}
       <ParentNavigation />

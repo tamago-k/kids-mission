@@ -140,8 +140,6 @@ export default function RewardUsageApproval() {
       {/* メインコンテンツ */}
       <div className="p-4 pb-24 space-y-6">
 
-        {!loading && requests.length === 0 && <p>現在、使用申請はありません。</p>}
-
         {submittedRequests.length > 0 ? (
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardHeader>
@@ -210,7 +208,6 @@ export default function RewardUsageApproval() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center text-gray-500 py-6">
-              申請中の報酬はありません。
             </CardContent>
           </Card>
         )}

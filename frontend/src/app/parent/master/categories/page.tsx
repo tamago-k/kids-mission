@@ -11,21 +11,21 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentMasterPage() {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  const [addTaskCategoryOpen, setAddTaskCategoryOpen] = useState(false)
-  const [categoryName, setTaskCategoryName] = useState("")
-  const [categorySlug, setTaskCategorySlug] = useState("")
-  const [editingTaskCategoryId, setEditingTaskCategoryId] = useState<number | null>(null)
-  const [task_categories, setTaskCategorys] = useState<TaskCategory[]>([]);
-  const [deleteTaskCategoryOpen, setDeleteTaskCategoryOpen] = useState(false)
-  const [deletingTaskCategory, setDeletingTaskCategory] = useState<{ id: number; name: string } | null>(null);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false)
+  const [categoryName, sekCategoryName] = useState("")
+  const [categorySlug, sekCategorySlug] = useState("")
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false)
+  const [deletingCategory, setDeletingCategory] = useState<{ id: number; name: string } | null>(null);
 
-  type TaskCategory = {
+  type Category = {
     id: number;
     name: string;
     slug: string;
   };
 
-  const fetchTaskCategorys = useCallback(async () => {
+  const fetchCategories = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
@@ -36,8 +36,7 @@ export default function ParentMasterPage() {
       });
       if (!res.ok) throw new Error('カテゴリの取得に失敗');
       const data = await res.json();
-      setTaskCategorys(Array.isArray(data) ? data : data.task_categories ?? []);
-      
+      setCategories(Array.isArray(data) ? data : data.categories ?? []);
     } catch (e) {
       if (e instanceof Error) {
         alert(e.message);
@@ -49,76 +48,77 @@ export default function ParentMasterPage() {
 
   // 初期データ読み込み
   useEffect(() => {
-    fetchTaskCategorys();
-  }, [fetchTaskCategorys]);
+    fetchCategories();
+  }, [fetchCategories]);
 
 
   // 保存（新規 or 更新）
-  const handleSaveTaskCategory = async () => {
-    if (!categoryName || !categorySlug ) return alert("すべての項目を入力してください");
+const handleSaveCategory = async () => {
+    console.log("handleSaveCategoryが呼ばれました。");
+    console.log("入力されたカテゴリ名:", categoryName);
+    console.log("入力されたスラッグ:", categorySlug);
+    console.log("保存処理時の editingCategoryId の値:", editingCategoryId);
+
+    if (!categoryName || !categorySlug) return alert("すべての項目を入力してください");
 
     const token = localStorage.getItem("token");
     const payload = {
-      name: categoryName,
-      slug: categorySlug,
+        name: categoryName,
+        slug: categorySlug,
     };
 
     try {
-      let res;
-      if (editingTaskCategoryId === null) {
-        res = await fetch(`${apiBaseUrl}/api/task-categories`, {
-          method: 'POST',
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+        // ★★★★ この部分をシンプルに書き換えてみてください ★★★★
+        const url = `${apiBaseUrl}/api/task-categories/${editingCategoryId}`;
+        console.log("テスト用URL:", url);
+
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
         });
-      } else {
-        res = await fetch(`${apiBaseUrl}/api/task-categories/${editingTaskCategoryId}`, {
-          method: 'PUT',
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-      }
+        // ★★★★ ここまで ★★★★
 
-      if (!res.ok) throw new Error(editingTaskCategoryId ? '更新失敗' : '追加失敗');
-      const savedTaskCategory = await res.json();
+        console.log("fetch APIからレスポンスが返ってきました。ステータス:", res.status);
 
-      if (editingTaskCategoryId === null) {
-        setTaskCategorys((prev) => [...prev, savedTaskCategory]);
-      } else {
-        setTaskCategorys((prev) => prev.map((r) => r.id === editingTaskCategoryId ? savedTaskCategory : r));
-      }
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => null);
+            console.error("fetch レスポンスがOKではありません。エラーデータ:", errorData);
+            throw new Error(editingCategoryId ? '更新失敗' : '追加失敗');
+        }
 
-      // リセット
-      setAddTaskCategoryOpen(false);
-      setEditingTaskCategoryId(null);
-      setTaskCategoryName("");
-      setTaskCategorySlug("");
+        const savedCategory = await res.json();
+        console.log("保存されたカテゴリデータ:", savedCategory);
+
+        // リセット
+        setAddCategoryOpen(false);
+        setEditingCategoryId(null);
+        sekCategoryName("");
+        sekCategorySlug("");
 
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("保存に失敗しました");
-      }
+        console.error("fetch API呼び出し中にエラーが発生しました:", error);
+        if (error instanceof Error) {
+            alert(error.message);
+        } else {
+            alert("保存に失敗しました");
+        }
     }
-  };
+};
 
   // 編集時フォームにセット
-  const handleEditTaskCategory = (taskCategory: TaskCategory) => {
-    setEditingTaskCategoryId(taskCategory.id);
-    setTaskCategoryName(taskCategory.name);
-    setTaskCategorySlug(taskCategory.slug);
-    setAddTaskCategoryOpen(true);
+  const handleEditCategory = (Category: Category) => {
+    setEditingCategoryId(Category.id);
+    sekCategoryName(Category.name);
+    sekCategorySlug(Category.slug);
+    setAddCategoryOpen(true);
   };
 
   // 削除
-  const handleDeleteTaskCategory = async (id: number) => {
+  const handleDeleteCategory = async (id: number) => {
     const token = localStorage.getItem("token");
 
     try {
@@ -130,8 +130,8 @@ export default function ParentMasterPage() {
         },
       });
       if (!res.ok) throw new Error('削除失敗');
-      setTaskCategorys(prev => prev.filter(r => r.id !== id));
-      setDeleteTaskCategoryOpen(false);
+      setCategories(prev => prev.filter(r => r.id !== id));
+      setDeleteCategoryOpen(false);
     } catch (e) {
       if (e instanceof Error) {
         alert(e.message);
@@ -140,8 +140,6 @@ export default function ParentMasterPage() {
       }
     }
   };
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
@@ -167,13 +165,13 @@ export default function ParentMasterPage() {
 
         {/* カテゴリ追加ボタン */}
         <Dialog 
-          open={addTaskCategoryOpen} 
+          open={addCategoryOpen} 
           onOpenChange={(open) => {
-            setAddTaskCategoryOpen(open)
+            setAddCategoryOpen(open)
             if (open) {
               // モーダルが開いた時にリセット
-              setTaskCategoryName("")
-              setTaskCategorySlug("")
+              sekCategoryName("")
+              sekCategorySlug("")
             }
           }}
         >
@@ -185,7 +183,7 @@ export default function ParentMasterPage() {
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><CopyPlus className="w-5 h-5" /> 新しいカテゴリ</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><CopyPlus className="w-5 h-5" /> {editingCategoryId ? "カテゴリを編集" : "新しいカテゴリ"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -195,7 +193,7 @@ export default function ParentMasterPage() {
                 <Input
                   id="name"
                   value={categoryName}
-                  onChange={(e) => setTaskCategoryName(e.target.value)}
+                  onChange={(e) => sekCategoryName(e.target.value)}
                   placeholder="例：宿題"
                   className="mt-1 rounded-2xl"
                 />
@@ -208,23 +206,23 @@ export default function ParentMasterPage() {
                   id="points"
                   type="text"
                   value={categorySlug}
-                  onChange={(e) => setTaskCategorySlug(e.target.value)}
+                  onChange={(e) => sekCategorySlug(e.target.value)}
                   placeholder="homework"
                   className="mt-1 rounded-2xl"
                 />
               </div>
               <Button
-                onClick={handleSaveTaskCategory}
+                onClick={handleSaveCategory}
                 className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12"
               >
-                {editingTaskCategoryId ? "保存する" : "カテゴリを追加"}
+                {editingCategoryId ? "保存する" : "カテゴリを追加"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* カテゴリ一覧 */}
-        {task_categories.length > 0 && (
+        {categories.length > 0 && (
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -234,7 +232,7 @@ export default function ParentMasterPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {task_categories.map((category) => {
+                {categories.map((category) => {
                   return (
                   <Card key={category.id} className="border border-gray-200 rounded-2xl">
                     <CardContent className="p-4">
@@ -249,7 +247,7 @@ export default function ParentMasterPage() {
                             variant="outline"
                             size="sm"
                             className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                            onClick={() => handleEditTaskCategory(category)}
+                            onClick={() => handleEditCategory(category)}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -257,8 +255,8 @@ export default function ParentMasterPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setDeletingTaskCategory(category);
-                              setDeleteTaskCategoryOpen(true);
+                              setDeletingCategory(category);
+                              setDeleteCategoryOpen(true);
                             }}
                             className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
                           >
@@ -276,7 +274,7 @@ export default function ParentMasterPage() {
         )}
 
         {/* 削除モーダル */}
-        <Dialog open={deleteTaskCategoryOpen} onOpenChange={setDeleteTaskCategoryOpen}>
+        <Dialog open={deleteCategoryOpen} onOpenChange={setDeleteCategoryOpen}>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
               <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2">
@@ -285,19 +283,19 @@ export default function ParentMasterPage() {
             </DialogHeader>
             <div className="space-y-4 text-center">
               <p className="text-gray-700">
-                「<strong>{deletingTaskCategory?.name}</strong>」を削除してもよろしいですか？
+                「<strong>{deletingCategory?.name}</strong>」を削除してもよろしいですか？
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => setDeleteTaskCategoryOpen(false)}>
+                <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => setDeleteCategoryOpen(false)}>
                   キャンセル
                 </Button>
                 <Button
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
                   onClick={() => {
-                    if (!deletingTaskCategory) return;
-                    handleDeleteTaskCategory(deletingTaskCategory.id);
-                    setDeletingTaskCategory(null);
-                    setDeleteTaskCategoryOpen(false);
+                    if (!deletingCategory) return;
+                    handleDeleteCategory(deletingCategory.id);
+                    setDeletingCategory(null);
+                    setDeleteCategoryOpen(false);
                   }}
                 >
                   削除する <Trash2 className="w-4 h-4" />

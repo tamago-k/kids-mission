@@ -220,7 +220,7 @@ export default function ParentMasterPage() {
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-5 h-5" /> 新しい報酬</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-5 h-5" /> {editingRewardId ? "報酬の編集" : "新しい報酬"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>

@@ -9,7 +9,6 @@ class BadgeService
 {
     public function checkAndAssignBadges($childId)
     {
-        \Log::info("BadgeService checkAndAssignBadges called for user_id: {$childId}");
 
         // 完了タスク数やバッジ所持数など、共通で使うユーザーデータを一括で取得
         $completedTaskCount = TaskSubmission::where('user_id', $childId)
@@ -64,13 +63,11 @@ class BadgeService
                         'user_id' => $childId,
                         'badge_id' => $badge->id,
                         'assigned_at' => now(),
+                        'received_at' => null,
                     ]);
-                    \Log::info("Badge '{$badge->name}' assigned to user {$childId}");
                 } else {
-                    \Log::info("User {$childId} already has badge '{$badge->name}'");
                 }
             } else {
-                \Log::info("User {$childId} does not meet condition for badge '{$badge->name}'");
             }
         }
     }

@@ -19,28 +19,28 @@ class TaskCategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string',
         ]);
-        $badge = TaskCategory::create($data);
-        return response()->json($badge, 201);
+        $taskCategory = TaskCategory::create($data);
+        return response()->json($taskCategory, 201);
     }
 
-    public function show(TaskCategory $badge)
+    public function show(TaskCategory $taskCategory)
     {
-        return $badge;
+        return $taskCategory;
     }
 
-    public function update(Request $request, TaskCategory $badge)
+    public function update(Request $request, TaskCategory $taskCategory)
     {
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'slug' => 'sometimes|required|string',
         ]);
-        $badge->update($data);
-        return response()->json($badge);
+        $taskCategory->update($data);
+        return response()->json($taskCategory);
     }
 
-    public function destroy(TaskCategory $badge)
+    public function destroy(TaskCategory $taskCategory)
     {
-        $badge->delete();
+        $taskCategory->delete();
         return response()->noContent();
     }
 }
