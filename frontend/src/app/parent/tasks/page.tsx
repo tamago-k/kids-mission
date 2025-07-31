@@ -415,18 +415,31 @@ export default function ParentTasksPage() {
         </div>
 
         {/* タスク一覧タブ */}
-        <Tabs defaultValue="submission" className="w-full">
+        <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid grid-cols-3 mb-4 rounded-xl bg-gray-100 p-1">
-            <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
-              申請中
-            </TabsTrigger>
             <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               進行中
+            </TabsTrigger>
+            <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+              申請中
             </TabsTrigger>
             <TabsTrigger value="approved" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               完了済み
             </TabsTrigger>
           </TabsList>
+
+          {/* 進行中タスク */}
+          <TabsContent value="active">
+            <TaskListParent
+              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
+              onEdit={openEditDialog}
+              onDelete={(task) => {
+                setSelectedTask(task)
+                setDeleteTaskOpen(true)
+              }}
+              onComment={openCommentDialog}
+            />
+          </TabsContent>
 
           {/* 申請中タスク */}
           <TabsContent value="submission">
@@ -444,19 +457,6 @@ export default function ParentTasksPage() {
               onReject={(task) => {
                 setSelectedNotification(task);
                 setIsRejectModalOpen(true);
-              }}
-              onComment={openCommentDialog}
-            />
-          </TabsContent>
-
-          {/* 進行中タスク */}
-          <TabsContent value="active">
-            <TaskListParent
-              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
-              onEdit={openEditDialog}
-              onDelete={(task) => {
-                setSelectedTask(task)
-                setDeleteTaskOpen(true)
               }}
               onComment={openCommentDialog}
             />
