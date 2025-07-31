@@ -52,7 +52,6 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     if (!taskId || !open) return;
 
     const fetchAndScroll = async () => {
-      await fetchComments();
 
       const box = commentBoxRef.current;
       if (box) {
@@ -67,7 +66,7 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     }
 
     fetchAndScroll();
-  }, [taskId, comments, open, fetchComments]);
+  }, [taskId, open]);
 
 
   const handleAddComment = async () => {
