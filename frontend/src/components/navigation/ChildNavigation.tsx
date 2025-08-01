@@ -14,7 +14,7 @@ export function ChildNavigation() {
   const navItems = [
     { href: "/child/dashboard", icon: Home, label: "ホーム" },
     { href: "/child/tasks", icon: CheckSquare, label: "タスク" },
-    { href: "/child/rewards", icon: PiggyBank, label: "報酬" },
+    { href: "/child/rewards", icon: PiggyBank, label: "ポイント" },
     { href: "/child/badges", icon: Medal, label: "バッジ" },
   ]
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CalendarSearch, Sun, SwatchBook, ClipboardCheck, PartyPopper, PiggyBank, ArrowLeft } from "lucide-react"
+import { CalendarSearch, Sun, SwatchBook, ClipboardCheck, PartyPopper, PiggyBank, ArrowLeft, CheckCircle } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 import { TaskCommentModal } from "@/components/TaskCommentModal"
 import { TaskListChild } from "@/components/TaskListChild"
@@ -208,7 +208,7 @@ export default function ChildTasksPage() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <ClipboardCheck className="w-6 h-6" /> 
-                タスク一覧
+                タスクいちらん
               </h1>
               <p className="text-sm text-gray-600">がんばってクリアしよう！</p>
             </div>
@@ -277,7 +277,7 @@ export default function ChildTasksPage() {
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">✅ タスク完了申請</DialogTitle>
+            <DialogTitle className="text-center text-xl"><CheckCircle className="w-4 h-4" />タスク完了申請</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-blue-50 rounded-2xl p-4">

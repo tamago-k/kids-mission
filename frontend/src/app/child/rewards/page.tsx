@@ -59,25 +59,25 @@ export default function ChildRewardsPage() {
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      // ポイント残高取得
+      // ポイント数取得
       const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
-      if (!resBalance.ok) throw new Error("ポイント残高の取得に失敗しました")
+      if (!resBalance.ok) throw new Error("ポイント数の取得に失敗しました")
       const balanceData = await resBalance.json()
       setCurrentBalance(balanceData.balance)
 
-      // おすすめ報酬取得
+      // おすすめポイント取得
       const resRewards = await fetch(`${apiBaseUrl}/api/rewards`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
-      if (!resRewards.ok) throw new Error("報酬の取得に失敗しました")
+      if (!resRewards.ok) throw new Error("ポイントの取得に失敗しました")
       const rewardsData = await resRewards.json()
       setSuggestedRewards(rewardsData)
 
@@ -106,9 +106,9 @@ export default function ChildRewardsPage() {
   }, [fetchData])
 
 
-  // 報酬申請処理
+  // ポイント申請処理
   const handleRequestReward = async () => {
-    if (!rewardItem) return alert("報酬を選択してください")
+    if (!rewardItem) return alert("ポイントを選択してください")
 
     if (rewardItem.need_reward > currentBalance) {
       return alert("ポイントが足りません")
@@ -164,23 +164,23 @@ export default function ChildRewardsPage() {
         </div>
       </div>
 
-      {/* ポイント残高カード */}
+      {/* ポイント数カード */}
       <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white m-4">
         <CardContent className="p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold flex gap-1 items-center"><PiggyBank className="w-6 h-6" /> ポイント残高</h2>
+            <h2 className="text-lg font-bold flex gap-1 items-center"><PiggyBank className="w-6 h-6" /> ポイント数</h2>
             <div className="text-4xl font-bold">{currentBalance} P</div>
           </div>
           <div className="text-6xl opacity-20"><ThumbsUp className="w-15 h-15" /></div>
         </CardContent>
       </Card>
 
-      {/* おすすめ報酬 */}
+      {/* おすすめポイント */}
       <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm m-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Star className="w-5 h-5 text-yellow-500" />
-            おすすめ報酬
+            おすすめポイント
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -223,7 +223,7 @@ export default function ChildRewardsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="w-5 h-5 text-blue-500" />
-            ポイント履歴
+            ポイントりれき
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -281,11 +281,11 @@ export default function ChildRewardsPage() {
                   }`}
                 >
                   {item.status === "submitted"
-                    ? "申請中"
+                    ? "かくにん中"
                     : item.status === "approved"
-                    ? "承認済み"
+                    ? "OK"
                     : item.status === "rejected"
-                    ? "却下"
+                    ? "NG"
                     : ""}
                 </Badge>
               </div>
@@ -294,12 +294,12 @@ export default function ChildRewardsPage() {
         </CardContent>
       </Card>
 
-      {/* 報酬申請モーダル */}
+      {/* ポイント申請モーダル */}
       <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-xl text-green-600 flex justify-center gap-2">
-              <Gift className="w-5 h-5" /> 報酬の申請
+              <Gift className="w-5 h-5" /> ポイントの申請
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">

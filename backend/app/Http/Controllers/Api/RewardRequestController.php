@@ -46,10 +46,10 @@ class RewardRequestController extends Controller
             'reward_id' => 'required|exists:rewards,id',
         ]);
 
-        // まず報酬のポイント数を取得
+        // まずポイントのポイント数を取得
         $reward = \App\Models\Reward::find($request->reward_id);
 
-        // 現在のポイント残高を取得
+        // 現在のポイント数を取得
         $balance = RewardBalance::where('user_id', $user->id)->first();
 
         if (!$balance || $balance->balance < $reward->need_reward) {

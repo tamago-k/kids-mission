@@ -75,6 +75,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     //reward-balance
     Route::get('/reward-balance', [RewardBalanceController::class, 'index']);
+    Route::get('/reward-balances', [RewardBalanceController::class, 'listAll']);
 
     //badges
     Route::get('/badges', [BadgeController::class, 'index']);

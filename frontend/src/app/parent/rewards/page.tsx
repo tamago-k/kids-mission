@@ -18,6 +18,8 @@ export default function RewardUsageApproval() {
   const [selectedRequest, setSelectedRequest] = useState<RewardUsageRequest | null>(null)
   const submittedRequests = requests.filter(req => req.status === "submitted")
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null)
+  const [balancesMap, setBalancesMap] = useState<Record<number, { balance: number; name: string }>>({});
+  
 
   type User = {
     id: number;
@@ -40,12 +42,40 @@ export default function RewardUsageApproval() {
     };
   };
 
-  const getCookieValue = (name: string) => {
-    const value = `; ${document.cookie}`
-    const parts = value.split(`; ${name}=`)
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!)
-    return null
-  }
+  const fetchAllBalances = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/reward-balances`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) throw new Error("ポイント一覧の取得に失敗しました");
+      const data = await res.json();
+
+      // user_id → balance の Map に変換
+      const map: Record<number, { 
+        balance: number; 
+        name: string 
+      }> = {};
+      data.balances.forEach((item: { 
+        user_id: number; 
+        balance: number; 
+        name: string 
+      }) => {
+        map[item.user_id] = { 
+          balance: item.balance, 
+          name: item.name 
+        };
+      });
+
+      setBalancesMap(map);
+    } catch (e) {
+      console.error(e);
+      setBalancesMap({});
+    }
+  }, [apiBaseUrl]);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
@@ -72,6 +102,7 @@ export default function RewardUsageApproval() {
   }, [apiBaseUrl]);
 
   useEffect(() => {
+    fetchAllBalances()
     fetchRequests()
   }, [fetchRequests])
 
@@ -129,9 +160,9 @@ export default function RewardUsageApproval() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Gift className="w-6 h-6" /> 
-                報酬申請一覧
+                ポイント状況
               </h1>
-              <p className="text-sm text-gray-600">報酬の申請確認・承認画面</p>
+              <p className="text-sm text-gray-600">ポイントの確認・申請管理画面</p>
             </div>
           </div>
         </div>
@@ -140,12 +171,36 @@ export default function RewardUsageApproval() {
       {/* メインコンテンツ */}
       <div className="p-4 pb-24 space-y-6">
 
+        {/* --- ポイント一覧 --- */}
+        <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <PiggyBank className="w-6 h-6" />
+              子どものポイント一覧
+            </CardTitle>
+          </CardHeader>
+          <div className="grid grid-cols-2 gap-4 p-4 pt-0">
+            {Object.entries(balancesMap).map(([userId, { balance, name }]) => (
+              <Card
+                key={userId}
+                className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white"
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-semibold">{name}</div>
+                  <div className="text-2xl font-bold">{balance}P</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </Card>
+
+        {/* --- 申請一覧 --- */}
         {submittedRequests.length > 0 ? (
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ClipboardCheck className="w-6 h-6" />
-                申請中の報酬
+                申請中のポイント
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -173,7 +228,7 @@ export default function RewardUsageApproval() {
                         </Badge>
                       </div>
                     </div>
-                    <p className="text-gray-700 mt-3 font-semibold">報酬名: {req.reward?.name}</p>
+                    <p className="text-gray-700 mt-3 font-semibold">ポイント名: {req.reward?.name}</p>
                     <p className="mt-2 text-xs text-gray-500">申請日: {new Date(req.requested_at).toLocaleDateString()}</p>
                     <div className="flex gap-2 mt-4">
                       <Button
@@ -204,7 +259,7 @@ export default function RewardUsageApproval() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ClipboardCheck className="w-6 h-6" />
-                申請中の報酬
+                申請中のポイント
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center text-gray-500 py-6">
