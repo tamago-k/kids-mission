@@ -149,7 +149,7 @@ export default function ChildCalendarPage() {
   return (
      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="p-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
@@ -199,12 +199,20 @@ export default function ChildCalendarPage() {
                 const hasPendingTasks = dayTasks.some((task) => task.completion_status === "submitted")
                 const hasNotSubmittedTasks = dayTasks.some((task) => task.completion_status === null)
 
+                const today = new Date();
+                const isToday =
+                  day &&
+                  day.getDate() === today.getDate() &&
+                  day.getMonth() === today.getMonth() &&
+                  day.getFullYear() === today.getFullYear();
+
+
                 return (
                   <div
                     key={index}
                     className={`aspect-square p-1 rounded-2xl cursor-pointer transition-all ${
                       day ? `hover:bg-orange-50 hover:scale-105 ${dayTasks.length > 0 ? "hover:shadow-md" : ""}` : ""
-                    }`}
+                    } ${isToday ? "ring-2 ring-blue-400 ring-offset-2" : ""}`}
                     onClick={() => day && dayTasks.length > 0 && handleDateClick(day)}
                   >
                     {day && (
@@ -217,9 +225,6 @@ export default function ChildCalendarPage() {
                               {hasPendingTasks && <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>}
                               {hasNotSubmittedTasks && <div className="w-2 h-2 bg-gray-400 rounded-full" />}
                             </div>
-                          )}
-                          {dayTasks.length > 0 && (
-                            <div className="text-xs text-gray-600 font-bold">{dayTasks.length}</div>
                           )}
                         </div>
                       </div>

@@ -17,14 +17,13 @@ return new class extends Migration
             $table->text('description')->nullable()->after('title');
             $table->date('due_date')->nullable()->after('description');
             $table->enum('recurrence', ['daily', 'weekly', 'monthly', 'weekdays', 'weekends'])->nullable()->after('due_date');
-            $table->foreignId('parent_id')->constrained('users')->onDelete('cascade')->after('recurrence');
-            $table->foreignId('child_id')->constrained('users')->onDelete('cascade')->after('parent_id');
-            $table->integer('reward_amount')->default(0)->after('child_id');
+            $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('cascade')->after('recurrence');
+            $table->foreignId('child_id')->nullable()->constrained('users')->onDelete('cascade')->after('parent_id');
+            $table->integer('reward_amount')->nullable()->default(0)->after('child_id');
             $table->foreignId('task_category_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */
