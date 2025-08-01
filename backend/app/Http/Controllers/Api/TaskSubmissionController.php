@@ -54,12 +54,11 @@ class TaskSubmissionController extends Controller
         }
 
         $task = $submission->task;
-        // 繰り返し設定がある場合、次回のタスクを自動作成
-        if ($task->recurrence) {
+        if ($task->recurrences) {
             $nextDate = $this->calculateNextDueDate($task);
 
             if ($nextDate) {
-                Task::create([
+                $newTask = Task::create([
                     'title' => $task->title,
                     'description' => $task->description,
                     'child_id' => $task->child_id,
@@ -69,8 +68,18 @@ class TaskSubmissionController extends Controller
                     'due_date' => $nextDate,
                     'recurrence' => $task->recurrence,
                 ]);
+
+                foreach ($task->recurrences as $recurrence) {
+                    \App\Models\TaskRecurrence::create([
+                        'task_id' => $newTask->id,
+                        'recurrence_type' => $recurrence->recurrence_type,
+                        'day_of_week' => $recurrence->day_of_week,
+                        'day_of_month' => $recurrence->day_of_month,
+                    ]);
+                }
             }
         }
+
 
         $submission->status = 'approved';
         $submission->save();
@@ -128,14 +137,43 @@ class TaskSubmissionController extends Controller
     private function calculateNextDueDate(Task $task): ?Carbon
     {
         $current = Carbon::parse($task->due_date);
+        $recurrences = $task->recurrences; // コレはCollectionか配列で複数あるはず
 
+        if (!$recurrences || $recurrences->isEmpty()) {
+            return null;
+        }
+
+        if ($task->recurrence === 'weekly') {
+            $daysOfWeek = $recurrences->pluck('day_of_week')->filter()->map('intval')->toArray();
+
+            if (empty($daysOfWeek)) {
+                return null;
+            }
+
+            // 1週間分の候補日を計算（翌日〜7日後）
+            $candidates = [];
+            for ($i = 1; $i <= 7; $i++) {
+                $candidateDate = $current->copy()->addDays($i);
+                if (in_array($candidateDate->dayOfWeek, $daysOfWeek, true)) {
+                    $candidates[] = $candidateDate;
+                }
+            }
+
+            // 最も近い次の候補を返す
+            if (!empty($candidates)) {
+                return $candidates[0];
+            }
+        }
+
+        // daily, monthlyなど既存ロジックは残す
         return match ($task->recurrence) {
             'daily' => $current->addDay(),
-            'weekly' => $current->addWeek(),
-            'monthly' => $current->addMonthNoOverflow(), 
+            'monthly' => $current->addMonthNoOverflow(),
             'weekdays' => $current->nextWeekday(),
             'weekends' => $current->dayOfWeek === 6 ? $current->addDay() : $current->next(Carbon::SATURDAY),
             default => null,
         };
     }
+
+
 }
