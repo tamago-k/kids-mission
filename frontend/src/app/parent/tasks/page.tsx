@@ -97,6 +97,16 @@ export default function ParentTasksPage() {
     } | null
   }
 
+  const numberToDayIdMap: { [key: string]: string } = {
+    "0": "sunday",
+    "1": "monday",
+    "2": "tuesday",
+    "3": "wednesday",
+    "4": "thursday",
+    "5": "friday",
+    "6": "saturday",
+  };
+
   const fetchTasks = async () => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${apiBaseUrl}/api/tasks`, {
@@ -112,6 +122,8 @@ export default function ParentTasksPage() {
     }
     const data = await res.json();
     setTasks(data);
+
+      console.log("task",data);
   };
   
   useEffect(() => {
@@ -189,18 +201,36 @@ export default function ParentTasksPage() {
     setTaskDeadline(formatForInputDateTimeLocal(task.due_date))
     setAssignedChild(String(task.child_id))
     setIsRecurring(Boolean(task.recurrence))
-    setRecurringType(task.recurrence || "")
-    setRecurringDays(task.recurringDays ?? [])
+    setRecurringType(task.recurrence ?? "");
+    setRecurringDays((task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
     setAssignedTaskCategory(String(task.task_category_id))
     setTaskModalOpen(true)
   }
-
+  
+  const buildTaskPayload = () => ({
+    title: taskTitle,
+    description: taskDescription || null,
+    reward_amount: taskReward ? Number(taskReward) : null,
+    due_date: taskDeadline || null,
+    child_id: assignedChild === "" ? null : Number(assignedChild),
+    task_category_id:
+      assignedTaskCategory === "" || assignedTaskCategory === "null"
+        ? null
+        : Number(assignedTaskCategory),
+    recurrence: isRecurring ? recurringType : null,
+    weekdays:
+      isRecurring && recurringType === "weekly"
+        ? recurringDays.map(dayToNumber)
+        : isRecurring && recurringType === "monthly"
+        ? recurringDays.map(Number)
+        : [],
+  });
+  
   const handleCreateTask = async () => {
     if (!taskTitle.trim()) {
       alert("タイトルは必須です");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/tasks`, {
@@ -209,34 +239,28 @@ export default function ParentTasksPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title: taskTitle,
-          description: taskDescription || null,
-          reward_amount: taskReward ? Number(taskReward) : null,
-          due_date: taskDeadline || null,
-          child_id: assignedChild || null,
-          task_category_id: assignedTaskCategory || null,
-          recurrence: isRecurring ? recurringType : null,
-          weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
-        }),
+        body: JSON.stringify(buildTaskPayload()),
       });
       if (!res.ok) throw new Error("タスク作成失敗");
 
-      const newTask = await res.json()
-      setTasks([newTask,...tasks])
-      setTaskModalOpen(false)
-      resetForm()
+      const newTask = await res.json();
+      console.log("newTask",newTask);
+      setTasks([newTask, ...tasks]);
+      setRecurringType(newTask.recurrence ?? "");
+      setRecurringDays((newTask.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
+      setTaskModalOpen(false);
+      resetForm();
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   const handleUpdateTask = async () => {
     if (!taskTitle.trim()) {
       alert("タイトルは必須です");
       return;
     }
-    if (!selectedTask) return
+    if (!selectedTask) return;
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${apiBaseUrl}/api/tasks/${selectedTask.id}`, {
@@ -245,26 +269,19 @@ export default function ParentTasksPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title: taskTitle,
-          description: taskDescription || null,
-          reward_amount: taskReward ? Number(taskReward) : null,
-          due_date: taskDeadline || null,
-          child_id: assignedChild || null,
-          task_category_id: assignedTaskCategory || null,
-          recurrence: isRecurring ? recurringType : null,
-          weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
-        }),
-      })
-      if (!res.ok) throw new Error("更新失敗")
-      const updatedTask = await res.json()
-      setTasks(tasks.map(t => (t.id === updatedTask.id ? updatedTask : t)))
-      setTaskModalOpen(false)
-      setSelectedTask(null)
+        body: JSON.stringify(buildTaskPayload()),
+      });
+      if (!res.ok) throw new Error("更新失敗");
+
+      const updatedTask = await res.json();
+      setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+      setTaskModalOpen(false);
+      setSelectedTask(null);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
+
 
   const handleDeleteTask = async () => {
     if (!selectedTask) return
@@ -308,7 +325,8 @@ export default function ParentTasksPage() {
       setAssignedChild(String(task.child_id))
       setAssignedTaskCategory(String(task.task_category_id))
       setIsRecurring(Boolean(task.recurrence || task.isRecurring))
-      setRecurringType(task.recurrence || task.recurringType || "")
+      setRecurringType(task.recurrence ?? "");
+      setRecurringDays((task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
     } else {
       resetForm()
     }
@@ -374,6 +392,12 @@ export default function ParentTasksPage() {
     }
   };
 
+  const handleRecurringDayChange = (dayId: string, checked: boolean) => {
+    setRecurringDays((prev) =>
+      checked ? [...prev, dayId] : prev.filter((id) => id !== dayId)
+    );
+  };
+
   if (!user) return null;
   
   return (
@@ -431,7 +455,7 @@ export default function ParentTasksPage() {
               申請中
             </TabsTrigger>
             <TabsTrigger value="approved" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
-              完了済み
+              今日の完了分
             </TabsTrigger>
           </TabsList>
 
@@ -518,7 +542,7 @@ export default function ParentTasksPage() {
               <Label htmlFor="description" className="text-gray-700 font-medium">説明</Label>
               <Textarea
                 id="description"
-                value={taskDescription}
+                value={taskDescription ?? ""}
                 onChange={(e) => setTaskDescription(e.target.value)}
                 placeholder="詳しい説明を入力してください"
                 className="mt-1 rounded-2xl"
@@ -610,15 +634,15 @@ export default function ParentTasksPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-white shadow-md border rounded-xl z-50">
                         <SelectItem value="daily">毎日</SelectItem>
-                        {/*<SelectItem value="weekly">毎週</SelectItem>
-                        <SelectItem value="monthly">毎月</SelectItem>*/}
+                        <SelectItem value="weekly">毎週</SelectItem>
+                        <SelectItem value="monthly">毎月</SelectItem>
                         <SelectItem value="weekdays">平日</SelectItem>
                         <SelectItem value="weekends">土日</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/*recurringType === "weekly" && (
+                  {recurringType === "weekly" && (
                     <div>
                       <Label className="text-gray-700 font-medium">曜日を選択</Label>
                       <div className="grid grid-cols-7 gap-2 mt-2">
@@ -636,7 +660,27 @@ export default function ParentTasksPage() {
                         ))}
                       </div>
                     </div>
-                  )*/}
+                  )}
+                  {recurringType === "monthly" && (
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 font-medium">日にちを選択</Label>
+                      <Select
+                        value={recurringDays[0] || ""}
+                        onValueChange={(value) => setRecurringDays([value])}
+                      >
+                        <SelectTrigger className="mt-1 rounded-2xl">
+                          <SelectValue placeholder="日にちを選択" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white shadow-md border rounded-xl z-50">
+                          {Array.from({ length: 31 }, (_, i) => (
+                            <SelectItem key={i + 1} value={String(i + 1)}>
+                              {i + 1}日
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
