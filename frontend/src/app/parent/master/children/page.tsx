@@ -262,9 +262,9 @@ export default function ChildrenPage() {
       >
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl flex justify-center gap-2">
-              <Users className="w-6 h-6 mr-3" />
-              {editChildId === null ? "新しい子どもを追加" : "子ども情報を編集"}
+            <DialogTitle className="text-center text-xl flex justify-center gap-1">
+              <Users className="w-6 h-6" />
+              {editChildId === null ? "子どもを追加" : "子ども情報を編集"}
             </DialogTitle>
           </DialogHeader>
 
