@@ -167,14 +167,14 @@ export default function ParentMasterPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="w-full bg-gradient-to-r bg-gradient-to-r from-green-400 to-sky-400 hover:to-indigo-500 text-white rounded-2xl h-12">
+            <Button className="w-full bg-gradient-to-r bg-gradient-to-r from-green-400 to-sky-400 hover:to-indigo-500 text-white rounded-2xl h-12 bottom-[60px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm">
               <Plus className="w-4 h-4 mr-2" />
               新しいカテゴリを追加
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><CopyPlus className="w-5 h-5" /> {editingCategoryId ? "カテゴリを編集" : "新しいカテゴリ"}</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><CopyPlus className="w-6 h-6" />{editingCategoryId ? "カテゴリを編集" : "新しいカテゴリ"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>

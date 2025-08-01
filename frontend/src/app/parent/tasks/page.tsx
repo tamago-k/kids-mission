@@ -399,11 +399,11 @@ export default function ParentTasksPage() {
       {/* メインコンテンツ */}
       <div className="p-4 space-y-4 pb-24">
       <Button
-        className="w-full bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl flex items-center gap-2 bottom-[70px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm"
+        className="w-full bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl flex items-center gap-2 bottom-[60px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm"
         onClick={() => openTaskModal()}
         >
         <Plus className="w-4 h-4" />
-        新規作成
+        新しいタスク
       </Button>
         {/* 統計カード */}
         <div className="grid grid-cols-2 gap-4">
@@ -496,7 +496,8 @@ export default function ParentTasksPage() {
       }}>
         <DialogContent className="rounded-3xl max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">
+            <DialogTitle className="text-center text-xl flex justify-center items-center gap-1">
+              <ClipboardCheck className="w-6 h-6" /> 
               {selectedTask ? "タスクを編集" : "新しいタスク"}
             </DialogTitle>
           </DialogHeader>

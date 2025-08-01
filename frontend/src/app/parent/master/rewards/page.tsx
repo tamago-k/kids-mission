@@ -213,14 +213,14 @@ export default function ParentMasterPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12">
+            <Button className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12 bottom-[60px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm">
               <Plus className="w-4 h-4 mr-2" />
               新しい報酬を追加
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-5 h-5" /> {editingRewardId ? "報酬の編集" : "新しい報酬"}</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-6 h-6 mr-3" />{editingRewardId ? "報酬の編集" : "新しい報酬"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>

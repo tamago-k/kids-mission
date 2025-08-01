@@ -10,7 +10,7 @@ class RewardController extends Controller
 {
     public function index()
     {
-        return Reward::all();
+        return Reward::latest()->get();
     }
 
     public function store(Request $request)
