@@ -37,14 +37,14 @@ export default function ParentMasterPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error('報酬の取得に失敗');
+      if (!res.ok) throw new Error('ポイントの取得に失敗');
       const data = await res.json();
       setRewards(Array.isArray(data) ? data : data.rewards ?? []);
     } catch (e) {
       if (e instanceof Error) {
         alert(e.message);
       } else {
-        alert("報酬の取得に失敗しました");
+        alert("ポイントの取得に失敗しました");
       }
       }
   }, [apiBaseUrl]);
@@ -159,9 +159,9 @@ export default function ParentMasterPage() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Gift className="w-6 h-6" /> 
-                報酬マスタ
+                ポイントマスタ
               </h1>
-              <p className="text-sm text-gray-600">ポイントで交換できる報酬の設定</p>
+              <p className="text-sm text-gray-600">ポイントで交換できるポイントの設定</p>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function ParentMasterPage() {
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold">{rewards.length}</div>
-              <div className="text-sm text-purple-100">登録済み報酬</div>
+              <div className="text-sm text-purple-100">登録済みポイント</div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white">
@@ -199,7 +199,7 @@ export default function ParentMasterPage() {
           </Card>
         </div>
 
-        {/* 報酬追加ボタン */}
+        {/* ポイント追加ボタン */}
         <Dialog 
           open={addRewardOpen} 
           onOpenChange={(open) => {
@@ -215,17 +215,17 @@ export default function ParentMasterPage() {
           <DialogTrigger asChild>
             <Button className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12 bottom-[60px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm">
               <Plus className="w-4 h-4 mr-2" />
-              新しい報酬を追加
+              新しいポイントを追加
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-6 h-6 mr-3" />{editingRewardId ? "報酬の編集" : "新しい報酬"}</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center items-center gap-1"><Gift className="w-6 h-6 mr-3" />{editingRewardId ? "ポイントの編集" : "新しいポイント"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="name" className="text-gray-700 font-medium">
-                  報酬名
+                  ポイント名
                 </Label>
                 <Input
                   id="name"
@@ -272,18 +272,18 @@ export default function ParentMasterPage() {
                 onClick={handleSaveReward}
                 className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl h-12"
               >
-                {editingRewardId ? "保存する" : "報酬を追加"}
+                {editingRewardId ? "保存する" : "ポイントを追加"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* 報酬一覧 */}
+        {/* ポイント一覧 */}
         <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Gift className="w-5 h-5 text-purple-500" />
-              報酬一覧
+              ポイント一覧
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -338,7 +338,7 @@ export default function ParentMasterPage() {
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
               <DialogTitle className="text-center text-xl text-red-600 flex justify-center gap-2">
-                <TriangleAlert className="w-6 h-6" /> 報酬の削除
+                <TriangleAlert className="w-6 h-6" /> ポイントの削除
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 text-center">

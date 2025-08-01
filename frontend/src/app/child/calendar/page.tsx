@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowLeft, Calendar, PiggyBank, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, Calendar, PiggyBank, ChevronLeft, ChevronRight, PartyPopper } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 
 export default function ChildCalendarPage() {
@@ -158,7 +158,7 @@ export default function ChildCalendarPage() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Calendar className="w-6 h-6" /> 
-                おしらせ
+                カレンダー
               </h1>
               <p className="text-sm text-gray-600">きみのタスクをチェック！</p>
             </div>
@@ -252,7 +252,7 @@ export default function ChildCalendarPage() {
           <div className="space-y-4">
             {getTasksForSelectedDate().length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-4xl mb-2">🎉</div>
+                <div className="text-4xl mb-2"><PartyPopper className="w-10 h-10" /></div>
                 <p className="text-gray-600">この日はタスクがないよ！</p>
                 <p className="text-sm text-gray-500 mt-1">ゆっくり休んでね</p>
               </div>
@@ -270,7 +270,6 @@ export default function ChildCalendarPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-2xl">{task.child.avatar}</div>
                       <div>
                         <h3 className={`font-bold text-gray-800 ${task.completion_status === "approved" ? "line-through" : ""}`}>
                           {task.title}
@@ -288,7 +287,7 @@ export default function ChildCalendarPage() {
                         }
                       >
                       {task.completion_status === "approved"
-                        ? "おわり"
+                        ? "かんりょう"
                         : task.completion_status === "submitted"
                         ? "かくにん中"
                         : "がんばろう！"}

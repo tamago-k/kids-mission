@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, User, Filter, History } from "lucide-react"
+import { Calendar, User, Filter, History, CheckCircle, Ban, CircleQuestionMark } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentHistoryPage() {
@@ -76,11 +76,11 @@ export default function ParentHistoryPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-green-100 text-green-600">✅ 承認済み</Badge>
+        return <Badge className="bg-green-100 text-green-600"><CheckCircle className="w-4 h-4" /> 承認済み</Badge>
       case "rejected":
-        return <Badge className="bg-red-100 text-red-600">❌ 却下</Badge>
+        return <Badge className="bg-red-100 text-red-600"><Ban className="w-4 h-4" /> 却下</Badge>
       default:
-        return <Badge className="bg-gray-100 text-gray-600">❓ 不明</Badge>
+        return <Badge className="bg-gray-100 text-gray-600"><CircleQuestionMark className="w-4 h-4" /> 不明</Badge>
     }
   }
 

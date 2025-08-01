@@ -122,8 +122,6 @@ export default function ParentTasksPage() {
     }
     const data = await res.json();
     setTasks(data);
-
-      console.log("task",data);
   };
   
   useEffect(() => {
@@ -244,7 +242,6 @@ export default function ParentTasksPage() {
       if (!res.ok) throw new Error("タスク作成失敗");
 
       const newTask = await res.json();
-      console.log("newTask",newTask);
       setTasks([newTask, ...tasks]);
       setRecurringType(newTask.recurrence ?? "");
       setRecurringDays(
@@ -364,7 +361,7 @@ export default function ParentTasksPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: "approved" }), // 必要に応じて送信
+        body: JSON.stringify({ status: "approved" }),
       });
       if (!res.ok) throw new Error("承認更新に失敗しました");
       await fetchTasks();
@@ -554,7 +551,7 @@ export default function ParentTasksPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="reward" className="text-gray-700 font-medium">報酬（ポイント）</Label>
+                <Label htmlFor="reward" className="text-gray-700 font-medium">ポイント（ポイント）</Label>
                 <Input
                   id="reward"
                   type="number"

@@ -28,7 +28,7 @@ class TaskSubmissionController extends Controller
             ->exists();
 
         if ($alreadyPending) {
-            return response()->json(['message' => 'すでに申請中です'], 422);
+            return response()->json(['message' => 'すでにかくにん中です'], 422);
         }
 
         $submission = TaskSubmission::create([
