@@ -247,7 +247,9 @@ export default function ParentTasksPage() {
       console.log("newTask",newTask);
       setTasks([newTask, ...tasks]);
       setRecurringType(newTask.recurrence ?? "");
-      setRecurringDays((newTask.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
+      setRecurringDays(
+        (newTask.recurringDays ?? []).map((dayNumStr: string) => numberToDayIdMap[dayNumStr] || dayNumStr)
+      );
       setTaskModalOpen(false);
       resetForm();
     } catch (error) {
