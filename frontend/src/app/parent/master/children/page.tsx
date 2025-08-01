@@ -153,7 +153,7 @@ export default function ChildrenPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
 
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="p-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
@@ -291,7 +291,12 @@ export default function ChildrenPage() {
                 type="number"
                 min={0}
                 value={formPassword}
-                onChange={(e) => setFormPassword(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d{0,4}$/.test(val)) {
+                    setFormPassword(val);
+                  }
+                }}
                 placeholder="例：0000"
                 className="mt-1 rounded-2xl"
               />

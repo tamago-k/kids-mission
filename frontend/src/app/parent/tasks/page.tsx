@@ -196,7 +196,10 @@ export default function ParentTasksPage() {
   }
 
   const handleCreateTask = async () => {
-    if (!(taskTitle && taskDescription && taskReward && taskDeadline && assignedChild && assignedTaskCategory)) return
+    if (!taskTitle.trim()) {
+      alert("タイトルは必須です");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -208,16 +211,16 @@ export default function ParentTasksPage() {
         },
         body: JSON.stringify({
           title: taskTitle,
-          description: taskDescription,
-          reward_amount: Number(taskReward),
-          due_date: taskDeadline,
-          child_id: assignedChild,
-          task_category_id: assignedTaskCategory,
+          description: taskDescription || null,
+          reward_amount: taskReward ? Number(taskReward) : null,
+          due_date: taskDeadline || null,
+          child_id: assignedChild || null,
+          task_category_id: assignedTaskCategory || null,
           recurrence: isRecurring ? recurringType : null,
           weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
         }),
-      })
-      if (!res.ok) throw new Error("タスク作成失敗")
+      });
+      if (!res.ok) throw new Error("タスク作成失敗");
 
       const newTask = await res.json()
       setTasks([newTask,...tasks])
@@ -229,6 +232,10 @@ export default function ParentTasksPage() {
   }
 
   const handleUpdateTask = async () => {
+    if (!taskTitle.trim()) {
+      alert("タイトルは必須です");
+      return;
+    }
     if (!selectedTask) return
     try {
       const token = localStorage.getItem("token");
@@ -240,11 +247,11 @@ export default function ParentTasksPage() {
         },
         body: JSON.stringify({
           title: taskTitle,
-          description: taskDescription,
-          reward_amount: Number(taskReward),
-          due_date: taskDeadline,
-          child_id: assignedChild,
-          task_category_id: assignedTaskCategory,
+          description: taskDescription || null,
+          reward_amount: taskReward ? Number(taskReward) : null,
+          due_date: taskDeadline || null,
+          child_id: assignedChild || null,
+          task_category_id: assignedTaskCategory || null,
           recurrence: isRecurring ? recurringType : null,
           weekdays: isRecurring && recurringType === "weekly" ? recurringDays.map(dayToNumber) : [],
         }),
@@ -372,7 +379,7 @@ export default function ParentTasksPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="p-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="rounded-full" onClick={() => window.history.back()}>
@@ -392,7 +399,7 @@ export default function ParentTasksPage() {
       {/* メインコンテンツ */}
       <div className="p-4 space-y-4 pb-24">
       <Button
-        className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl flex items-center gap-2"
+        className="w-full bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl flex items-center gap-2 bottom-[70px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm"
         onClick={() => openTaskModal()}
         >
         <Plus className="w-4 h-4" />

@@ -19,11 +19,9 @@ class TaskController extends Controller
         $query = Task::with(['child', 'task_category', 'latestSubmission']);
 
         // ユーザーの権限に応じて絞り込み
-        if ($user->role === 'parent') {
-            $query->where('parent_id', $user->id);
-        } elseif ($user->role === 'child') {
+        if ($user->role === 'child') {
             $query->where('child_id', $user->id);
-        } else {
+        } elseif ($user->role !== 'parent') {
             return response()->json(['message' => '不正なユーザー'], 403);
         }
 
@@ -55,9 +53,9 @@ class TaskController extends Controller
                 'description' => 'nullable|string',
                 'due_date' => 'nullable|date',
                 'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
-                'reward_amount' => 'required|integer|min:0',
-                'child_id' => 'required|exists:users,id',
-                'task_category_id' => 'required|exists:task_categories,id',
+                'reward_amount' => 'nullable|integer|min:0',
+                'child_id' => 'nullable|exists:users,id',
+                'task_category_id' => 'nullable|exists:task_categories,id',
             ]);
 
             $task = Task::create([

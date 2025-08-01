@@ -82,7 +82,7 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find((t) => t.value === themeValue)
-    return theme ? theme.gradient : "bg-gray-100"
+    return theme ? theme.gradient : "bg-gray-500"
   }
 
   const formatDateForDisplay = (input?: string | null) => {
@@ -140,7 +140,7 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                             task.child?.theme
                           )}`}
                         >
-                          {iconObj ? <iconObj.Icon /> : "未設定"}
+                          {iconObj ? <iconObj.Icon /> : ""}
                           {task.child?.name || "未設定"}
                         </div>
                       </div>
