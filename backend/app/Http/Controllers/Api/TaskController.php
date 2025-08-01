@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Task;
 use App\Http\Controllers\Controller;
-use App\Models\TaskWeeklyRecurrence;
+use App\Models\TaskRecurrence;
 
 class TaskController extends Controller
 {
@@ -16,7 +16,7 @@ class TaskController extends Controller
     {
         $user = Auth::user();
 
-        $query = Task::with(['child', 'task_category', 'latestSubmission']);
+        $query = Task::with(['child', 'task_category', 'latestSubmission', 'recurrences']);
 
         // ユーザーの権限に応じて絞り込み
         if ($user->role === 'child') {
@@ -38,6 +38,15 @@ class TaskController extends Controller
         // latestSubmissionのstatusをcompletion_statusにセット
         $tasks->transform(function ($task) {
             $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
+
+            $task->recurringDays = $task->recurrences->map(function ($recurrence) use ($task) {
+                if ($task->recurrence === 'monthly') {
+                    return (string)$recurrence->day_of_month;
+                } else {
+                    return (string)$recurrence->day_of_week;
+                }
+            })->toArray();
+
             return $task;
         });
 
@@ -47,40 +56,55 @@ class TaskController extends Controller
 
     // 作成
     public function store(Request $request)
-        {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'due_date' => 'nullable|date',
-                'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
-                'reward_amount' => 'nullable|integer|min:0',
-                'child_id' => 'nullable|exists:users,id',
-                'task_category_id' => 'nullable|exists:task_categories,id',
-            ]);
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
+            'reward_amount' => 'nullable|integer|min:0',
+            'child_id' => 'nullable|exists:users,id',
+            'task_category_id' => 'nullable|exists:task_categories,id',
+            'weekdays' => 'nullable|array',
+        ]);
 
-            $task = Task::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'due_date' => $request->due_date,
-                'recurrence' => $request->recurrence,
-                'reward_amount' => $request->reward_amount,
-                'child_id' => $request->child_id,
-                'parent_id' => auth()->id(),
-                'task_category_id' => $request->task_category_id,
-            ]);
+        $task = Task::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'recurrence' => $request->recurrence,
+            'reward_amount' => $request->reward_amount,
+            'child_id' => $request->child_id,
+            'parent_id' => auth()->id(),
+            'task_category_id' => $request->task_category_id,
+        ]);
 
-            // 毎週の曜日指定がある場合は保存
-            if ($request->recurrence === 'weekly' && is_array($request->weekdays)) {
-                foreach ($request->weekdays as $weekday) {
-                    TaskWeeklyRecurrence::create([
-                        'task_id' => $task->id,
-                        'weekday' => $weekday,
-                    ]);
-                }
+        // recurrence設定（task_recurrencesへ）
+        if ($request->recurrence && is_array($request->weekdays)) {
+            foreach ($request->weekdays as $value) {
+                TaskRecurrence::create([
+                    'task_id' => $task->id,
+                    'recurrence_type' => $request->recurrence,
+                    'day_of_week' => in_array($request->recurrence, ['weekly', 'weekdays', 'weekends']) ? $value : null,
+                    'day_of_month' => $request->recurrence === 'monthly' ? $value : null,
+                ]);
             }
-            $task = Task::with('child')->find($task->id);
-            return response()->json($task, 201);
         }
+
+        $task->recurringDays = $task->recurrences->map(function ($recurrence) use ($task) {
+            if ($task->recurrence === 'monthly') {
+                return (string)$recurrence->day_of_month;
+            } else {
+                return (string)$recurrence->day_of_week;
+            }
+        })->toArray();
+
+        $task->recurringType = $task->recurrence;
+
+        $task->load(['child', 'recurrences']);
+
+        return response()->json($task, 201);
+    }
 
     // 更新
     public function update(Request $request, $id)
@@ -92,11 +116,34 @@ class TaskController extends Controller
             return response()->json(['message' => '更新できません'], 403);
         }
 
-        $task->update($request->only([
-            'title', 'description', 'due_date', 'recurrence', 'child_id', 'task_category_id', 'reward_amount'
-        ]));
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'recurrence' => 'nullable|in:daily,weekly,monthly,weekdays,weekends',
+            'reward_amount' => 'nullable|integer|min:0',
+            'child_id' => 'nullable|exists:users,id',
+            'task_category_id' => 'nullable|exists:task_categories,id',
+            'weekdays' => 'nullable|array',
+        ]);
 
-        $task = Task::with('child')->find($task->id);
+        $task->update($validated);
+
+        $task->recurrences()->delete();
+
+        if ($request->recurrence && is_array($request->weekdays)) {
+            foreach ($request->weekdays as $value) {
+                TaskRecurrence::create([
+                    'task_id' => $task->id,
+                    'recurrence_type' => $request->recurrence,
+                    'day_of_week' => in_array($request->recurrence, ['weekly', 'weekdays', 'weekends']) ? $value : null,
+                    'day_of_month' => $request->recurrence === 'monthly' ? $value : null,
+                ]);
+            }
+        }
+
+        $task->load(['child', 'recurrences']);
+
         return response()->json($task);
     }
 

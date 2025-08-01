@@ -73,4 +73,20 @@ class Task extends Model
     {
         return $this->recurrence;
     }
+
+    public function recurrences()
+    {
+        return $this->hasMany(TaskRecurrence::class);
+    }
+
+    public function getRecurringDaysAttribute()
+    {
+        if (!$this->relationLoaded('recurrences')) return [];
+
+        return $this->recurrences->map(function ($rec) {
+            return $rec->recurrence_type === 'monthly'
+                ? (string)$rec->day_of_month
+                : (string)$rec->day_of_week;
+        })->toArray();
+    }
 }
