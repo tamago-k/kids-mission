@@ -137,7 +137,7 @@ export default function ParentDashboard() {
             Accept: "application/json",
           },
         });
-        if (!resRewards.ok) throw new Error("報酬申請取得失敗");
+        if (!resRewards.ok) throw new Error("ポイント申請取得失敗");
       } catch (error) {
         localStorage.removeItem("token");
         router.push("/");
@@ -193,7 +193,7 @@ export default function ParentDashboard() {
               </div>
               <div className="bg-purple-50 rounded-2xl p-3">
                 <div className="text-2xl font-bold text-purple-600">{rewardRequests.length}</div>
-                <div className="text-sm text-gray-600">報酬申請</div>
+                <div className="text-sm text-gray-600">ポイント申請</div>
               </div>
             </div>
           </CardContent>
@@ -205,7 +205,7 @@ export default function ParentDashboard() {
               <BarChart3 className="w-4 h-4 mr-2" /> タスク
             </TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow text-sm">
-              <PiggyBank className="w-4 h-4 mr-2" /> 報酬
+              <PiggyBank className="w-4 h-4 mr-2" /> ポイント
             </TabsTrigger>
           </TabsList>
 
@@ -274,7 +274,7 @@ export default function ParentDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Wallet className="w-5 h-5 text-green-500" />
-                  報酬申請
+                  ポイント申請
                   <Badge className="bg-green-100 text-green-600">{rewardRequests.length}</Badge>
                   {selectedChild !== "all" && (
                     <Badge className="bg-blue-100 text-blue-600">
@@ -289,8 +289,8 @@ export default function ParentDashboard() {
                     <div className="text-4xl mb-2 flex justify-center"><Gift className="w-10 h-10" /></div>
                     <p className="text-gray-600">
                       {selectedChild === "all"
-                        ? "報酬申請はありません！"
-                        : `${children.find((c) => c.id === selectedChild)?.name}の報酬申請はありません！`}
+                        ? "ポイント申請はありません！"
+                        : `${children.find((c) => c.id === selectedChild)?.name}のポイント申請はありません！`}
                     </p>
                   </div>
                 ) : (
@@ -317,7 +317,7 @@ export default function ParentDashboard() {
                             <div className="flex gap-2">
                               <Link href="/parent/rewards/" className="flex-1">
                                 <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
-                                  報酬ページへ
+                                  ポイントページへ
                                 </Button>
                               </Link>
                             </div>

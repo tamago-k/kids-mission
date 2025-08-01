@@ -94,7 +94,7 @@ export default function ChildBadgesPage() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Medal className="w-6 h-6" /> 
-                バッジ一覧
+                バッジいちらん
               </h1>
               <p className="text-sm text-gray-600">がんばったあかしだよ！</p>
             </div>
@@ -108,7 +108,7 @@ export default function ChildBadgesPage() {
           <div>
             <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
               <Medal className="w-12 h-12" />
-              取得済みバッジ
+              ゲットしたバッジ
             </h2>
             <div className="text-4xl font-bold">{receivedBadgeCount} 個</div>
           </div>
@@ -126,7 +126,7 @@ export default function ChildBadgesPage() {
             filter === "pending" ? "bg-white shadow" : ""
           }`}
         >
-          受け取れるバッジ
+          ゲットできるバッジ
         </Button>
         <Button
           onClick={() => setFilter("received")}
@@ -134,7 +134,7 @@ export default function ChildBadgesPage() {
             filter === "received" ? "bg-white shadow" : ""
           }`}
         >
-          受取済み
+          ゲットしたバッジ
         </Button>
       </div>
       
@@ -144,7 +144,7 @@ export default function ChildBadgesPage() {
         {filteredBadges.length === 0 ? (
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardContent className="p-8 text-center text-gray-600">
-              {filter === "pending" ? "受け取れるバッジはありません。" : "受け取ったバッジはありません。"}
+              {filter === "pending" ? "ゲットできるバッジはありません。" : "ゲットしたバッジはありません。"}
             </CardContent>
           </Card>
         ) : (
@@ -182,7 +182,7 @@ export default function ChildBadgesPage() {
                         className="bg-green-500 text-white rounded-2xl flex items-center gap-1"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        受取済み
+                        ゲット済み
                       </Button>
                     ) : (
                       <Button
@@ -191,7 +191,7 @@ export default function ChildBadgesPage() {
                         onClick={() => handleReceive(id)}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        受け取る
+                        ゲット！
                       </Button>
                     )}
                   </div>

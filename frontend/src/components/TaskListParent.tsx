@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React, { useRef, useLayoutEffect } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -73,12 +73,16 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null)
 
-  const rowVirtualizer = useVirtualizer({
+  const virtualizer = useVirtualizer({
     count: tasks.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 250,
+    estimateSize: () => 100,
     overscan: 5,
   })
+
+  const [, forceUpdate] = React.useState({})
+
+  const measureRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find((t) => t.value === themeValue)
@@ -96,6 +100,20 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
   }
 
 
+  useLayoutEffect(() => {
+    measureRefs.current = measureRefs.current.slice(0, tasks.length)
+    const id = setTimeout(() => {
+      measureRefs.current.forEach((el, i) => {
+        if (el) {
+          console.log(`Measuring element index ${i}`, el.getBoundingClientRect().height)
+          virtualizer.measureElement(el)
+        }
+      })
+      forceUpdate({})
+    }, 50)
+    return () => clearTimeout(id)
+  }, [tasks])
+
   return (
     <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
       <CardHeader>
@@ -110,11 +128,11 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
       >
         <div
           style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
+            height: `${virtualizer.getTotalSize()}px`,
             position: "relative",
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          {virtualizer.getVirtualItems().map((virtualRow) => {
             const task = tasks[virtualRow.index]
             const iconObj = task.child
               ? iconOptions.find((icon) => icon.id === task.child.avatar)
@@ -123,6 +141,10 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
             return (
               <div
                 key={task.id}
+                data-index={virtualRow.index}
+                ref={el => {
+                  measureRefs.current[virtualRow.index] = el
+                }}
                 style={{
                   position: "absolute",
                   top: 0,

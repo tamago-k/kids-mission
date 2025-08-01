@@ -14,7 +14,7 @@ export function ParentNavigation() {
   const navItems = [
     { href: "/parent/dashboard", icon: Home, label: "ホーム" },
     { href: "/parent/tasks", icon: ClipboardCheck, label: "タスク" },
-    { href: "/parent/rewards", icon: PiggyBank, label: "報酬" },
+    { href: "/parent/rewards", icon: PiggyBank, label: "ポイント" },
     /*{ href: "/parent/report", icon: BarChart3, label: "レポート" },*/
     { href: "/parent/calendar", icon: Calendar, label: "カレンダー" },
   ]
@@ -33,7 +33,7 @@ export function ParentNavigation() {
       children: [
         { label: "子どもマスタ", href: "/parent/master/children" },
         { label: "タスクカテゴリマスタ", href: "/parent/master/categories" },
-        { label: "報酬マスタ", href: "/parent/master/rewards" },
+        { label: "ポイントマスタ", href: "/parent/master/rewards" },
         { label: "バッジマスタ", href: "/parent/master/badges" },
       ]
     }

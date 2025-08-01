@@ -18,6 +18,7 @@ export default function ChildDashboard() {
     consecutive_days: 0,
   })
   const router = useRouter()
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null)
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
   type Submission = {
@@ -68,6 +69,7 @@ export default function ChildDashboard() {
           router.push("/")
           return
         }
+        setUser(user)
 
         // 今日のタスク取得
         const resTasks = await fetch(`${apiBaseUrl}/api/tasks/today`, {
@@ -79,7 +81,7 @@ export default function ChildDashboard() {
         if (!resTasks.ok) throw new Error("タスク取得失敗")
         const tasksData = await resTasks.json()
 
-        // ポイント残高取得
+        // ポイント数取得
         const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
           headers: {
             "Content-Type": "application/json",
@@ -135,7 +137,7 @@ export default function ChildDashboard() {
                 <Smile className="w-6 h-6" /> 
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">今日もがんばろう！</h1>
+                <h1 className="text-x font-bold text-gray-800">{user?.name}さん、今日もがんばろう！</h1>
               </div>
             </div>
           </div>
@@ -165,14 +167,14 @@ export default function ChildDashboard() {
           </CardContent>
         </Card>
 
-        {/* 報酬残高カード */}
+        {/* ポイント数カード */}
         <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold flex gap-1 items-center">
                   <PiggyBank className="w-6 h-6" />
-                  ポイント残高
+                  ポイント数
                 </h2>
                 <div className="text-3xl font-bold">{currentBalance} P</div>
                 <p className="text-purple-100 text-sm mt-1">よくがんばったね！</p>
@@ -195,7 +197,7 @@ export default function ChildDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Star className="w-5 h-5 text-yellow-500" />
-              今週の成果
+              今週のがんばり
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -204,13 +206,13 @@ export default function ChildDashboard() {
                 <div className="text-2xl font-bold text-blue-600">
                   {stats.task_completed}
                 </div>
-                <div className="text-sm text-gray-600">完了タスク</div>
+                <div className="text-sm text-gray-600">終わったタスク</div>
               </div>
               <div className="bg-yellow-50 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-yellow-600">
                   {stats.points_earned}
                 </div>
-                <div className="text-sm text-gray-600">獲得ポイント</div>
+                <div className="text-sm text-gray-600">ゲットポイント</div>
               </div>
             </div>
           </CardContent>

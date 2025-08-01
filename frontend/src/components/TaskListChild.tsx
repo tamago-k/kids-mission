@@ -188,7 +188,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         className="flex-1 bg-yellow-400 text-white rounded-2xl"
                       >
                         <ClipboardCheck className="w-4 h-4 mr-1" />
-                        申請中
+                        かくにん中
                       </Button>
                     ) : task.completion_status === "rejected" ? (
                       <Button
@@ -197,7 +197,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         onClick={() => onComplete && onComplete(task)}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        再申請
+                        もう一回
                       </Button>
                     ) : task.completion_status === "approved" ? (
                       <Button
@@ -206,7 +206,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         className="flex-1 bg-green-500 text-white rounded-2xl"
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        完了済み
+                        かんりょう
                       </Button>
                     ) : (
                       <Button
@@ -215,7 +215,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         onClick={() => onComplete && onComplete(task)}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        完了申請
+                        お願いする
                       </Button>
                     )}
                   </div>
