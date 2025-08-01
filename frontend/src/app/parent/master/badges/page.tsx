@@ -237,14 +237,14 @@ export default function ParentMasterPage() {
           }}
           >
           <DialogTrigger asChild>
-            <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white rounded-2xl h-12">
+            <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white rounded-2xl h-12 bottom-[60px] left-1/2 transform -translate-x-1/2 fixed z-10 max-w-sm">
               <Plus className="w-4 h-4 mr-2" />
               新しいバッジを追加
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl">🏆 新しいバッジ</DialogTitle>
+              <DialogTitle className="text-center text-xl flex justify-center gap-1"><Award className="w-6 h-6" />新しいバッジ</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>

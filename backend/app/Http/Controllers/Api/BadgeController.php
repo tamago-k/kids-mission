@@ -11,7 +11,7 @@ class BadgeController extends Controller
 {
     public function index()
     {
-        return Badge::all();
+        return Badge::latest()->get();
     }
 
     public function store(Request $request)
