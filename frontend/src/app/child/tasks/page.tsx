@@ -26,6 +26,7 @@ export default function ChildTasksPage() {
     id: number
     title: string
     description?: string | null
+    completion_status?: "rejected" | "submitted" | "approved"
     status: string
     approved_at?: string | null
     reward_amount: number | null
@@ -42,6 +43,11 @@ export default function ChildTasksPage() {
       name: string
       slug: string
     } | null
+    latest_submission?: {
+      created_at: string
+      submitted_at: string
+      status: string
+    }
   };
   
   const fetchTasks = useCallback(async () => {
@@ -59,6 +65,7 @@ export default function ChildTasksPage() {
       return;
     }
     const data = await res.json();
+    console.log(data);
     setTasks(data);
   }, [apiBaseUrl,user]);
 
@@ -134,7 +141,6 @@ export default function ChildTasksPage() {
     if (!dateStr) return false;
     const date = new Date(dateStr);
     const today = new Date();
-    // 時間部分は無視したいなら日付だけで比較
     const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     return target <= now;
@@ -168,11 +174,27 @@ export default function ChildTasksPage() {
     const dueDate = new Date(task.due_date);
 
     if (filter === "today") {
-        const todayEnd = new Date();
-        todayEnd.setHours(23, 59, 59, 999);
-      return (
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
 
-        dueDate <= todayEnd
+      const dueDateOnly = new Date(dueDate);
+      dueDateOnly.setHours(0, 0, 0, 0);
+      const isDueToday = dueDateOnly.getTime() === today.getTime();
+
+      const approvedAtRaw = task.latest_submission?.created_at;
+      const approvedAt = approvedAtRaw ? new Date(approvedAtRaw) : null;
+      const isApprovedToday =
+        approvedAt &&
+        approvedAt >= today &&
+        approvedAt <= todayEnd;
+
+      return (
+        (isDueToday || isApprovedToday) &&
+        (
+          task.completion_status !== "approved" || isApprovedToday
+        )
       );
     } else if (filter === "tomorrow") {
       const tomorrow = new Date(today);
