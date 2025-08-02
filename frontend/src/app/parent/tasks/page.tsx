@@ -399,6 +399,16 @@ export default function ParentTasksPage() {
     );
   };
 
+  const isToday = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  };
+
   if (!user) return null;
   
   return (
@@ -497,7 +507,7 @@ export default function ParentTasksPage() {
           {/* 完了済みタスク */}
           <TabsContent value="approved">
             <TaskListParent
-              tasks={tasks.filter(t => t.completion_status === "approved")}
+              tasks={tasks.filter(t => t.completion_status === "approved" && isToday(t.updated_at))}
               onComment={openCommentDialog}
               onReject={(task) => {
                 setSelectedNotification(task);
