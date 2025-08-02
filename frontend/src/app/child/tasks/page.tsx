@@ -298,7 +298,7 @@ export default function ChildTasksPage() {
                 className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-2xl"
                 onClick={() => selectedTask && handleCompleteTask(selectedTask)}
               >
-                完了申請
+                完了しんせい
               </Button>
             </div>
           </div>
