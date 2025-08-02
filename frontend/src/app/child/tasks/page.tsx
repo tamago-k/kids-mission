@@ -22,28 +22,6 @@ export default function ChildTasksPage() {
   const [filter, setFilter] = useState("today")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  type Task = {
-    id: number
-    title: string
-    description?: string | null
-    status: string
-    approved_at?: string | null
-    reward_amount: number | null
-    due_date?: string | null
-    child?: {
-      name: string
-      avatar: string
-      theme?: string
-    } | null
-    isRecurring?: boolean
-    recurringType?: "daily" | "weekly" | "monthly"
-    task_category?: {
-      id: number
-      name: string
-      slug: string
-    } | null
-  };
-  
   const fetchTasks = useCallback(async () => {
     if (!user) return;
     const token = localStorage.getItem("token");
