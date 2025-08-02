@@ -77,7 +77,7 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
   const virtualizer = useVirtualizer({
     count: tasks.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 100,
+    estimateSize: () => 180,
     overscan: 5,
   })
 
@@ -99,7 +99,6 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
     const dd = String(date.getDate()).padStart(2, "0")
     return `${yyyy}/${mm}/${dd}`
   }
-
 
   useLayoutEffect(() => {
     measureRefs.current = measureRefs.current.slice(0, tasks.length)
