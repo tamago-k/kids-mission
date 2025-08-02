@@ -60,7 +60,6 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
     const id = setTimeout(() => {
       measureRefs.current.forEach((el, i) => {
         if (el) {
-          console.log(`Measuring element index ${i}`, el.getBoundingClientRect().height)
           virtualizer.measureElement(el)
         }
       })

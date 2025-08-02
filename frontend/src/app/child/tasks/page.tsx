@@ -10,6 +10,7 @@ import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 import { TaskCommentModal } from "@/components/TaskCommentModal"
 import { TaskListChild } from "@/components/TaskListChild"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
+import type { Task } from "@/types/TaskChild";
 
 export default function ChildTasksPage() {
   const user = useCurrentUser()
@@ -37,7 +38,6 @@ export default function ChildTasksPage() {
       return;
     }
     const data = await res.json();
-    console.log(data);
     setTasks(data);
   }, [apiBaseUrl,user]);
 
