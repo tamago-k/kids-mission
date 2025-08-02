@@ -185,13 +185,19 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                     <p className="text-sm text-gray-600 mt-2">
                       {task.description}
                     </p>
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex items-center gap-2 mt-4">
                       <div className="flex items-center gap-1 text-xs">
                         <Calendar className="w-4 h-4" />
                         {task.due_date
                           ? formatDateForDisplay(task.due_date)
                           : "なし"}
                       </div>
+                      {task.completion_status === "approved" && (
+                        <div className="flex items-center gap-1 mr-2 text-xs text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          {formatDateForDisplay(task.updated_at)}
+                        </div>
+                      )}
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           {task.isRecurring && (
