@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React, { useRef, useLayoutEffect } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -28,14 +28,18 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
   onComment,
   onComplete,
 }) => {
-  const parentRef = useRef<HTMLDivElement | null>(null)
+  const childRef = useRef<HTMLDivElement | null>(null)
 
-  const rowVirtualizer = useVirtualizer({
+  const virtualizer = useVirtualizer({
     count: tasks.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 180,
+    getScrollElement: () => childRef.current,
+    estimateSize: () => 160,
     overscan: 5,
   })
+
+  const [, forceUpdate] = React.useState({})
+
+  const measureRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find((t) => t.value === themeValue)
@@ -51,22 +55,43 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
     const dd = String(date.getDate()).padStart(2, "0")
     return `${yyyy}/${mm}/${dd}`
   }
+  
+  useLayoutEffect(() => {
+    measureRefs.current = measureRefs.current.slice(0, tasks.length)
+    const id = setTimeout(() => {
+      measureRefs.current.forEach((el, i) => {
+        if (el) {
+          console.log(`Measuring element index ${i}`, el.getBoundingClientRect().height)
+          virtualizer.measureElement(el)
+        }
+      })
+      forceUpdate({})
+    }, 50)
+    return () => clearTimeout(id)
+  }, [tasks])
 
   return (
     <div
-      ref={parentRef}
+      ref={childRef}
       className="relative h-[80vh] overflow-auto space-y-4"
       style={{ overflowAnchor: "none" }} 
     >
       <div
-        style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          position: "relative",
+        }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualizer.getVirtualItems().map((virtualRow) => {
           const task = tasks[virtualRow.index]
 
           return (
             <div
               key={task.id}
+              data-index={virtualRow.index}
+              ref={el => {
+                measureRefs.current[virtualRow.index] = el
+              }}
               style={{
                 position: "absolute",
                 top: 0,
@@ -76,7 +101,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
               }}
             >
               <Card
-                className={`border-2 rounded-3xl transition-all relative ${
+                className={`border-2 rounded-3xl transition-all relative mb-6 ${
                   task.completion_status === "approved"
                     ? "border-green-200 bg-green-50"
                     : "border-gray-200 hover:border-orange-300 bg-white/80 backdrop-blur-sm"
