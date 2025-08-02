@@ -16,7 +16,8 @@ class TaskController extends Controller
     {
         $user = Auth::user();
 
-        $query = Task::with(['child', 'task_category', 'latestSubmission', 'recurrences']);
+        $query = Task::with(['child', 'task_category', 'latestSubmission', 'recurrences'])
+                    ->withCount('comments');
 
         // ユーザーの権限に応じて絞り込み
         if ($user->role === 'child') {

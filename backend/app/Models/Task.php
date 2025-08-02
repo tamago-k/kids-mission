@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TaskComment;
 
 class Task extends Model
 {
@@ -88,5 +89,10 @@ class Task extends Model
                 ? (string)$rec->day_of_month
                 : (string)$rec->day_of_week;
         })->toArray();
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(TaskComment::class);
     }
 }

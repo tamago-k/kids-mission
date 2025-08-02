@@ -22,6 +22,7 @@ interface Task {
   created_at: string
   updated_at: string
   recurringDays?: string[]  
+  comments_count?: number
 
   child: {
     id: number
@@ -240,9 +241,10 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
                         className="flex-1 rounded-2xl border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
                         onClick={() => onComment && onComment(task)}
                       >
-                        <MessageCircle className="w-4 h-4" />
+                        <MessageCircle className="w-4 h-4" /> {task.comments_count ?? 0}
                       </Button>
-                      {allowEdit && task.completion_status !== "approved" && (
+                      {allowEdit && task.completion_status !== "approved" &&
+                        task.completion_status !== "submitted" && (
                         <>
                           <Button
                             variant="outline"

@@ -206,7 +206,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         className="flex-1 bg-green-500 text-white rounded-2xl"
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        かんりょう
+                        完了
                       </Button>
                     ) : (
                       <Button
@@ -215,7 +215,7 @@ export const TaskListChild: React.FC<TaskListParentProps> = ({
                         onClick={() => onComplete && onComplete(task)}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        お願いする
+                        完了ほうこく
                       </Button>
                     )}
                   </div>

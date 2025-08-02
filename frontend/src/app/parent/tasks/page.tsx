@@ -67,6 +67,7 @@ export default function ParentTasksPage() {
     created_at: string
     updated_at: string
     recurringDays?: string[]  
+    comments_count?: number
 
     child: {
       id: number
@@ -371,10 +372,11 @@ export default function ParentTasksPage() {
     }
   };
 
-  const handleReject = async (taskId: number) => {
+  const handleRejectBySubmissionId = async (submissionId?: number) => {
+    if (!submissionId) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/reject`, {
+      const res = await fetch(`${apiBaseUrl}/api/task-submissions/${submissionId}/reject`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -497,6 +499,10 @@ export default function ParentTasksPage() {
             <TaskListParent
               tasks={tasks.filter(t => t.completion_status === "approved")}
               onComment={openCommentDialog}
+              onReject={(task) => {
+                setSelectedNotification(task);
+                setIsRejectModalOpen(true);
+              }}
             />
           </TabsContent>
         </Tabs>
@@ -736,7 +742,10 @@ export default function ParentTasksPage() {
           </DialogHeader>
           <div className="space-y-4 text-center">
             <p className="text-gray-700">
-              「<strong>{selectedNotification?.title}</strong>」を承認してもよろしいですか？
+              承認してもよろしいですか？
+            </p>
+            <p className="text-red-500 text-sm font-bold">
+              ※取り消しできません
             </p>
             <div className="flex gap-2">
               <Button
@@ -784,8 +793,8 @@ export default function ParentTasksPage() {
               <Button
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl"
                 onClick={() => {
-                  handleReject(selectedNotification!.id)
-                  setIsRejectModalOpen(false)
+                  handleRejectBySubmissionId(selectedNotification!.id);
+                  setIsRejectModalOpen(false);
                 }}
               >
                 却下する
