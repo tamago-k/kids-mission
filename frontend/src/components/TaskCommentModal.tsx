@@ -51,6 +51,8 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
   useEffect(() => {
     if (!taskId || !open) return;
 
+    fetchComments();
+    
     const fetchAndScroll = async () => {
 
       const box = commentBoxRef.current;
