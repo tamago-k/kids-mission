@@ -90,5 +90,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/badge-assignments', [BadgeAssignmentController::class, 'index']);
     Route::post('/badge-assignments/{id}/receive', [BadgeAssignmentController::class, 'receive']);
 
+    //calendar
+    Route::get('/calendar-tasks', [TaskController::class, 'calendarTasks']);
+
 });
 

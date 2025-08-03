@@ -82,7 +82,7 @@ export default function ParentCalendarPage() {
       const token = localStorage.getItem("token");
       try {
         const res = await fetch(
-          `${apiBaseUrl}/api/tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`, {
+          `${apiBaseUrl}/api/calendar-tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,

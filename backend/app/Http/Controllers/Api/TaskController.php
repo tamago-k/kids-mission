@@ -209,4 +209,48 @@ class TaskController extends Controller
             'points_earned' => $points,
         ]);
     }
+    
+    // カレンダー
+    public function calendarTasks(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = Task::with(['child', 'task_category', 'latestSubmission', 'recurrences'])
+                    ->withCount('comments');
+
+        // ユーザーの権限に応じて絞り込み
+        if ($user->role === 'child') {
+            $query->where('child_id', $user->id);
+        } elseif ($user->role !== 'parent') {
+            return response()->json(['message' => '不正なユーザー'], 403);
+        }
+
+        // status フィルター
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            $query->whereHas('latestSubmission', function ($q) use ($status) {
+                $q->where('status', $status);
+            });
+        }
+
+        $tasks = $query->orderBy('created_at', 'desc')->get();
+
+        // latestSubmissionのstatusをcompletion_statusにセット
+        $tasks->transform(function ($task) {
+            $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
+
+            $task->recurringDays = $task->recurrences->map(function ($recurrence) use ($task) {
+                if ($task->recurrence === 'monthly') {
+                    return (string)$recurrence->day_of_month;
+                } else {
+                    return (string)$recurrence->day_of_week;
+                }
+            })->toArray();
+
+            return $task;
+        });
+
+        return response()->json($tasks);
+    }
+
 }
