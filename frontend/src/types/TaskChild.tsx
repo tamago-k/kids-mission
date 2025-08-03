@@ -19,4 +19,9 @@ export interface Task {
     name: string
     slug: string
   } | null
+  latest_submission?: {
+    created_at: string
+    submitted_at: string
+    status: string
+  }
 }
