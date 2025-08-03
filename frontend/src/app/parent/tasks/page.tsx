@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -51,6 +51,10 @@ export default function ParentTasksPage() {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Task | null>(null);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loadingRef = useRef(false);
+  const [totalTasksCount, setTotalTasksCount] = useState<number | null>(null);
 
   const numberToDayIdMap: { [key: string]: string } = {
     "0": "sunday",
@@ -62,23 +66,40 @@ export default function ParentTasksPage() {
     "6": "saturday",
   };
 
-  const fetchTasks = async () => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${apiBaseUrl}/api/tasks`, {
+  const fetchTasks = async (pageToLoad = 1) => {
+    if (loadingRef.current) return
+    loadingRef.current = true
+    const token = localStorage.getItem("token")
+    const res = await fetch(`${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToLoad}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    });
+    })
     if (!res.ok) {
-      alert("タスク取得に失敗しました");
-      return;
+      alert("タスク取得に失敗しました")
+      loadingRef.current = false
+      return
     }
-    const data = await res.json();
-    setTasks(data);
-  };
-  
+    const data = await res.json()
+
+    if (pageToLoad === 1) {
+      setTasks(data.data)
+      setTotalTasksCount(data.total);
+    } else {
+      setTasks(prev => {
+        const prevIds = new Set(prev.map(t => t.id));
+        const newUniqueTasks = data.data.filter((t: Task) => !prevIds.has(t.id));
+        return [...prev, ...newUniqueTasks];
+      });
+    }
+
+    setHasMore(pageToLoad < data.last_page)
+    setPage(pageToLoad)
+    loadingRef.current = false
+  }
+
   useEffect(() => {
     const fetchChildren = async () => {
       const token = localStorage.getItem("token");
@@ -116,9 +137,21 @@ export default function ParentTasksPage() {
     }
 
     fetchChildren()
-    fetchTasks()
     fetchTaskCategories()
+    fetchTasks(1)
   }, [apiBaseUrl])
+  
+  useEffect(() => {
+    const onScroll = () => {
+      if (!hasMore || loadingRef.current) return
+      const scrollElement = document.documentElement
+      if (scrollElement.scrollHeight - scrollElement.scrollTop - window.innerHeight < 100) {
+        fetchTasks(page + 1)
+      }
+    }
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [page, hasMore])
 
   const dayToNumber = (dayId: string) => {
     switch (dayId) {
@@ -363,6 +396,18 @@ export default function ParentTasksPage() {
     );
   };
 
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (
+      target.scrollHeight - target.scrollTop <=
+        target.clientHeight + 100 &&
+      !loadingRef.current &&
+      hasMore
+    ) {
+      fetchTasks(page + 1);
+    }
+  };
+
   if (!user) return null;
   
   return (
@@ -398,7 +443,7 @@ export default function ParentTasksPage() {
         <div className="grid grid-cols-2 gap-4">
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-blue-400 to-purple-400 text-white">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{tasks.length}</div>
+              <div className="text-2xl font-bold">{totalTasksCount ?? tasks.filter(t => isToday(t.due_date)).length}</div>
               <div className="text-sm text-blue-100">総タスク数</div>
             </CardContent>
           </Card>
@@ -434,6 +479,7 @@ export default function ParentTasksPage() {
                 setDeleteTaskOpen(true)
               }}
               onComment={openCommentDialog}
+              onScroll={onScroll}
             />
           </TabsContent>
 
@@ -455,6 +501,7 @@ export default function ParentTasksPage() {
                 setIsRejectModalOpen(true);
               }}
               onComment={openCommentDialog}
+              onScroll={onScroll}
             />
           </TabsContent>
 
@@ -467,6 +514,7 @@ export default function ParentTasksPage() {
                 setSelectedNotification(task);
                 setIsRejectModalOpen(true);
               }}
+              onScroll={onScroll}
             />
           </TabsContent>
         </Tabs>

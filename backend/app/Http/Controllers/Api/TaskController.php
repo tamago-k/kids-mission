@@ -19,14 +19,12 @@ class TaskController extends Controller
         $query = Task::with(['child', 'task_category', 'latestSubmission', 'recurrences'])
                     ->withCount('comments');
 
-        // ユーザーの権限に応じて絞り込み
         if ($user->role === 'child') {
             $query->where('child_id', $user->id);
         } elseif ($user->role !== 'parent') {
             return response()->json(['message' => '不正なユーザー'], 403);
         }
 
-        // status フィルター
         if ($request->has('status')) {
             $status = $request->input('status');
             $query->whereHas('latestSubmission', function ($q) use ($status) {
@@ -34,10 +32,24 @@ class TaskController extends Controller
             });
         }
 
-        $tasks = $query->orderBy('created_at', 'desc')->get();
+        if ($request->input('exclude_past_approved') === '1') {
+            $query->where(function ($q) {
+                $q->whereDoesntHave('latestSubmission')
+                ->orWhereHas('latestSubmission', function ($sub) {
+                    $sub->where('status', '!=', 'approved')
+                        ->orWhereDate('created_at', '>=', now()->toDateString());
+                });
+            });
+        }
 
-        // latestSubmissionのstatusをcompletion_statusにセット
-        $tasks->transform(function ($task) {
+        // ページネーション対応
+        $perPage = 5; // 1ページあたりの件数
+        $page = $request->input('page', 1);
+
+        $tasks = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+
+        // completion_statusやrecurringDaysの追加処理は、コレクションに対してmapで
+        $tasks->getCollection()->transform(function ($task) {
             $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
 
             $task->recurringDays = $task->recurrences->map(function ($recurrence) use ($task) {
@@ -53,6 +65,7 @@ class TaskController extends Controller
 
         return response()->json($tasks);
     }
+
 
 
     // 作成
