@@ -52,7 +52,8 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent
-        className="relative h-[80vh] overflow-auto"
+        className="relative h-[45vh] overflow-auto"
+        onScroll={onScroll}
       >
         <div>
           {tasks.map((task) => {

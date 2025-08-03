@@ -31,7 +31,7 @@ export const TaskListChild: React.FC<TaskListChildProps> = ({
   }
 
   return (
-    <div className="space-y-4 overflow-auto h-[80vh]" onScroll={onScroll}>
+    <div className="space-y-4 overflow-auto h-[70vh]" onScroll={onScroll}>
       {tasks.map((task) => (
         <Card
           key={task.id}
