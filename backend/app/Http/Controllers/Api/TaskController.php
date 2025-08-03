@@ -25,13 +25,6 @@ class TaskController extends Controller
             return response()->json(['message' => '不正なユーザー'], 403);
         }
 
-        if ($request->has('status')) {
-            $status = $request->input('status');
-            $query->whereHas('latestSubmission', function ($q) use ($status) {
-                $q->where('status', $status);
-            });
-        }
-
         if ($request->input('exclude_past_approved') === '1') {
             $query->where(function ($q) {
                 $q->whereDoesntHave('latestSubmission')
@@ -42,13 +35,25 @@ class TaskController extends Controller
             });
         }
 
-        // ページネーション対応
-        $perPage = 10; // 1ページあたりの件数
+        if ($request->has('status')) {
+            $status = $request->input('status');
+
+            if ($status === 'active') {
+                // 最新提出が無いタスク＝未提出タスクを取得
+                $query->whereDoesntHave('latestSubmission');
+            } else {
+                // 最新提出のstatusで絞り込み
+                $query->whereHas('latestSubmission', function ($q) use ($status) {
+                    $q->where('status', $status);
+                });
+            }
+        }
+
+        $perPage = 5; // ページあたり件数
         $page = $request->input('page', 1);
 
         $tasks = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
 
-        // completion_statusやrecurringDaysの追加処理は、コレクションに対してmapで
         $tasks->getCollection()->transform(function ($task) {
             $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
 
@@ -65,7 +70,6 @@ class TaskController extends Controller
 
         return response()->json($tasks);
     }
-
 
 
     // 作成

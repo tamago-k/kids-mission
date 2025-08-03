@@ -193,7 +193,7 @@ export default function ChildRewardsPage() {
                 <Button
                   key={reward.id}
                   variant="outline"
-                  className={`h-auto p-4 rounded-2xl border-2 flex flex-col items-center gap-2 ${
+                  className={`h-auto p-4 rounded-2xl border-2 flex flex-col items-center gap-2 whitespace-normal break-words ${
                     currentBalance >= (reward?.need_reward ?? 0)
                       ? "border-green-200 hover:border-green-300 hover:bg-green-50"
                       : "border-gray-200 opacity-50 cursor-not-allowed"
