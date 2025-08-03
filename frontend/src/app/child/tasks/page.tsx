@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -22,24 +22,53 @@ export default function ChildTasksPage() {
   const [_taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const [filter, setFilter] = useState("today")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loadingRef = useRef(false);
+  const [totalTasksCount, setTotalTasksCount] = useState<number | null>(null);
 
-  const fetchTasks = useCallback(async () => {
-    if (!user) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${apiBaseUrl}/api/tasks`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) {
-      alert("タスク取得に失敗しました");
-      return;
+  const fetchTasks = useCallback(async (pageToFetch = 1) => {
+    if (!user || loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToFetch}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("タスク取得に失敗");
+
+      const data = await res.json();
+
+      setTasks((prev) => (pageToFetch === 1 ? data.data : [...prev, ...data.data]));
+      setPage(pageToFetch);
+      setHasMore(pageToFetch < data.last_page);
+
+      if (pageToFetch === 1) {
+        setTotalTasksCount(data.total);
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message)
+      } else {
+        alert("データの取得に失敗しました")
+      }
+    } finally {
+      loadingRef.current = false;
     }
-    const data = await res.json();
-    setTasks(data);
-  }, [apiBaseUrl,user]);
+  }, [apiBaseUrl, user, hasMore]);
+
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (
+      target.scrollHeight - target.scrollTop <=
+        target.clientHeight + 100 &&
+      !loadingRef.current &&
+      hasMore
+    ) {
+      fetchTasks(page + 1);
+    }
+  };
 
   const fetchTaskCategories = useCallback(async () => {
     if (!user) return;
@@ -221,7 +250,7 @@ export default function ChildTasksPage() {
             }`}
           >
             <CalendarSearch className="w-4 h-4 mr-1" />
-            今日 ({tasks.filter(t => isToday(t.due_date)).length})
+            今日 ({totalTasksCount ?? tasks.filter(t => isToday(t.due_date)).length})
           </Button>
 
           <Button
@@ -250,6 +279,7 @@ export default function ChildTasksPage() {
           tasks={filteredTasks}
           onComplete={openCompleteDialog}
           onComment={openCommentDialog}
+          onScroll={onScroll}
         />
 
         {filteredTasks.length === 0 && (
