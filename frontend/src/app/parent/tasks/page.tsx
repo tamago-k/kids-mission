@@ -29,21 +29,22 @@ const weekDays = [
 
 export default function ParentTasksPage() {
   const user = useCurrentUser();
-
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    reward: "",
+    deadline: "",
+    childId: "",
+    categoryId: "",
+    isRecurring: false,
+    recurringType: "",
+    recurringDays: [] as string[],
+  });
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [deleteTaskOpen, setDeleteTaskOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [_newComment, setNewComment] = useState<string>("")
-  const [taskTitle, setTaskTitle] = useState("")
-  const [taskDescription, setTaskDescription] = useState("")
-  const [taskReward, setTaskReward] = useState("")
-  const [taskDeadline, setTaskDeadline] = useState("")
-  const [assignedChild, setAssignedChild] = useState("")
-  const [assignedTaskCategory, setAssignedTaskCategory] = useState("")
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [recurringType, setRecurringType] = useState("")
-  const [recurringDays, setRecurringDays] = useState<string[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
   const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
@@ -167,53 +168,57 @@ export default function ParentTasksPage() {
   }
 
   const resetForm = () => {
-    setTaskTitle("")
-    setTaskDescription("")
-    setTaskReward("")
-    setTaskDeadline("")
-    setAssignedChild("")
-    setAssignedTaskCategory("")
-    setIsRecurring(false)
-    setRecurringType("")
-    setRecurringDays([])
-    setSelectedTask(null)
-  }
+    setTaskForm({
+      title: "",
+      description: "",
+      reward: "",
+      deadline: "",
+      childId: "",
+      categoryId: "",
+      isRecurring: false,
+      recurringType: "",
+      recurringDays: [],
+    });
+    setSelectedTask(null);
+  };
 
   const openEditDialog = (task: Task) => {
-    setSelectedTask(task)
-    setTaskTitle(task.title)
-    setTaskDescription(task.description)
-    setTaskReward(String(task.reward_amount || ""))
-    setTaskDeadline(formatForInputDateTimeLocal(task.due_date))
-    setAssignedChild(String(task.child_id))
-    setIsRecurring(Boolean(task.recurrence))
-    setRecurringType(task.recurrence ?? "");
-    setRecurringDays((task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
-    setAssignedTaskCategory(String(task.task_category_id))
-    setTaskModalOpen(true)
-  }
-  
+    setSelectedTask(task);
+    setTaskForm({
+      title: task.title || "",
+      description: task.description || "",
+      reward: String(task.reward_amount ?? ""),
+      deadline: formatForInputDateTimeLocal(task.due_date),
+      childId: String(task.child_id ?? ""),
+      categoryId: String(task.task_category_id ?? ""),
+      isRecurring: Boolean(task.recurrence),
+      recurringType: task.recurrence ?? "",
+      recurringDays: (task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr),
+    });
+    setTaskModalOpen(true);
+  };
+    
   const buildTaskPayload = () => ({
-    title: taskTitle,
-    description: taskDescription || null,
-    reward_amount: taskReward ? Number(taskReward) : null,
-    due_date: taskDeadline || null,
-    child_id: assignedChild === "" ? null : Number(assignedChild),
+    title: taskForm.title,
+    description: taskForm.description || null,
+    reward_amount: taskForm.reward ? Number(taskForm.reward) : null,
+    due_date: taskForm.deadline || null,
+    child_id: taskForm.childId === "" ? null : Number(taskForm.childId),
     task_category_id:
-      assignedTaskCategory === "" || assignedTaskCategory === "null"
+      taskForm.categoryId === "" || taskForm.categoryId === "null"
         ? null
-        : Number(assignedTaskCategory),
-    recurrence: isRecurring ? recurringType : null,
+        : Number(taskForm.categoryId),
+    recurrence: taskForm.isRecurring ? taskForm.recurringType : null,
     weekdays:
-      isRecurring && recurringType === "weekly"
-        ? recurringDays.map(dayToNumber)
-        : isRecurring && recurringType === "monthly"
-        ? recurringDays.map(Number)
+      taskForm.isRecurring && taskForm.recurringType === "weekly"
+        ? taskForm.recurringDays.map(dayToNumber)
+        : taskForm.isRecurring && taskForm.recurringType === "monthly"
+        ? taskForm.recurringDays.map(Number)
         : [],
   });
   
   const handleCreateTask = async () => {
-    if (!taskTitle.trim()) {
+    if (!taskForm.title.trim()) {
       alert("タイトルは必須です");
       return;
     }
@@ -231,10 +236,13 @@ export default function ParentTasksPage() {
 
       const newTask = await res.json();
       setTasks([newTask, ...tasks]);
-      setRecurringType(newTask.recurrence ?? "");
-      setRecurringDays(
-        (newTask.recurringDays ?? []).map((dayNumStr: string) => numberToDayIdMap[dayNumStr] || dayNumStr)
-      );
+      setTaskForm(prev => ({
+        ...prev,
+        recurringType: newTask.recurrence ?? "",
+        recurringDays: (newTask.recurringDays ?? []).map(
+          (dayNumStr: string) => numberToDayIdMap[dayNumStr] || dayNumStr
+        ),
+      }));
       setTaskModalOpen(false);
       resetForm();
     } catch (error) {
@@ -243,7 +251,7 @@ export default function ParentTasksPage() {
   };
 
   const handleUpdateTask = async () => {
-    if (!taskTitle.trim()) {
+    if (!taskForm.title.trim()) {
       alert("タイトルは必須です");
       return;
     }
@@ -297,28 +305,30 @@ export default function ParentTasksPage() {
   }
 
   const openCommentDialog = (task: Task) => {
-    setSelectedTask(task)
-    setTaskTitle(task.title);
-    setCommentDialogOpen(true)
+    setSelectedTask(task);
+    setTaskForm(prev => ({ ...prev, title: task.title || "" }));
+    setCommentDialogOpen(true);
   }
 
   const openTaskModal = (task?: Task) => {
     if (task) {
-      setSelectedTask(task)
-      setTaskTitle(task.title)
-      setTaskDescription(task.description)
-      setTaskReward(String(task.reward_amount || ""))
-      setTaskDeadline(task.due_date || task.due_date || "")
-      setAssignedChild(String(task.child_id))
-      setAssignedTaskCategory(String(task.task_category_id))
-      setIsRecurring(Boolean(task.recurrence || task.isRecurring))
-      setRecurringType(task.recurrence ?? "");
-      setRecurringDays((task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr));
+      setSelectedTask(task);
+      setTaskForm({
+        title: task.title || "",
+        description: task.description || "",
+        reward: String(task.reward_amount || ""),
+        deadline: task.due_date || "",
+        childId: String(task.child_id ?? ""),
+        categoryId: String(task.task_category_id ?? ""),
+        isRecurring: Boolean(task.recurrence || task.isRecurring),
+        recurringType: task.recurrence ?? "",
+        recurringDays: (task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr),
+      });
     } else {
-      resetForm()
+      resetForm();
     }
-    setTaskModalOpen(true)
-  }
+    setTaskModalOpen(true);
+  };
 
   const handleCreateOrUpdateTask = () => {
     if (selectedTask) {
@@ -380,12 +390,6 @@ export default function ParentTasksPage() {
     }
   };
 
-  const handleRecurringDayChange = (dayId: string, checked: boolean) => {
-    setRecurringDays((prev) =>
-      checked ? [...prev, dayId] : prev.filter((id) => id !== dayId)
-    );
-  };
-
   const isToday = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -396,17 +400,26 @@ export default function ParentTasksPage() {
     );
   };
 
-  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    if (
-      target.scrollHeight - target.scrollTop <=
-        target.clientHeight + 100 &&
-      !loadingRef.current &&
-      hasMore
-    ) {
-      fetchTasks(page + 1);
-    }
-  };
+const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const target = e.currentTarget;
+  console.log("Scroll event fired");
+  console.log("scrollHeight:", target.scrollHeight);
+  console.log("scrollTop:", target.scrollTop);
+  console.log("clientHeight:", target.clientHeight);
+
+  // 必要なら条件もログ出し
+  const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+  console.log("distanceToBottom:", distanceToBottom);
+
+  if (
+    distanceToBottom < 100 && // 100px以内にスクロールしたら発火想定
+    !loadingRef.current &&
+    hasMore
+  ) {
+    console.log("Fetching more tasks...");
+    fetchTasks(page + 1);
+  }
+};
 
   if (!user) return null;
   
@@ -525,7 +538,7 @@ export default function ParentTasksPage() {
         open={commentDialogOpen}
         onOpenChange={setCommentDialogOpen}
         taskId={selectedTask?.id}
-        taskTitle={taskTitle}
+        taskTitle={taskForm.title}
         onAddComment={handleAddComment}
         currentUserId={user.id}
       />
@@ -548,8 +561,8 @@ export default function ParentTasksPage() {
               <Label htmlFor="title" className="text-gray-700 font-medium">タスク名</Label>
               <Input
                 id="title"
-                value={taskTitle}
-                onChange={(e) => setTaskTitle(e.target.value)}
+                value={taskForm.title}
+                onChange={(e) => setTaskForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="例：算数の宿題"
                 className="mt-1 rounded-2xl"
               />
@@ -559,8 +572,8 @@ export default function ParentTasksPage() {
               <Label htmlFor="description" className="text-gray-700 font-medium">説明</Label>
               <Textarea
                 id="description"
-                value={taskDescription ?? ""}
-                onChange={(e) => setTaskDescription(e.target.value)}
+                value={taskForm.description ?? ""}
+                onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="詳しい説明を入力してください"
                 className="mt-1 rounded-2xl"
                 rows={3}
@@ -573,8 +586,8 @@ export default function ParentTasksPage() {
                 <Input
                   id="reward"
                   type="number"
-                  value={taskReward}
-                  onChange={(e) => setTaskReward(e.target.value)}
+                  value={taskForm.reward}
+                  onChange={(e) => setTaskForm(prev => ({ ...prev, reward: e.target.value }))}
                   placeholder="100"
                   className="mt-1 rounded-2xl"
                 />
@@ -584,8 +597,8 @@ export default function ParentTasksPage() {
                 <Input
                   id="deadline"
                   type="date"
-                  value={taskDeadline}
-                  onChange={(e) => setTaskDeadline(e.target.value)}
+                  value={taskForm.deadline}
+                  onChange={(e) => setTaskForm(prev => ({ ...prev, deadline: e.target.value }))}
                   className="mt-1 rounded-2xl"
                 />
               </div>
@@ -593,7 +606,10 @@ export default function ParentTasksPage() {
 
             <div>
               <Label htmlFor="child" className="text-gray-700 font-medium">担当者</Label>
-              <Select value={assignedChild} onValueChange={setAssignedChild}>
+                <Select
+                  value={taskForm.childId}
+                  onValueChange={(value) => setTaskForm(prev => ({ ...prev, childId: value }))}
+                >
                 <SelectTrigger className="mt-1 rounded-2xl">
                   <SelectValue placeholder="子どもを選択" />
                 </SelectTrigger>
@@ -611,7 +627,10 @@ export default function ParentTasksPage() {
 
             <div>
               <Label htmlFor="task_category" className="text-gray-700 font-medium">カテゴリ</Label>
-              <Select value={assignedTaskCategory} onValueChange={setAssignedTaskCategory}>
+                <Select
+                  value={taskForm.categoryId}
+                  onValueChange={(value) => setTaskForm(prev => ({ ...prev, categoryId: value }))}
+                >
                 <SelectTrigger className="mt-1 rounded-2xl">
                   <SelectValue placeholder="カテゴリ" />
                 </SelectTrigger>
@@ -632,8 +651,10 @@ export default function ParentTasksPage() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="recurring"
-                  checked={isRecurring}
-                  onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
+                  checked={taskForm.isRecurring}
+                  onCheckedChange={(checked) =>
+                    setTaskForm(prev => ({ ...prev, isRecurring: checked as boolean }))
+                  }
                 />
                 <Label htmlFor="recurring" className="text-gray-700 font-medium flex items-center gap-2">
                   <Repeat className="w-4 h-4" />
@@ -641,11 +662,14 @@ export default function ParentTasksPage() {
                 </Label>
               </div>
 
-              {isRecurring && (
+              {taskForm.isRecurring && (
                 <div className="space-y-3 pl-6 border-l-2 border-purple-200">
                   <div>
                     <Label className="text-gray-700 font-medium">繰り返し頻度</Label>
-                    <Select value={recurringType} onValueChange={setRecurringType}>
+                    <Select
+                      value={taskForm.recurringType}
+                      onValueChange={(value) => setTaskForm(prev => ({ ...prev, recurringType: value }))}
+                    >
                       <SelectTrigger className="mt-1 rounded-2xl">
                         <SelectValue placeholder="頻度を選択" />
                       </SelectTrigger>
@@ -659,7 +683,7 @@ export default function ParentTasksPage() {
                     </Select>
                   </div>
 
-                  {recurringType === "weekly" && (
+                  {taskForm.recurringType === "weekly" && (
                     <div>
                       <Label className="text-gray-700 font-medium">曜日を選択</Label>
                       <div className="grid grid-cols-7 gap-2 mt-2">
@@ -667,8 +691,18 @@ export default function ParentTasksPage() {
                           <div key={day.id} className="flex flex-col items-center">
                             <Checkbox
                               id={day.id}
-                              checked={recurringDays.includes(day.id)}
-                              onCheckedChange={(checked) => handleRecurringDayChange(day.id, checked as boolean)}
+                              checked={taskForm.recurringDays.includes(day.id)}
+                              onCheckedChange={(checked) => {
+                                setTaskForm(prev => {
+                                  const recurringDays = new Set(prev.recurringDays);
+                                  if (checked) {
+                                    recurringDays.add(day.id);
+                                  } else {
+                                    recurringDays.delete(day.id);
+                                  }
+                                  return { ...prev, recurringDays: Array.from(recurringDays) };
+                                });
+                              }}
                             />
                             <Label htmlFor={day.id} className="text-xs mt-1">
                               {day.label}
@@ -678,12 +712,15 @@ export default function ParentTasksPage() {
                       </div>
                     </div>
                   )}
-                  {recurringType === "monthly" && (
+
+                  {taskForm.recurringType === "monthly" && (
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">日にちを選択</Label>
                       <Select
-                        value={recurringDays[0] || ""}
-                        onValueChange={(value) => setRecurringDays([value])}
+                        value={taskForm.recurringDays[0] || ""}
+                        onValueChange={(value) =>
+                          setTaskForm(prev => ({ ...prev, recurringDays: [value] }))
+                        }
                       >
                         <SelectTrigger className="mt-1 rounded-2xl">
                           <SelectValue placeholder="日にちを選択" />
@@ -698,6 +735,7 @@ export default function ParentTasksPage() {
                       </Select>
                     </div>
                   )}
+
                 </div>
               )}
             </div>

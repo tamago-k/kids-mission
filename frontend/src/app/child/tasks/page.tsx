@@ -17,15 +17,15 @@ export default function ChildTasksPage() {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [_newComment, setNewComment] = useState<string>("")
+  const [, setNewComment] = useState<string>("")
   const [tasks, setTasks] = useState<Task[]>([])
-  const [_taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+  const [, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const [filter, setFilter] = useState("today")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
-  const [totalTasksCount, setTotalTasksCount] = useState<number | null>(null);
+  const [, setTotalTasksCount] = useState<number | null>(null);
 
   const fetchTasks = useCallback(async (pageToFetch = 1) => {
     if (!user || loadingRef.current || !hasMore) return;
@@ -70,29 +70,10 @@ export default function ChildTasksPage() {
     }
   };
 
-  const fetchTaskCategories = useCallback(async () => {
-    if (!user) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) {
-      alert("タスクカテゴリ取得に失敗しました");
-      return;
-    }
-    const data = await res.json();
-    setTaskCategories(data);
-  }, [apiBaseUrl, user]);
-
   useEffect(() => {
     if (!user) return;
     fetchTasks();
-    fetchTaskCategories();
-  }, [user, fetchTasks, fetchTaskCategories]);
+  }, [user, fetchTasks]);
 
   async function handleCompleteTask(task: Task) {
     if (!task?.id) return;
@@ -110,7 +91,7 @@ export default function ChildTasksPage() {
       if (res.ok) {
         setCompleteDialogOpen(false);
         setSelectedTask(null);
-        await fetchTasks(); // 成功後に再取得
+        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completion_status: 'submitted' } : t));
       } else {
         const data = await res.json();
         alert(`完了申請エラー: ${data.message ?? "不明なエラー"}`);
@@ -164,14 +145,13 @@ export default function ChildTasksPage() {
     const date = new Date(dateStr);
     const dayAfterTomorrow = new Date();
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
-    // 今度は明日の次の日以降のタスク（期限がそれ以降）
     return date >= dayAfterTomorrow;
   };
 
     
+  const today = new Date();
   const filteredTasks = tasks.filter(task => {
     if (!task.due_date) return false;
-    const today = new Date();
     const dueDate = new Date(task.due_date);
 
     if (filter === "today") {
@@ -211,7 +191,6 @@ export default function ChildTasksPage() {
       return dueDate >= dayAfterTomorrow;
     }
 
-    // デフォルトで全件返す
     return true;
   });
 
@@ -250,7 +229,7 @@ export default function ChildTasksPage() {
             }`}
           >
             <CalendarSearch className="w-4 h-4 mr-1" />
-            今日 ({totalTasksCount ?? tasks.filter(t => isToday(t.due_date)).length})
+            今日 ({tasks.filter(t => isToday(t.due_date)).length})
           </Button>
 
           <Button
@@ -275,13 +254,6 @@ export default function ChildTasksPage() {
         </div>
 
         {/* タスク一覧 */}
-        <TaskListChild
-          tasks={filteredTasks}
-          onComplete={openCompleteDialog}
-          onComment={openCommentDialog}
-          onScroll={onScroll}
-        />
-
         {filteredTasks.length === 0 && (
           <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
@@ -295,6 +267,12 @@ export default function ChildTasksPage() {
             </CardContent>
           </Card>
         )}
+        <TaskListChild
+          tasks={filteredTasks}
+          onComplete={openCompleteDialog}
+          onComment={openCommentDialog}
+          onScroll={onScroll}
+        />
       </div>
 
       {/* 完了申請モーダル */}
