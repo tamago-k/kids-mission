@@ -43,7 +43,7 @@ class TaskController extends Controller
         }
 
         // ページネーション対応
-        $perPage = 5; // 1ページあたりの件数
+        $perPage = 10; // 1ページあたりの件数
         $page = $request->input('page', 1);
 
         $tasks = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
