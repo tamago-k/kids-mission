@@ -1,12 +1,10 @@
-import React, { useRef, useLayoutEffect } from "react"
-import { useVirtualizer } from "@tanstack/react-virtual"
+import React, { useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, Repeat,  Calendar, PiggyBank, MessageCircle, Edit, Trash2, CheckCircle, XCircle } from "lucide-react"
+import { ClipboardCheck, Repeat, Calendar, PiggyBank, MessageCircle, Edit, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 import type { Task } from "@/types/TaskParent"
-
 
 interface TaskListParentProps {
   tasks: Task[]
@@ -15,6 +13,7 @@ interface TaskListParentProps {
   onComment?: (task: Task) => void
   onApprove?: (task: Task) => void
   onReject?: (task: Task) => void
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
   allowEdit?: boolean
 }
 
@@ -25,20 +24,9 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
   onComment,
   onApprove,
   onReject,
+  onScroll,
   allowEdit = true,
 }) => {
-  const parentRef = useRef<HTMLDivElement | null>(null)
-
-  const virtualizer = useVirtualizer({
-    count: tasks.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 180,
-    overscan: 5,
-  })
-
-  const [, forceUpdate] = React.useState({})
-
-  const measureRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find((t) => t.value === themeValue)
@@ -55,19 +43,6 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
     return `${yyyy}/${mm}/${dd}`
   }
 
-  useLayoutEffect(() => {
-    measureRefs.current = measureRefs.current.slice(0, tasks.length)
-    const id = setTimeout(() => {
-      measureRefs.current.forEach((el, i) => {
-        if (el) {
-          virtualizer.measureElement(el)
-        }
-      })
-      forceUpdate({})
-    }, 50)
-    return () => clearTimeout(id)
-  }, [tasks])
-
   return (
     <Card className="border-0 shadow-lg rounded-3xl bg-white/80 backdrop-blur-sm">
       <CardHeader>
@@ -77,37 +52,17 @@ export const TaskListParent: React.FC<TaskListParentProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent
-        ref={parentRef}
         className="relative h-[80vh] overflow-auto"
       >
-        <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            position: "relative",
-          }}
-        >
-          {virtualizer.getVirtualItems().map((virtualRow) => {
-            const task = tasks[virtualRow.index]
+        <div>
+          {tasks.map((task) => {
             const iconObj = task.child
               ? iconOptions.find((icon) => icon.id === task.child.avatar)
               : null
 
             return (
-              <div
-                key={task.id}
-                data-index={virtualRow.index}
-                ref={el => {
-                  measureRefs.current[virtualRow.index] = el
-                }}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-              >
-                <Card className="border border-gray-200 rounded-2xl mb-6">
+              <div key={task.id} className="mb-6">
+                <Card className="border border-gray-200 rounded-2xl">
                   <CardContent className="p-4">
                     <div className="flex gap-2 justify-between">
                       <div className="text-sm text-gray-500">
