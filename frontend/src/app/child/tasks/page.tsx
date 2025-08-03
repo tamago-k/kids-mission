@@ -18,62 +18,97 @@ export default function ChildTasksPage() {
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [, setNewComment] = useState<string>("")
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+
+  const [todayTasks, setTodayTasks] = useState<Task[]>([])
+  const [tomorrowTasks, setTomorrowTasks] = useState<Task[]>([])
+  const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([])
+
+  const [todayPage, setTodayPage] = useState(1)
+  const [tomorrowPage, setTomorrowPage] = useState(1)
+  const [upcomingPage, setUpcomingPage] = useState(1)
+
+  const [hasMoreToday, setHasMoreToday] = useState(true)
+  const [hasMoreTomorrow, setHasMoreTomorrow] = useState(true)
+  const [hasMoreUpcoming, setHasMoreUpcoming] = useState(true)
+
   const [filter, setFilter] = useState("today")
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
-  const [, setTotalTasksCount] = useState<number | null>(null);
 
-  const fetchTasks = useCallback(async (pageToFetch = 1) => {
-    if (!user || loadingRef.current || !hasMore) return;
-    loadingRef.current = true;
+  const fetchTasks = useCallback(
+    async (tab: "today" | "tomorrow" | "upcoming", pageToFetch = 1) => {
+      if (!user || loadingRef.current) return
+      loadingRef.current = true
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToFetch}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("タスク取得に失敗");
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(
+          `${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToFetch}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        if (!res.ok) throw new Error("タスク取得に失敗")
+        const data = await res.json()
+        const newTasks: Task[] = data.data
 
-      const data = await res.json();
+        const now = new Date()
+        now.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(now)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const dayAfterTomorrow = new Date(tomorrow)
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
 
-      setTasks((prev) => (pageToFetch === 1 ? data.data : [...prev, ...data.data]));
-      setPage(pageToFetch);
-      setHasMore(pageToFetch < data.last_page);
+        const filtered = newTasks.filter((task) => {
+          const due = task.due_date ? new Date(task.due_date) : null
+          if (!due) return false
+          due.setHours(0, 0, 0, 0)
 
-      if (pageToFetch === 1) {
-        setTotalTasksCount(data.total);
+          if (tab === "today") return due.getTime() === now.getTime()
+          if (tab === "tomorrow") return due.getTime() === tomorrow.getTime()
+          if (tab === "upcoming") return due.getTime() >= dayAfterTomorrow.getTime()
+          return false
+        })
+
+        if (tab === "today") {
+          setTodayTasks((prev) => (pageToFetch === 1 ? filtered : [...prev, ...filtered]))
+          setTodayPage(pageToFetch)
+          setHasMoreToday(pageToFetch < data.last_page)
+        } else if (tab === "tomorrow") {
+          setTomorrowTasks((prev) => (pageToFetch === 1 ? filtered : [...prev, ...filtered]))
+          setTomorrowPage(pageToFetch)
+          setHasMoreTomorrow(pageToFetch < data.last_page)
+        } else if (tab === "upcoming") {
+          setUpcomingTasks((prev) => (pageToFetch === 1 ? filtered : [...prev, ...filtered]))
+          setUpcomingPage(pageToFetch)
+          setHasMoreUpcoming(pageToFetch < data.last_page)
+        }
+      } catch (e) {
+        alert(e instanceof Error ? e.message : "データの取得に失敗しました")
+      } finally {
+        loadingRef.current = false
       }
-    } catch (e) {
-      if (e instanceof Error) {
-        alert(e.message)
-      } else {
-        alert("データの取得に失敗しました")
-      }
-    } finally {
-      loadingRef.current = false;
-    }
-  }, [apiBaseUrl, user, hasMore]);
-
-  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    if (
-      target.scrollHeight - target.scrollTop <=
-        target.clientHeight + 100 &&
-      !loadingRef.current &&
-      hasMore
-    ) {
-      fetchTasks(page + 1);
-    }
-  };
+    },
+    [apiBaseUrl, user]
+  )
 
   useEffect(() => {
-    if (!user) return;
-    fetchTasks();
-  }, [user, fetchTasks]);
+    if (!user) return
+    if (filter === "today") fetchTasks("today", 1)
+    else if (filter === "tomorrow") fetchTasks("tomorrow", 1)
+    else if (filter === "upcoming") fetchTasks("upcoming", 1)
+  }, [user, filter, fetchTasks])
+
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget
+    if (target.scrollHeight - target.scrollTop <= target.clientHeight + 100 && !loadingRef.current) {
+      if (filter === "today" && hasMoreToday) fetchTasks("today", todayPage + 1)
+      else if (filter === "tomorrow" && hasMoreTomorrow) fetchTasks("tomorrow", tomorrowPage + 1)
+      else if (filter === "upcoming" && hasMoreUpcoming) fetchTasks("upcoming", upcomingPage + 1)
+    }
+  }
 
   async function handleCompleteTask(task: Task) {
     if (!task?.id) return;
@@ -89,9 +124,21 @@ export default function ChildTasksPage() {
       });
 
       if (res.ok) {
-        setCompleteDialogOpen(false);
-        setSelectedTask(null);
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completion_status: 'submitted' } : t));
+        setCompleteDialogOpen(false)
+        setSelectedTask(null)
+
+        const updateTaskList = (tasks: Task[]): Task[] =>
+          tasks.map((t) =>
+            t.id === task.id ? { ...t, completion_status: "submitted" } : t
+          )
+
+        if (filter === "today") {
+          setTodayTasks((prev) => updateTaskList(prev))
+        } else if (filter === "tomorrow") {
+          setTomorrowTasks((prev) => updateTaskList(prev))
+        } else if (filter === "upcoming") {
+          setUpcomingTasks((prev) => updateTaskList(prev))
+        }
       } else {
         const data = await res.json();
         alert(`完了申請エラー: ${data.message ?? "不明なエラー"}`);
@@ -148,55 +195,15 @@ export default function ChildTasksPage() {
     return date >= dayAfterTomorrow;
   };
 
-    
-  const today = new Date();
-  const filteredTasks = tasks.filter(task => {
-    if (!task.due_date) return false;
-    const dueDate = new Date(task.due_date);
+  const filteredTasks = filter === "today"
+    ? todayTasks
+    : filter === "tomorrow"
+    ? tomorrowTasks
+    : upcomingTasks
 
-    if (filter === "today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-
-      const dueDateOnly = new Date(dueDate);
-      dueDateOnly.setHours(0, 0, 0, 0);
-      const isDueToday = dueDateOnly.getTime() === today.getTime();
-
-      const approvedAtRaw = task.latest_submission?.created_at;
-      const approvedAt = approvedAtRaw ? new Date(approvedAtRaw) : null;
-      const isApprovedToday =
-        approvedAt &&
-        approvedAt >= today &&
-        approvedAt <= todayEnd;
-
-      return (
-        (isDueToday || isApprovedToday) &&
-        (
-          task.completion_status !== "approved" || isApprovedToday
-        )
-      );
-    } else if (filter === "tomorrow") {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      return (
-        dueDate.getFullYear() === tomorrow.getFullYear() &&
-        dueDate.getMonth() === tomorrow.getMonth() &&
-        dueDate.getDate() === tomorrow.getDate()
-      );
-    } else if (filter === "upcoming") {
-      const dayAfterTomorrow = new Date(today);
-      dayAfterTomorrow.setDate(today.getDate() + 1);
-      return dueDate >= dayAfterTomorrow;
+    if (!user) {
+      return
     }
-
-    return true;
-  });
-
-  if (!user) {
-    return
-  }
 
   return (
      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
@@ -229,7 +236,7 @@ export default function ChildTasksPage() {
             }`}
           >
             <CalendarSearch className="w-4 h-4 mr-1" />
-            今日 ({tasks.filter(t => isToday(t.due_date)).length})
+            今日
           </Button>
 
           <Button
@@ -239,7 +246,7 @@ export default function ChildTasksPage() {
             }`}
           >
             <Sun className="w-4 h-4 mr-1" />
-            明日 ({tasks.filter(t => isTomorrow(t.due_date)).length})
+            明日
           </Button>
 
           <Button
@@ -249,7 +256,7 @@ export default function ChildTasksPage() {
             }`}
           >
             <SwatchBook className="w-4 h-4 mr-1" />
-            今度 ({tasks.filter(t => isUpcoming(t.due_date)).length})
+            今度
           </Button>
         </div>
 

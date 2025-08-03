@@ -45,7 +45,20 @@ export default function ParentTasksPage() {
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [_newComment, setNewComment] = useState<string>("")
-  const [tasks, setTasks] = useState<Task[]>([])
+
+  const [activeTasks, setActiveTasks] = useState<Task[]>([]);
+  const [submittedTasks, setSubmittedTasks] = useState<Task[]>([]);
+  const [approvedTasks, setApprovedTasks] = useState<Task[]>([]);
+  const [activePage, setActivePage] = useState(1);
+  const [submittedPage, setSubmittedPage] = useState(1);
+  const [approvedPage, setApprovedPage] = useState(1);
+  const [hasMoreActive, setHasMoreActive] = useState(true);
+  const [hasMoreSubmitted, setHasMoreSubmitted] = useState(true);
+  const [hasMoreApproved, setHasMoreApproved] = useState(true);
+  const activeLoading = useRef(false);
+  const submittedLoading = useRef(false);
+  const approvedLoading = useRef(false);
+  
   const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
   const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -67,39 +80,46 @@ export default function ParentTasksPage() {
     "6": "saturday",
   };
 
-  const fetchTasks = async (pageToLoad = 1) => {
-    if (loadingRef.current) return
-    loadingRef.current = true
-    const token = localStorage.getItem("token")
-    const res = await fetch(`${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToLoad}`, {
-      method: "GET",
+  const fetchTasks = async (status: "active" | "submitted" | "approved", pageToFetch = 1) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const query = `exclude_past_approved=1&page=${pageToFetch}&status=${status}`;
+
+    const res = await fetch(`${apiBaseUrl}/api/tasks?${query}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    })
+    });
     if (!res.ok) {
-      alert("タスク取得に失敗しました")
-      loadingRef.current = false
-      return
-    }
-    const data = await res.json()
-
-    if (pageToLoad === 1) {
-      setTasks(data.data)
-      setTotalTasksCount(data.total);
-    } else {
-      setTasks(prev => {
-        const prevIds = new Set(prev.map(t => t.id));
-        const newUniqueTasks = data.data.filter((t: Task) => !prevIds.has(t.id));
-        return [...prev, ...newUniqueTasks];
-      });
+      alert("タスク取得に失敗しました");
+      return;
     }
 
-    setHasMore(pageToLoad < data.last_page)
-    setPage(pageToLoad)
-    loadingRef.current = false
-  }
+    const data = await res.json();
+    if (status === "active") {
+      if (pageToFetch === 1) setActiveTasks(data.data);
+      else setActiveTasks(prev => [...prev, ...data.data]);
+      setActivePage(pageToFetch);
+      setHasMoreActive(pageToFetch < data.last_page);
+      activeLoading.current = false;
+    } else if (status === "submitted") {
+      if (pageToFetch === 1) setSubmittedTasks(data.data);
+      else setSubmittedTasks(prev => [...prev, ...data.data]);
+      setSubmittedPage(pageToFetch);
+      setHasMoreSubmitted(pageToFetch < data.last_page);
+      submittedLoading.current = false;
+    } else if (status === "approved") {
+      const filtered = data.data.filter((t: Task) => isToday(t.updated_at));
+      if (pageToFetch === 1) setApprovedTasks(filtered);
+      else setApprovedTasks(prev => [...prev, ...filtered]);
+      setApprovedPage(pageToFetch);
+      setHasMoreApproved(pageToFetch < data.last_page);
+      approvedLoading.current = false;
+    }
+    console.log(status, data);
+  };
 
   useEffect(() => {
     const fetchChildren = async () => {
@@ -139,20 +159,27 @@ export default function ParentTasksPage() {
 
     fetchChildren()
     fetchTaskCategories()
-    fetchTasks(1)
+    fetchTasks("active", 1);
+    fetchTasks("submitted", 1);
+    fetchTasks("approved", 1);
   }, [apiBaseUrl])
   
-  useEffect(() => {
-    const onScroll = () => {
-      if (!hasMore || loadingRef.current) return
-      const scrollElement = document.documentElement
-      if (scrollElement.scrollHeight - scrollElement.scrollTop - window.innerHeight < 100) {
-        fetchTasks(page + 1)
-      }
+  const onScroll = (tab: "active" | "submitted" | "approved") => (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+    if (distanceToBottom > 100) return;
+
+    if (tab === "active" && !activeLoading.current && hasMoreActive) {
+      activeLoading.current = true;
+      fetchTasks("active", activePage + 1);
+    } else if (tab === "submitted" && !submittedLoading.current && hasMoreSubmitted) {
+      submittedLoading.current = true;
+      fetchTasks("submitted", submittedPage + 1);
+    } else if (tab === "approved" && !approvedLoading.current && hasMoreApproved) {
+      approvedLoading.current = true;
+      fetchTasks("approved", approvedPage + 1);
     }
-    window.addEventListener("scroll", onScroll)
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [page, hasMore])
+  };
 
   const dayToNumber = (dayId: string) => {
     switch (dayId) {
@@ -235,7 +262,7 @@ export default function ParentTasksPage() {
       if (!res.ok) throw new Error("タスク作成失敗");
 
       const newTask = await res.json();
-      setTasks([newTask, ...tasks]);
+      setActiveTasks([newTask, ...activeTasks]);
       setTaskForm(prev => ({
         ...prev,
         recurringType: newTask.recurrence ?? "",
@@ -269,7 +296,7 @@ export default function ParentTasksPage() {
       if (!res.ok) throw new Error("更新失敗");
 
       const updatedTask = await res.json();
-      setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+      setActiveTasks(activeTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
       setTaskModalOpen(false);
       setSelectedTask(null);
     } catch (error) {
@@ -290,7 +317,7 @@ export default function ParentTasksPage() {
         },
       })
       if (!res.ok) throw new Error("削除失敗")
-      setTasks(tasks.filter(t => t.id !== selectedTask.id))
+      setActiveTasks(activeTasks.filter(t => t.id !== selectedTask.id))
       setDeleteTaskOpen(false)
       setSelectedTask(null)
     } catch (error) {
@@ -362,7 +389,7 @@ export default function ParentTasksPage() {
         body: JSON.stringify({ status: "approved" }),
       });
       if (!res.ok) throw new Error("承認更新に失敗しました");
-      await fetchTasks();
+      await fetchTasks("approved", 1);
     } catch (error) {
       console.error(error);
       alert("承認処理でエラーが発生しました");
@@ -382,8 +409,7 @@ export default function ParentTasksPage() {
         body: JSON.stringify({ status: "rejected" }),
       });
       if (!res.ok) throw new Error("却下更新に失敗しました");
-
-      await fetchTasks();
+      await fetchTasks("active", 1);
     } catch (error) {
       console.error(error);
       alert("却下処理でエラーが発生しました");
@@ -400,26 +426,6 @@ export default function ParentTasksPage() {
     );
   };
 
-const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-  const target = e.currentTarget;
-  console.log("Scroll event fired");
-  console.log("scrollHeight:", target.scrollHeight);
-  console.log("scrollTop:", target.scrollTop);
-  console.log("clientHeight:", target.clientHeight);
-
-  // 必要なら条件もログ出し
-  const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
-  console.log("distanceToBottom:", distanceToBottom);
-
-  if (
-    distanceToBottom < 100 && // 100px以内にスクロールしたら発火想定
-    !loadingRef.current &&
-    hasMore
-  ) {
-    console.log("Fetching more tasks...");
-    fetchTasks(page + 1);
-  }
-};
 
   if (!user) return null;
   
@@ -456,13 +462,13 @@ const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
         <div className="grid grid-cols-2 gap-4">
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-blue-400 to-purple-400 text-white">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{totalTasksCount ?? tasks.filter(t => isToday(t.due_date)).length}</div>
+              <div className="text-2xl font-bold">{totalTasksCount ?? (activeTasks.length + submittedTasks.length + approvedTasks.length)}</div>
               <div className="text-sm text-blue-100">総タスク数</div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{tasks.filter((t) => t.completion_status === "submitted").length}</div>
+              <div className="text-2xl font-bold">{submittedTasks.length}</div>
               <div className="text-sm text-green-100">申請待ち</div>
             </CardContent>
           </Card>
@@ -474,7 +480,7 @@ const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
             <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               進行中
             </TabsTrigger>
-            <TabsTrigger value="submission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
+            <TabsTrigger value="submitted" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
               申請中
             </TabsTrigger>
             <TabsTrigger value="approved" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow">
@@ -485,21 +491,21 @@ const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
           {/* 進行中タスク */}
           <TabsContent value="active">
             <TaskListParent
-              tasks={tasks.filter(t => t.completion_status !== "submitted" && t.completion_status !== "approved")}
+              tasks={activeTasks}
               onEdit={openEditDialog}
               onDelete={(task) => {
                 setSelectedTask(task)
                 setDeleteTaskOpen(true)
               }}
               onComment={openCommentDialog}
-              onScroll={onScroll}
+              onScroll={onScroll("active")}
             />
           </TabsContent>
 
           {/* 申請中タスク */}
-          <TabsContent value="submission">
+          <TabsContent value="submitted">
             <TaskListParent
-              tasks={tasks.filter(t => t.completion_status === "submitted")}
+              tasks={submittedTasks}
               onEdit={openEditDialog}
               onDelete={(task) => {
                 setSelectedTask(task)
@@ -514,23 +520,24 @@ const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
                 setIsRejectModalOpen(true);
               }}
               onComment={openCommentDialog}
-              onScroll={onScroll}
+              onScroll={onScroll("submitted")}
             />
           </TabsContent>
 
           {/* 完了済みタスク */}
           <TabsContent value="approved">
             <TaskListParent
-              tasks={tasks.filter(t => t.completion_status === "approved" && isToday(t.updated_at))}
+              tasks={approvedTasks}
               onComment={openCommentDialog}
               onReject={(task) => {
                 setSelectedNotification(task);
                 setIsRejectModalOpen(true);
               }}
-              onScroll={onScroll}
+              onScroll={onScroll("approved")}
             />
           </TabsContent>
         </Tabs>
+
       </div>
 
       {/* コメントモーダル */}

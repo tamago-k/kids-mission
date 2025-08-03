@@ -19,8 +19,6 @@ class RewardRequestController extends Controller
 
         if ($user->role === 'parent') {
             // 親は子どもの申請だけ取得したい場合、子どもIDを絞るロジックがあれば入れる
-            // 例: $childIds = $user->children()->pluck('id');
-            // $query->whereIn('user_id', $childIds);
         } else {
             // 子は自分の申請のみ
             $query->where('user_id', $user->id);
