@@ -159,9 +159,9 @@ export default function ParentMasterPage() {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Gift className="w-6 h-6" /> 
-                ポイントマスタ
+                報酬マスタ
               </h1>
-              <p className="text-sm text-gray-600">ポイントで交換できるポイントの設定</p>
+              <p className="text-sm text-gray-600">ポイントで交換できる報酬の設定</p>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function ParentMasterPage() {
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-purple-400 to-pink-400 text-white">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold">{rewards.length}</div>
-              <div className="text-sm text-purple-100">登録済みポイント</div>
+              <div className="text-sm text-purple-100">登録済み報酬</div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-lg rounded-3xl bg-gradient-to-r from-green-400 to-blue-400 text-white">

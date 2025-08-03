@@ -33,7 +33,7 @@ export function ParentNavigation() {
       children: [
         { label: "子どもマスタ", href: "/parent/master/children" },
         { label: "タスクカテゴリマスタ", href: "/parent/master/categories" },
-        { label: "ポイントマスタ", href: "/parent/master/rewards" },
+        { label: "報酬マスタ", href: "/parent/master/rewards" },
         { label: "バッジマスタ", href: "/parent/master/badges" },
       ]
     }

@@ -301,7 +301,7 @@ export default function ChildTasksPage() {
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl"><CheckCircle className="w-4 h-4" />タスク完了申請</DialogTitle>
+            <DialogTitle className="text-center text-xl"><CheckCircle className="w-4 h-4" />タスク完了しんせい</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-blue-50 rounded-2xl p-4">
