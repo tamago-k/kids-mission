@@ -52,7 +52,7 @@ class TaskController extends Controller
         $perPage = 5; // ページあたり件数
         $page = $request->input('page', 1);
 
-        $tasks = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+        $tasks = $query->orderBy('updated_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
 
         $tasks->getCollection()->transform(function ($task) {
             $task->completion_status = $task->latestSubmission ? $task->latestSubmission->status : null;
