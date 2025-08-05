@@ -8,58 +8,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Gift, History, Star, Trophy, PiggyBank, ThumbsUp, ArrowLeft } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
 import { rewardIconOptions } from "@/components/OptionThemes"
+import type { Reward, RewardRequest } from "@/types/RewardsChild"
 
 export default function ChildRewardsPage() {
+  // ポイント交換申請のダイアログ（モーダル）の開閉管理
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
+  // 現在選択中のリワードアイテム情報
   const [rewardItem, setRewardItem] = useState<{ id: number; name: string; need_reward: number; icon: string } | null>(null)
+  // ユーザーの現在のポイント残高
   const [currentBalance, setCurrentBalance] = useState(0)
+  // ポイント交換申請の履歴リスト
   const [rewardHistory, setRewardHistory] = useState<RewardRequest[]>([]);
+  // おすすめリワードのリスト
   const [suggestedRewards, setSuggestedRewards] = useState<Reward[]>([])
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-
-  type Reward = {
-    id: number;
-    name: string;
-    icon: string;
-    need_reward: number;
-    created_at: string;
-    updated_at: string;
-  };
-
-  type User = {
-    id: number;
-    name: string;
-    role: string;
-    avatar: string;
-    theme: string;
-    created_at: string;
-    updated_at: string;
-  };
-
-  type RewardRequest = {
-    id: number;
-    reward_id: number;
-    status: string;
-    requested_at: string;
-    created_at: string;
-    updated_at: string;
-    reward: Reward;
-    user_id: number;
-    user: User;
-  };
-
-  // クッキーからCSRFトークンを取得するユーティリティ
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`
-    const parts = value.split(`; ${name}=`)
-    if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!)
-    return null
-  }
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      // ポイント数取得
+      // GET /api/reward-balance を叩いてポイント残高を取得し、stateにセット
       const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +38,7 @@ export default function ChildRewardsPage() {
       const balanceData = await resBalance.json()
       setCurrentBalance(balanceData.balance)
 
-      // おすすめポイント取得
+      // GET /api/reward を叩いて報酬一覧を取得、stateにセット
       const resRewards = await fetch(`${apiBaseUrl}/api/rewards`, {
         headers: {
           "Content-Type": "application/json",
@@ -81,15 +49,15 @@ export default function ChildRewardsPage() {
       const rewardsData = await resRewards.json()
       setSuggestedRewards(rewardsData)
 
-      // ポイント履歴は別API想定
-      const resHistory = await fetch(`${apiBaseUrl}/api/reward-requests`, {
+      // GET /api/reward-requests を叩いて報酬申請一覧を取得、stateにセット
+      const resRequest = await fetch(`${apiBaseUrl}/api/reward-requests`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
-      if (!resHistory.ok) throw new Error("履歴の取得に失敗しました")
-      const historyData = await resHistory.json()
+      if (!resRequest.ok) throw new Error("報酬申請の取得に失敗しました")
+      const historyData = await resRequest.json()
       setRewardHistory(historyData.requests ?? [])
 
     } catch (e) {
@@ -101,10 +69,10 @@ export default function ChildRewardsPage() {
     }
   }, [apiBaseUrl])
 
+  //　初回マウント時に実行
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
 
   // ポイント申請処理
   const handleRequestReward = async () => {
@@ -117,6 +85,7 @@ export default function ChildRewardsPage() {
     const token = localStorage.getItem("token");
 
     try {
+      // POST /api/reward-requests を叩いて報酬申請のリクエスト送信
       const res = await fetch(`${apiBaseUrl}/api/reward-requests`, {
         method: "POST",
         headers: {
@@ -134,7 +103,7 @@ export default function ChildRewardsPage() {
       }
 
       setRewardDialogOpen(false)
-      fetchData() // 最新情報取得（残高、履歴更新）
+      fetchData() 
     } catch (e) {
       if (e instanceof Error) {
         alert(e.message)

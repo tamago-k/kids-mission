@@ -11,16 +11,26 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { rewardIconOptions } from "@/components/OptionThemes"
 
 export default function ParentMasterPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  // 報酬追加ダイアログの開閉状態を管理
   const [addRewardOpen, setAddRewardOpen] = useState(false)
+  // 報酬の名前をフォームから入力するためのstate
   const [rewardName, setRewardName] = useState("")
+  // 報酬の必要ポイント数をフォームから入力するためのstate
   const [rewardPoints, setRewardPoints] = useState("")
+  // 編集モードかどうかを判定するための報酬ID
   const [editingRewardId, setEditingRewardId] = useState<number | null>(null)
+  // サーバーから取得した報酬の一覧を保持
   const [rewards, setRewards] = useState<Reward[]>([])
+  // フォームで選択された報酬アイコンのID
   const [formRewardIcon, setFormRewardIcon] = useState(rewardIconOptions[0].id)
+  // 削除確認ダイアログの状態を保持
   const [deleteRewardOpen, setDeleteRewardOpen] = useState(false)
+  // 削除対象の報酬情報を保持
   const [deletingReward, setDeletingReward] = useState<{ id: number; name: string } | null>(null);
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // 報酬データの型定義
   type Reward = {
     id: number;
     name: string;
@@ -28,9 +38,11 @@ export default function ParentMasterPage() {
     icon: string;
   }
 
+  // サーバーから報酬一覧を取得する非同期関数を定義（useCallbackでメモ化）
   const fetchRewards = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
+      // GET /api/reward を叩いて報酬一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/rewards`, {
         headers: {
           "Content-Type": "application/json",
@@ -49,17 +61,19 @@ export default function ParentMasterPage() {
       }
   }, [apiBaseUrl]);
 
-  // 初期データ読み込み
+  //　初回マウント時に実行
   useEffect(() => {
     fetchRewards();
   }, [fetchRewards]);
 
-
-  // 保存（新規 or 更新）
+  // フォーム送信時の保存処理（新規・更新）
   const handleSaveReward = async () => {
-    if (!rewardName || !rewardPoints || !formRewardIcon) return alert("すべての項目を入力してください");
 
+    // 必須項目が未入力なら保存を中断
+    if (!rewardName || !rewardPoints || !formRewardIcon) return alert("すべての項目を入力してください");
     const token = localStorage.getItem("token");
+
+    // 送信用のペイロードを作成
     const payload = {
       name: rewardName,
       icon: formRewardIcon,
@@ -68,7 +82,9 @@ export default function ParentMasterPage() {
 
     try {
       let res;
+      // 新規追加かどうかを判定
       if (editingRewardId === null) {
+        // POST /api/rewards/${editingRewardId} を叩いて新規リクエストを送信
         res = await fetch(`${apiBaseUrl}/api/rewards`, {
           method: 'POST',
           headers: {
@@ -78,6 +94,7 @@ export default function ParentMasterPage() {
           body: JSON.stringify(payload),
         });
       } else {
+        // PUT /api/rewards/${editingRewardId} を叩いて更新リクエストを送信
         res = await fetch(`${apiBaseUrl}/api/rewards/${editingRewardId}`, {
           method: 'PUT',
           headers: {
@@ -91,13 +108,14 @@ export default function ParentMasterPage() {
       if (!res.ok) throw new Error(editingRewardId ? '更新失敗' : '追加失敗');
       const savedReward = await res.json();
 
+      // 報酬リストを更新（新規なら追加、編集なら置換）
       if (editingRewardId === null) {
         setRewards((prev) => [...prev, savedReward]);
       } else {
         setRewards((prev) => prev.map((r) => r.id === editingRewardId ? savedReward : r));
       }
 
-      // リセット
+      // フォーム状態をリセット
       setAddRewardOpen(false);
       setEditingRewardId(null);
       setRewardName("");
@@ -113,7 +131,7 @@ export default function ParentMasterPage() {
     }
   };
 
-  // 編集時フォームにセット
+  // 編集対象の報酬情報をフォームにセット
   const handleEditReward = (reward: { id: number; name: string; need_reward: number; icon: string }) => {
     setEditingRewardId(reward.id);
     setRewardName(reward.name);
@@ -122,11 +140,12 @@ export default function ParentMasterPage() {
     setAddRewardOpen(true);
   };
 
-  // 削除
+  // 指定IDの報酬を削除
   const handleDeleteReward = async (id: number) => {
     const token = localStorage.getItem("token");
 
     try {
+      // DELETE /api/rewards/${id} を叩いて削除リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/rewards/${id}`, {
         method: 'DELETE',
         headers: {
@@ -145,7 +164,6 @@ export default function ParentMasterPage() {
       }
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">

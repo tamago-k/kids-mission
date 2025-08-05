@@ -8,86 +8,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ChevronLeft, ChevronRight, Calendar, PiggyBank, ArrowLeft } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
+import type { Task, CalendarTask } from "@/types/CalendarParent"
 
 export default function ParentCalendarPage() {
+  // 現在表示中の月の基準日（Date）
   const [currentDate, setCurrentDate] = useState(new Date())
+  // ユーザーがクリックして選択した日付（＝詳細表示用）
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  // タスク詳細に紐づいている子どもアカウント
   const [selectedChild, _setSelectedChild] = useState("all")
+  // タスク詳細モーダルの開閉状態
   const [isModalOpen, setIsModalOpen] = useState(false)
+  // APIから取得した、今月の自分のタスク一覧
   const [tasks, setTasks] = useState<CalendarTask[]>([])
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  type Child = {
-    avatar: string;
-    created_at: string;
-    id: number;
-    name: string;
-    role: string;
-    theme: string;
-    updated_at: string;
-  };
-
-  type TaskCategory = {
-    created_at: string;
-    id: number;
-    name: string;
-    slug: string;
-    updated_at: string;
-  };
-
-  type Submission = {
-    created_at: string;
-    id: number;
-    status: string;
-    submitted_at: string;
-    task_id: number;
-    updated_at: string;
-    user_id: number;
-  };
-
-  type Task = {
-    child: Child;
-    child_id: number;
-    completion_status: string;
-    created_at: string;
-    description: string;
-    due_date: string;
-    id: number;
-    isRecurring: boolean;
-    latest_submission: Submission | null;
-    parent_id: number;
-    recurrence: string;
-    recurringType: string;
-    reward_amount: number;
-    task_category: TaskCategory;
-    task_category_id: number;
-    title: string;
-    updated_at: string;
-  };
-
-  type CalendarTask = {
-    id: number;
-    title: string;
-    date: Date;
-    child: Child;
-    childId: string;
-    childName: string;
-    status: string;
-    reward: number;
-    time: string;
-  };
-
+  // currentDate（年月）が変わるたびにAPIを呼び出してその月のタスクを取得
   useEffect(() => {
     const fetchTasks = async () => {
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch(
-          `${apiBaseUrl}/api/calendar-tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`, {
+
+        // GET /api/calendar-tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1} を叩いてタスク一覧を取得
+        const res = await fetch(`${apiBaseUrl}/api/calendar-tasks?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
-          },
-         }
+            },
+          }
         )
         if (!res.ok) throw new Error("タスク取得失敗")
         const data = await res.json()
@@ -113,6 +62,7 @@ export default function ParentCalendarPage() {
     fetchTasks()
   }, [currentDate, apiBaseUrl])
 
+  // 指定月のカレンダー表示用に日付の配列を作る
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -136,6 +86,7 @@ export default function ParentCalendarPage() {
     return days
   }
 
+  // 指定された日付のタスクを絞り込み
   const getTasksForDate = (date: Date | null) => {
     if (!date) return []
     return tasks.filter((task) => {
@@ -149,6 +100,7 @@ export default function ParentCalendarPage() {
     })
   }
 
+  // 選択中の日付があれば、その日のタスク一覧を取得
   const getTasksForSelectedDate = () => {
     return selectedDate ? getTasksForDate(selectedDate) : []
   }
@@ -165,21 +117,27 @@ export default function ParentCalendarPage() {
     })
   }
 
+  // 年月を日本語表記で文字列化
   const formatDate = (date: Date) => {
     return `${date.getFullYear()}年${date.getMonth() + 1}月`
   }
 
+  // カレンダーの日付クリック時に詳細モーダル表示のために選択日付をセットし、モーダルを開く
   const handleDateClick = (date: Date) => {
     setSelectedDate(date)
     setIsModalOpen(true)
   }
 
+  // 色テーマの配列から指定されたテーマのグラデーションCSSクラスを取得
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find(t => t.value === themeValue)
     return theme ? theme.gradient : "bg-gray-100"
   }
 
+  // 今月のカレンダー日付配列を作成
   const days = getDaysInMonth(currentDate)
+
+  // 曜日ラベルの配列
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"]
 
   return (
