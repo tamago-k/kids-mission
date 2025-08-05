@@ -8,61 +8,32 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ArrowLeft, Calendar, PiggyBank, ChevronLeft, ChevronRight, PartyPopper } from "lucide-react"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
+import type { Task } from "@/types/CalendarChild"
 
 export default function ChildCalendarPage() {
+  // 現在表示中の月の基準日（Date）
   const [currentDate, setCurrentDate] = useState(new Date())
+  // ユーザーがクリックして選択した日付（＝詳細表示用）
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  // タスク詳細モーダルの開閉状態
   const [isModalOpen, setIsModalOpen] = useState(false)
+  // APIから取得した、今月の自分のタスク一覧
   const [myTasks, setMyTasks] = useState<Task[]>([]);
-
-  type Child = {
-    avatar: string;
-    created_at: string;
-    id: number;
-    name: string;
-    role: string;
-    theme: string;
-    updated_at: string;
-  };
-
-  type TaskCategory = {
-    created_at: string;
-    id: number;
-    name: string;
-    slug: string;
-    updated_at: string;
-  };
-
-  type Task = {
-    child: Child;
-    child_id: number;
-    completion_status: string | null;
-    created_at: string;
-    description: string;
-    due_date: string;
-    id: number;
-    isRecurring: boolean;
-    parent_id: number;
-    recurrence: string;
-    recurringType: string;
-    reward_amount: number;
-    task_category: TaskCategory;
-    task_category_id: number;
-    title: string;
-    updated_at: string;
-  };
-
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // UTC → JST変換(APIはUTCで返ってくる)
   const toJSTDate = (utcDateStr: string) => {
     const date = new Date(utcDateStr)
     date.setHours(date.getHours() + 9)
     return date
   }
 
+  // task一覧の取得
   const fetchTasks = async (year: number, month: number) => {
     const token = localStorage.getItem("token");
     try {
+      // GET /api/calendar-tasks?year=${year}&month=${month + 1} を叩いてタスク一覧を取得
       const res = await fetch(
         `${apiBaseUrl}/api/calendar-tasks?year=${year}&month=${month + 1}`, { 
           headers: {
@@ -79,10 +50,12 @@ export default function ChildCalendarPage() {
     }
   }
 
+  // currentDate が変わるたびに再取得（＝月を切り替えるたびにデータ再読み込み）
   useEffect(() => {
     fetchTasks(currentDate.getFullYear(), currentDate.getMonth())
   }, [currentDate, apiBaseUrl])
 
+  // 与えられた月のカレンダー日付を、配列（カレンダー用の1マスごとのデータ）として返す関数
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -90,7 +63,6 @@ export default function ChildCalendarPage() {
     const lastDay = new Date(year, month + 1, 0)
     const daysInMonth = lastDay.getDate()
     const startingDayOfWeek = firstDay.getDay()
-
     const days = []
 
     // 前月の日付を埋める
@@ -106,6 +78,10 @@ export default function ChildCalendarPage() {
     return days
   }
 
+  // currentDate に基づく日付リスト（カレンダー描画用）を生成
+  const days = getDaysInMonth(currentDate)
+
+  // 指定された日付に対応するタスクだけを取り出すフィルター処理
   const getTasksForDate = (date: Date | null) => {
     if (!date) return []
     return myTasks.filter((task) => {
@@ -118,10 +94,12 @@ export default function ChildCalendarPage() {
     })
   }
 
+  // 現在選ばれている日（= selectedDate）のタスク一覧を取得
   const getTasksForSelectedDate = () => {
     return selectedDate ? getTasksForDate(selectedDate) : []
   }
 
+  // 「前の月・次の月」に移動する処理
   const navigateMonth = (direction: "prev" | "next") => {
     setCurrentDate((prev) => {
       const newDate = new Date(prev)
@@ -134,20 +112,22 @@ export default function ChildCalendarPage() {
     })
   }
 
+  // カレンダー上部で表示するための年月フォーマット文字列を生成
   const formatDate = (date: Date) => {
     return `${date.getFullYear()}年${date.getMonth() + 1}月`
   }
 
+  // カレンダーの日付がクリックされたときの処理
   const handleDateClick = (date: Date) => {
     setSelectedDate(date)
     setIsModalOpen(true)
   }
 
-  const days = getDaysInMonth(currentDate)
+  //カレンダーの曜日ヘッダー（カレンダーの一番上）に使う
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"]
 
   return (
-     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="p-4">
@@ -168,7 +148,6 @@ export default function ChildCalendarPage() {
 
       {/* メインコンテンツ */}
       <div className="p-4 space-y-6 pb-24">
-
         <div className="flex justify-center items-center gap-2 mt-2 mb-2">
           <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} className="rounded-full">
             <ChevronLeft className="w-4 h-4" />

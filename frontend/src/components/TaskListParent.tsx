@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -6,6 +6,7 @@ import { ClipboardCheck, Repeat, Calendar, PiggyBank, MessageCircle, Edit, Trash
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 import type { Task } from "@/types/TaskParent"
 
+// コンポーネントの型定義
 interface TaskListParentProps {
   tasks: Task[]
   onEdit?: (task: Task) => void
@@ -17,23 +18,17 @@ interface TaskListParentProps {
   allowEdit?: boolean
 }
 
-export const TaskListParent: React.FC<TaskListParentProps> = ({
-  tasks,
-  onEdit,
-  onDelete,
-  onComment,
-  onApprove,
-  onReject,
-  onScroll,
-  allowEdit = true,
-}) => {
+export const TaskListParent: React.FC<TaskListParentProps> = ({ tasks, onEdit, onDelete, onComment, onApprove, onReject, onScroll, allowEdit = true }) => {
 
+  // 色テーマの配列から指定されたテーマのグラデーションCSSクラスを取得
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find((t) => t.value === themeValue)
     return theme ? theme.gradient : "bg-gray-500"
   }
 
+  // タスクの due_date を YYYY/MM/DD 形式で表示するユーティリティ関数
   const formatDateForDisplay = (input?: string | null) => {
+    // 無効な日付には空文字を返す
     if (!input) return ""
     const date = new Date(input)
     if (isNaN(date.getTime())) return ""

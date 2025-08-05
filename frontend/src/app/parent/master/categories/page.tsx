@@ -10,24 +10,35 @@ import { Plus, Edit, Trash2, CopyPlus, TriangleAlert, ArrowLeft } from "lucide-r
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 
 export default function ParentMasterPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  // カテゴリ追加用のモーダルを開くかどうかを管理
   const [addCategoryOpen, setAddCategoryOpen] = useState(false)
-  const [categoryName, sekCategoryName] = useState("")
-  const [categorySlug, sekCategorySlug] = useState("")
+  // カテゴリ名の入力値を保持するstate
+  const [categoryName, setCategoryName] = useState("")
+  // カテゴリslugの入力値を保持するstate
+  const [categorySlug, setCategorySlug] = useState("")
+  // 編集中のカテゴリのIDを保持。新規はnull
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
+  // カテゴリの一覧を配列として保持するstate
   const [categories, setCategories] = useState<Category[]>([]);
+  // 削除確認ダイアログの開閉状態を管理
   const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false)
+  // 削除対象のカテゴリ情報を保持
   const [deletingCategory, setDeletingCategory] = useState<{ id: number; name: string } | null>(null);
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  //　タスクカテゴリデータの型定義
   type Category = {
     id: number;
     name: string;
     slug: string;
   };
 
+  // サーバーからタスクカテゴリ一覧を取得する非同期関数を定義（useCallbackでメモ化）
   const fetchCategories = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
+      // GET /api/task-categories を叩いてタスクカテゴリ一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
         headers: {
           "Content-Type": "application/json",
@@ -46,17 +57,20 @@ export default function ParentMasterPage() {
     }
   }, [apiBaseUrl]);
 
-  // 初期データ読み込み
+  //　初回マウント時に実行
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
 
-  // 保存（新規 or 更新）
+  // フォーム送信時の保存処理（新規・更新）
   const handleSaveCategory = async () => {
+    
+    // 必須項目が未入力なら保存を中断
     if (!categoryName || !categorySlug) return alert("すべての項目を入力してください");
-
     const token = localStorage.getItem("token");
+
+    // 送信用のペイロードを作成
     const payload = {
         name: categoryName,
         slug: categorySlug,
@@ -64,7 +78,9 @@ export default function ParentMasterPage() {
 
     try {
         let res;
+        // 新規追加かどうかを判定
         if (editingCategoryId === null) {
+          // POST /api/task-categories を叩いて新規追加リクエストを送信
           res = await fetch(`${apiBaseUrl}/api/task-categories`, {
             method: 'POST',
             headers: {
@@ -74,6 +90,7 @@ export default function ParentMasterPage() {
             body: JSON.stringify(payload),
           });
         } else {
+          // PUT /api/task-categories/${editingCategoryId} を叩いて更新リクエストを送信
           res = await fetch(`${apiBaseUrl}/api/task-categories/${editingCategoryId}`, {
             method: 'PUT',
             headers: {
@@ -84,11 +101,11 @@ export default function ParentMasterPage() {
           });
         }
 
-        // リセット
+        // フォーム状態をリセット
         setAddCategoryOpen(false);
         setEditingCategoryId(null);
-        sekCategoryName("");
-        sekCategorySlug("");
+        setCategoryName("");
+        setCategorySlug("");
         await fetchCategories();
 
     } catch (error) {
@@ -103,16 +120,16 @@ export default function ParentMasterPage() {
   // 編集時フォームにセット
   const handleEditCategory = (Category: Category) => {
     setEditingCategoryId(Category.id);
-    sekCategoryName(Category.name);
-    sekCategorySlug(Category.slug);
+    setCategoryName(Category.name);
+    setCategorySlug(Category.slug);
     setAddCategoryOpen(true);
   };
 
-  // 削除
+  // 指定IDのタスクカテゴリを削除
   const handleDeleteCategory = async (id: number) => {
     const token = localStorage.getItem("token");
-
     try {
+      // DELETE /api/task-categories/${id} を叩いて削除リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/task-categories/${id}`, {
         method: 'DELETE',
         headers: {
@@ -131,6 +148,7 @@ export default function ParentMasterPage() {
       }
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
@@ -161,8 +179,8 @@ export default function ParentMasterPage() {
             setAddCategoryOpen(open)
             if (open) {
               // モーダルが開いた時にリセット
-              sekCategoryName("")
-              sekCategorySlug("")
+              setCategoryName("")
+              setCategorySlug("")
             }
           }}
         >
@@ -184,7 +202,7 @@ export default function ParentMasterPage() {
                 <Input
                   id="name"
                   value={categoryName}
-                  onChange={(e) => sekCategoryName(e.target.value)}
+                  onChange={(e) => setCategoryName(e.target.value)}
                   placeholder="例：宿題"
                   className="mt-1 rounded-2xl"
                 />
@@ -197,7 +215,7 @@ export default function ParentMasterPage() {
                   id="points"
                   type="text"
                   value={categorySlug}
-                  onChange={(e) => sekCategorySlug(e.target.value)}
+                  onChange={(e) => setCategorySlug(e.target.value)}
                   placeholder="homework"
                   className="mt-1 rounded-2xl"
                 />

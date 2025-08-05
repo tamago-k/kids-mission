@@ -13,30 +13,41 @@ import { useCurrentUser } from "@/hooks/useCurrentUser"
 import type { Task } from "@/types/TaskChild";
 
 export default function ChildTasksPage() {
+  //　ログイン中のユーザー情報を取得
   const user = useCurrentUser()
+
+  // タスク完了ダイアログの表示状態
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
+  // コメントダイアログの表示状態
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
+  // 選択中のタスク（完了申請やコメント対象）
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [, setNewComment] = useState<string>("")
-
+  // 今日のタスクリスト
   const [todayTasks, setTodayTasks] = useState<Task[]>([])
+  // 明日のタスクリスト
   const [tomorrowTasks, setTomorrowTasks] = useState<Task[]>([])
+  // 今度のタスクリスト
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([])
-
+  // 今日のタスクページ（無限スクロール用）
   const [todayPage, setTodayPage] = useState(1)
+  // 明日のタスクページ（無限スクロール用）
   const [tomorrowPage, setTomorrowPage] = useState(1)
+  // 今度のタスクページ（無限スクロール用）
   const [upcomingPage, setUpcomingPage] = useState(1)
-
+  // 今日のタスクページで読み込み可能なページがあるかどうかのフラグ
   const [hasMoreToday, setHasMoreToday] = useState(true)
+  // 明日のタスクページで読み込み可能なページがあるかどうかのフラグ
   const [hasMoreTomorrow, setHasMoreTomorrow] = useState(true)
+  // 今度のタスクページで読み込み可能なページがあるかどうかのフラグ
   const [hasMoreUpcoming, setHasMoreUpcoming] = useState(true)
-
+  // 現在表示しているタブ（"today" | "tomorrow" | "upcoming"）
   const [filter, setFilter] = useState("today")
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  // APIリクエストの多重発火を防ぐためのフラグ
   const loadingRef = useRef(false);
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // タブ名とページ番号を受け取りAPIからタスクを取得する
   const fetchTasks = useCallback(
     async (tab: "today" | "tomorrow" | "upcoming", pageToFetch = 1) => {
       if (!user || loadingRef.current) return
@@ -44,8 +55,8 @@ export default function ChildTasksPage() {
 
       try {
         const token = localStorage.getItem("token")
-        const res = await fetch(
-          `${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToFetch}`,
+        // GET /api/tasks?exclude_past_approved=1&page=${pageToFetch} を叩いてページごとに各タスク一覧を取得
+        const res = await fetch(`${apiBaseUrl}/api/tasks?exclude_past_approved=1&page=${pageToFetch}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -54,6 +65,8 @@ export default function ChildTasksPage() {
         const data = await res.json()
         const newTasks: Task[] = data.data
 
+        // 今日・明日・明後日の日付をそれぞれ生成
+        // 時間は00:00にセットし日付比較しやすく
         const now = new Date()
         now.setHours(0, 0, 0, 0)
         const tomorrow = new Date(now)
@@ -61,17 +74,25 @@ export default function ChildTasksPage() {
         const dayAfterTomorrow = new Date(tomorrow)
         dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
 
+        // APIからのタスクを、指定したタブに応じて絞り込み
         const filtered = newTasks.filter((task) => {
           const due = task.due_date ? new Date(task.due_date) : null
+          // due_dateがないものは除外
           if (!due) return false
           due.setHours(0, 0, 0, 0)
 
+          // due_dateが今日と同じものだけ抽出
           if (tab === "today") return due.getTime() === now.getTime()
+          // due_dateが明日と同じものだけ抽出
           if (tab === "tomorrow") return due.getTime() === tomorrow.getTime()
+          // due_dateが明後日以降のものだけ抽出
           if (tab === "upcoming") return due.getTime() >= dayAfterTomorrow.getTime()
           return false
         })
 
+        // ページ番号によって1ページ目なら上書き、2ページ目以降なら追加してセット
+        // ページ番号を状態にセット
+        // 最終ページかどうかを判定し hasMore を設定
         if (tab === "today") {
           setTodayTasks((prev) => (pageToFetch === 1 ? filtered : [...prev, ...filtered]))
           setTodayPage(pageToFetch)
@@ -94,6 +115,8 @@ export default function ChildTasksPage() {
     [apiBaseUrl, user]
   )
 
+  // userやfilterが変わったら該当タブの1ページ目を取得
+  // fetchTasksはuseCallbackでメモ化済
   useEffect(() => {
     if (!user) return
     if (filter === "today") fetchTasks("today", 1)
@@ -101,6 +124,9 @@ export default function ChildTasksPage() {
     else if (filter === "upcoming") fetchTasks("upcoming", 1)
   }, [user, filter, fetchTasks])
 
+  // スクロールイベントハンドラー
+  // スクロールが100px以内でかつ読み込み中でなければ次ページ取得
+  //現在のタブごとに対応するページ番号を1つ増やしてAPIコール
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget
     if (target.scrollHeight - target.scrollTop <= target.clientHeight + 100 && !loadingRef.current) {
@@ -115,6 +141,8 @@ export default function ChildTasksPage() {
 
     try {
       const token = localStorage.getItem("token");
+
+      // POST /api/tasks/${taskId}/submit を叩いてタスクの完了リクエスト送信
       const res = await fetch(`${apiBaseUrl}/api/task/${task.id}/submit`, {
         method: "POST",
         headers: {
@@ -127,6 +155,7 @@ export default function ChildTasksPage() {
         setCompleteDialogOpen(false)
         setSelectedTask(null)
 
+        // 完了申請したタスクの状態を"submitted"に更新
         const updateTaskList = (tasks: Task[]): Task[] =>
           tasks.map((t) =>
             t.id === task.id ? { ...t, completion_status: "submitted" } : t
@@ -149,52 +178,19 @@ export default function ChildTasksPage() {
     }
   }
 
-
-  const handleAddComment = () => {
-    setCommentDialogOpen(false)
-    setNewComment("")
-    setSelectedTask(null)
-  }
-
+  // タスクをセットして、完了申請ダイアログを開く
   const openCompleteDialog = (task: Task) => {
     setSelectedTask(task)
     setCompleteDialogOpen(true)
   }
 
+  // タスクをセットして、メントダイアログを開く
   const openCommentDialog = (task: Task) => {
     setSelectedTask(task)
     setCommentDialogOpen(true)
   }
 
-  const isToday = (dateStr?: string | null) => {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return target <= now;
-  };
-
-  const isTomorrow = (dateStr?: string | null) => {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return (
-      date.getFullYear() === tomorrow.getFullYear() &&
-      date.getMonth() === tomorrow.getMonth() &&
-      date.getDate() === tomorrow.getDate()
-    );
-  };
-
-  const isUpcoming = (dateStr?: string | null) => {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const dayAfterTomorrow = new Date();
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
-    return date >= dayAfterTomorrow;
-  };
-
+  // フィルターに応じて表示するタスク配列を切り替え
   const filteredTasks = filter === "today"
     ? todayTasks
     : filter === "tomorrow"
@@ -206,7 +202,7 @@ export default function ChildTasksPage() {
     }
 
   return (
-     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="p-4">

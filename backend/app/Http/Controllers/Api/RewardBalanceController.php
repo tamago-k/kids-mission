@@ -9,16 +9,23 @@ use Illuminate\Support\Facades\DB;
 
 class RewardBalanceController extends Controller
 {
+    // 現在のポイントを取得（子ども）
     public function index()
     {
+        // 現在のログインユーザーを取得
         $user = Auth::user();
+
+        // reward_balances テーブルから、ログインユーザーのポイント残高のレコードを1件取得
         $balance = RewardBalance::where('user_id', $user->id)->first();
-        return response()->json([
-            'balance' => $balance?->balance ?? 0,
-        ]);
+
+        // jsonレスポンスでbalanceを返す
+        return response()->json(['balance' => $balance?->balance ?? 0,]);
     }
+
+    //　現在のポイントを取得（親）
     public function listAll()
     {
+        // roleがchildのユーザーに対して、reward_balancesテーブルの残高を左結合し、残高がない場合は0を返す
         $childrenWithBalances = DB::table('users')
             ->leftJoin('reward_balances', 'users.id', '=', 'reward_balances.user_id')
             ->where('users.role', 'child')
@@ -29,6 +36,7 @@ class RewardBalanceController extends Controller
             )
             ->get();
 
+        // jsonレスポンスでbalanceを返す
         return response()->json(['balances' => $childrenWithBalances]);
     }
 }

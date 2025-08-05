@@ -28,7 +28,9 @@ const weekDays = [
 ]
 
 export default function ParentTasksPage() {
+  //　ログイン中のユーザー情報を取得
   const user = useCurrentUser();
+  // タスク作成フォームの入力状態をまとめて管理
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
@@ -40,36 +42,56 @@ export default function ParentTasksPage() {
     recurringType: "",
     recurringDays: [] as string[],
   });
+  // タスクモーダルが開いているかどうかを管理するフラグ
   const [taskModalOpen, setTaskModalOpen] = useState(false)
+  // タスク削除モーダルが開いているかどうかを管理するフラグ
   const [deleteTaskOpen, setDeleteTaskOpen] = useState(false)
+  // コメントダイアログが開いているかどうかを管理するフラグ
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [_newComment, setNewComment] = useState<string>("")
-
-  const [activeTasks, setActiveTasks] = useState<Task[]>([]);
-  const [submittedTasks, setSubmittedTasks] = useState<Task[]>([]);
-  const [approvedTasks, setApprovedTasks] = useState<Task[]>([]);
-  const [activePage, setActivePage] = useState(1);
-  const [submittedPage, setSubmittedPage] = useState(1);
-  const [approvedPage, setApprovedPage] = useState(1);
-  const [hasMoreActive, setHasMoreActive] = useState(true);
-  const [hasMoreSubmitted, setHasMoreSubmitted] = useState(true);
-  const [hasMoreApproved, setHasMoreApproved] = useState(true);
-  const activeLoading = useRef(false);
-  const submittedLoading = useRef(false);
-  const approvedLoading = useRef(false);
-  
-  const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
-  const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+  // 承認モーダルが開いているかどうかを管理するフラグ
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  // 却下も０打るが開いているかどうかを管理するフラグ
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  // 進行中のタスク配列で管理
+  const [activeTasks, setActiveTasks] = useState<Task[]>([]);
+  // 申請中のタスク配列で管理
+  const [submittedTasks, setSubmittedTasks] = useState<Task[]>([]);
+  // 承認済のタスク配列で管理
+  const [approvedTasks, setApprovedTasks] = useState<Task[]>([]);
+  // 進行中タスクのページング管理
+  const [activePage, setActivePage] = useState(1);
+  // 申請中タスクのページング管理
+  const [submittedPage, setSubmittedPage] = useState(1);
+  // 承認済タスクのページング管理
+  const [approvedPage, setApprovedPage] = useState(1);
+  // 進行中タスクの続きを読み込めるかの管理
+  const [hasMoreActive, setHasMoreActive] = useState(true);
+  // 申請中タスクの続きを読み込めるかの管理
+  const [hasMoreSubmitted, setHasMoreSubmitted] = useState(true);
+  // 承認済タスクの続きを読み込めるかの管理
+  const [hasMoreApproved, setHasMoreApproved] = useState(true);
+  // 進行中タスクのローディング状態を管
+  const activeLoading = useRef(false);
+  // 申請中タスクのローディング状態を管
+  const submittedLoading = useRef(false);
+  // 承認済タスクのローディング状態を管
+  const approvedLoading = useRef(false);
+  // 子どもアカウントの情報
+  const [children, setChildren] = useState<{id: string; name: string; avatar: string}[]>([])
+  // タスクのカテゴリ一覧
+  const [taskCategories, setTaskCategories] = useState<{id: string; name: string; slug: string}[]>([])
+  // 現在選択されている通知対象のタスク
   const [selectedNotification, setSelectedNotification] = useState<Task | null>(null);
+  // totalTasksCount
+  const [totalTasksCount, ] = useState<number | null>(null);
+  // 選択中のタスクを管理
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  // 選択中のコメントを管理
+  const [, setNewComment] = useState<string>("")
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const loadingRef = useRef(false);
-  const [totalTasksCount, setTotalTasksCount] = useState<number | null>(null);
 
+  // 数字（曜日の0〜6）を曜日名（文字列）に変換するマップ
   const numberToDayIdMap: { [key: string]: string } = {
     "0": "sunday",
     "1": "monday",
@@ -80,12 +102,15 @@ export default function ParentTasksPage() {
     "6": "saturday",
   };
 
+
   const fetchTasks = async (status: "active" | "submitted" | "approved", pageToFetch = 1) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    // ページごとにクエリ作成
     const query = `exclude_past_approved=1&page=${pageToFetch}&status=${status}`;
 
+    // GET /api/tasks を叩いてタスク一覧を取得
     const res = await fetch(`${apiBaseUrl}/api/tasks?${query}`, {
       headers: {
         "Content-Type": "application/json",
@@ -98,6 +123,10 @@ export default function ParentTasksPage() {
     }
 
     const data = await res.json();
+
+    // ページネーション対応
+    // APIから取得したデータを状態にセット（ページごとに追加 or 置換）
+    // 「承認済み」ステータスは当日更新分のみフィルター
     if (status === "active") {
       if (pageToFetch === 1) setActiveTasks(data.data);
       else setActiveTasks(prev => [...prev, ...data.data]);
@@ -118,12 +147,13 @@ export default function ParentTasksPage() {
       setHasMoreApproved(pageToFetch < data.last_page);
       approvedLoading.current = false;
     }
-    console.log(status, data);
   };
 
+  //　初回マウント時に実行
   useEffect(() => {
     const fetchChildren = async () => {
       const token = localStorage.getItem("token");
+      // GET /api/children を叩いて子ども一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/children`, {
         method: "GET",
         headers: {
@@ -141,6 +171,7 @@ export default function ParentTasksPage() {
 
     const fetchTaskCategories = async () => {
       const token = localStorage.getItem("token");
+      // GET /api/task-categories を叩いてタスクカテゴリ一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/task-categories`, {
         method: "GET",
         headers: {
@@ -164,6 +195,7 @@ export default function ParentTasksPage() {
     fetchTasks("approved", 1);
   }, [apiBaseUrl])
   
+  // スクロール位置がほぼ一番下なら次ページをfetch
   const onScroll = (tab: "active" | "submitted" | "approved") => (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
@@ -181,6 +213,7 @@ export default function ParentTasksPage() {
     }
   };
 
+  // 曜日文字列から対応する数値に変換
   const dayToNumber = (dayId: string) => {
     switch (dayId) {
       case "sunday": return 0
@@ -194,6 +227,7 @@ export default function ParentTasksPage() {
     }
   }
 
+  // タスク入力フォームを空に初期化し、選択中タスクもクリア
   const resetForm = () => {
     setTaskForm({
       title: "",
@@ -209,6 +243,8 @@ export default function ParentTasksPage() {
     setSelectedTask(null);
   };
 
+  // 既存タスクをフォームにセットして編集用モーダルを開く
+  // 曜日変換も行っている
   const openEditDialog = (task: Task) => {
     setSelectedTask(task);
     setTaskForm({
@@ -225,6 +261,8 @@ export default function ParentTasksPage() {
     setTaskModalOpen(true);
   };
     
+  // フォームの内容からAPI送信用のペイロードを組み立てる
+  // 数値変換や空文字のnull化も含む
   const buildTaskPayload = () => ({
     title: taskForm.title,
     description: taskForm.description || null,
@@ -244,6 +282,7 @@ export default function ParentTasksPage() {
         : [],
   });
   
+  // タスクの新規作成
   const handleCreateTask = async () => {
     if (!taskForm.title.trim()) {
       alert("タイトルは必須です");
@@ -251,6 +290,7 @@ export default function ParentTasksPage() {
     }
     try {
       const token = localStorage.getItem("token");
+      // POST /api/tasks を叩いてタスク新規追加リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/tasks`, {
         method: "POST",
         headers: {
@@ -277,6 +317,7 @@ export default function ParentTasksPage() {
     }
   };
 
+  // タスクの更新
   const handleUpdateTask = async () => {
     if (!taskForm.title.trim()) {
       alert("タイトルは必須です");
@@ -285,6 +326,7 @@ export default function ParentTasksPage() {
     if (!selectedTask) return;
     try {
       const token = localStorage.getItem("token");
+      // PUT /api/tasks を叩いてタスク更新リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/tasks/${selectedTask.id}`, {
         method: "PUT",
         headers: {
@@ -309,6 +351,7 @@ export default function ParentTasksPage() {
     if (!selectedTask) return
     try {
       const token = localStorage.getItem("token");
+      // DELETE /api/tasks/${selectedTask.id} を叩いてタスク削除リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/tasks/${selectedTask.id}`, {
         method: "DELETE",
         headers: {
@@ -325,19 +368,23 @@ export default function ParentTasksPage() {
     }
   }
 
+  // コメントダイアログ閉じてフォームクリア、選択タスク解除
   const handleAddComment = () => {
     setCommentDialogOpen(false)
     setNewComment("")
     setSelectedTask(null)
   }
 
+  // 選択タスクをセットしてコメントダイアログを開く
   const openCommentDialog = (task: Task) => {
     setSelectedTask(task);
     setTaskForm(prev => ({ ...prev, title: task.title || "" }));
     setCommentDialogOpen(true);
   }
 
+  // タスクモーダルを開く
   const openTaskModal = (task?: Task) => {
+    // 編集モードならフォームにタスク情報セット
     if (task) {
       setSelectedTask(task);
       setTaskForm({
@@ -352,11 +399,13 @@ export default function ParentTasksPage() {
         recurringDays: (task.recurringDays ?? []).map(dayNumStr => numberToDayIdMap[dayNumStr] || dayNumStr),
       });
     } else {
+      // 新規ならフォームリセット
       resetForm();
     }
     setTaskModalOpen(true);
   };
 
+  // 作成 or 更新の切り分け
   const handleCreateOrUpdateTask = () => {
     if (selectedTask) {
       handleUpdateTask()
@@ -365,6 +414,8 @@ export default function ParentTasksPage() {
     }
   }
 
+  // YYYY-MM-DD 形式の文字列を返す
+  // HTMLの<input type="date">にセットしやすい形に変換
   const formatForInputDateTimeLocal = (dateString: string | undefined | null) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -377,11 +428,13 @@ export default function ParentTasksPage() {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // タスクの承認処理
   const handleApprove = async (taskId: number) => {
     try {
       const token = localStorage.getItem("token");
+      // PUT /api/task-submissions/${submissionId}/approve を叩いてタスク承認リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/task-submissions/${taskId}/approve`, {
-        method: "PATCH", // またはPATCH
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -396,10 +449,12 @@ export default function ParentTasksPage() {
     }
   };
 
+  // タスクの却下処理
   const handleRejectBySubmissionId = async (submissionId?: number) => {
     if (!submissionId) return;
     try {
       const token = localStorage.getItem("token");
+      // PUT /api/task-submissions/${submissionId}/reject を叩いてタスク却下リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/task-submissions/${submissionId}/reject`, {
         method: "PUT",
         headers: {
@@ -416,6 +471,7 @@ export default function ParentTasksPage() {
     }
   };
 
+  // 文字列の日時が今日の日付か判定
   const isToday = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();

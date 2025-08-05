@@ -1,5 +1,7 @@
 "use client"
 
+// 未実装
+
 import { useState } from "react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

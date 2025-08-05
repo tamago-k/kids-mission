@@ -3,9 +3,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ClipboardCheck, Repeat, Calendar, PiggyBank, MessageCircle, CheckCircle } from "lucide-react"
-import { colorThemes } from "@/components/OptionThemes"
 import type { Task } from "@/types/TaskChild"
 
+// TaskListChildが受け取るpropsの型を定義
 type TaskListChildProps = {
   tasks: Task[];
   onComplete: (task: Task) => void;
@@ -13,13 +13,9 @@ type TaskListChildProps = {
   onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
 };
 
-export const TaskListChild: React.FC<TaskListChildProps> = ({
-    tasks,
-    onComplete,
-    onComment,
-    onScroll,
-  }) => {
+export const TaskListChild: React.FC<TaskListChildProps> = ({tasks,onComplete,onComment,onScroll}) => {
 
+  // 日付文字列inputを受け取り、表示用の「YYYY/MM/DD」形式に変換して返す関数
   const formatDateForDisplay = (input?: string | null) => {
     if (!input) return ""
     const date = new Date(input)
@@ -150,7 +146,7 @@ export const TaskListChild: React.FC<TaskListChildProps> = ({
                   onClick={() => onComplete && onComplete(task)}
                 >
                   <CheckCircle className="w-4 h-4 mr-1" />
-                  完了ほうこく
+                  完了しんせい
                 </Button>
               )}
             </div>
