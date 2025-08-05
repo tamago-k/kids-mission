@@ -11,16 +11,26 @@ import { ParentNavigation } from "@/components/navigation/ParentNavigation"
 import { badgeIconOptions } from "@/components/OptionThemes"
 
 export default function ParentMasterPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  // バッジを「追加するモーダル」が開いているかどうかを管理するstate
   const [addBadgeOpen, setAddBadgeOpen] = useState(false)
+  // バッジの名前を管理するstate
   const [badgeName, setBadgeName] = useState("")
+  // バッジの獲得条件を管理するstate
   const [badgeCondition, setBadgeCondition] = useState("")
+  // 編集中のバッジの ID を保持
   const [editingBadgeId, setEditingBadgeId] = useState<number | null>(null)
+  // サーバーから取得したバッジの一覧を保持するstate
   const [badges, setBadges] = useState<Badge[]>([])
+  // フォームで選択されたバッジアイコンの ID
   const [formBadgeIcon, setFormBadgeIcon] = useState(badgeIconOptions[0].id)
+  // バッジ削除の確認ダイアログが開いているかどうかのstate
   const [deleteBadgeOpen, setDeleteBadgeOpen] = useState(false);
+  // 削除対象のバッジの情報を保持するstat
   const [deletingBadge, setDeletingBadge] = useState<{ id: number; name: string } | null>(null);
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  //　バッジデータの型定義
   type Badge = {
     id: number
     name: string
@@ -29,10 +39,11 @@ export default function ParentMasterPage() {
     is_active: boolean
   }
 
-  // バッジ一覧取得
+  // サーバーからバッジ一覧を取得する非同期関数を定義（useCallbackでメモ化）
   const fetchBadges = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
+      // GET /api/badges を叩いてバッジ一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/badges`, {
         headers: {
           "Content-Type": "application/json",
@@ -51,16 +62,19 @@ export default function ParentMasterPage() {
       }
   }, [apiBaseUrl]);
 
-  // 初期データ読み込み
+  //　初回マウント時に実行
   useEffect(() => {
     fetchBadges();
   }, [fetchBadges]);
 
-  // 保存（新規 or 更新）
+  // フォーム送信時の保存処理（新規・更新）
   const handleSaveBadge = async () => {
+    
+    // 必須項目が未入力なら保存を中断
     if (!badgeName || !formBadgeIcon|| !badgeCondition) return alert("すべての項目を入力してください");
-
     const token = localStorage.getItem("token");
+
+    // 送信用のペイロードを作成
     const payload = {
       name: badgeName,
       icon: formBadgeIcon,
@@ -69,7 +83,9 @@ export default function ParentMasterPage() {
 
     try {
       let res;
+      // 新規追加かどうかを判定
       if (editingBadgeId === null) {
+        // POST /api/badges を叩いて新規追加リクエストを送信
         res = await fetch(`${apiBaseUrl}/api/badges`, {
           method: 'POST',
           headers: {
@@ -79,6 +95,7 @@ export default function ParentMasterPage() {
           body: JSON.stringify(payload),
         });
       } else {
+        // PUT /api/badges/${editingBadgeId} を叩いて新規追加リクエストを送信
         res = await fetch(`${apiBaseUrl}/api/badges/${editingBadgeId}`, {
           method: 'PUT',
           headers: {
@@ -98,7 +115,7 @@ export default function ParentMasterPage() {
         setBadges((prev) => prev.map((b) => (b.id === editingBadgeId ? savedBadge : b)));
       }
 
-      // リセット
+      // フォーム状態をリセット
       setAddBadgeOpen(false);
       setEditingBadgeId(null);
       setBadgeName("");
@@ -130,11 +147,12 @@ export default function ParentMasterPage() {
     setDeleteBadgeOpen(false);
   };
 
-  // 削除
+  // 指定IDのバッジを削除
   const handleDeleteBadge = async (id: number) => {
     const token = localStorage.getItem("token");
 
     try {
+      // DELETE /api/badges/${id} を叩いて削除リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/badges/${id}`, {
         method: 'DELETE',
         headers: {
@@ -154,15 +172,18 @@ export default function ParentMasterPage() {
     }
   };
 
-  // 表示用のON/OFF切替（
+  // バッジの有効・無効の処理
   const toggleBadgeActive = async (id: number) => {
     const badge = badges.find(b => b.id === id);
+
+    // バッジidがなければ終了
     if (!badge) return;
 
     const updatedBadge = { ...badge, is_active: !badge.is_active };
 
     try {
       const token = localStorage.getItem("token");
+      // PATCH /api/badges/${id} を叩いて更新リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/badges/${id}`, {
         method: 'PATCH',
         headers: {

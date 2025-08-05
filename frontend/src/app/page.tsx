@@ -9,108 +9,132 @@ import { useRouter } from "next/navigation"
 import { Lock, Heart, ArrowLeft, User, Baby, Smile, BicepsFlexed} from "lucide-react"
 
 export default function LoginPage() {
-  const [step, setStep] = useState<"role" | "parent" | "child">("role")
-  const [name, setName] = useState("")
-  const [password, setPassword] = useState("")
-  const [childId, setChildId] = useState("")
-  const [selectedChild, setSelectedChild] = useState("")
-  const [pin, setPin] = useState("")
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // トップページに遷移可能
   const router = useRouter()
+   // 今の画面（ステップ）を管理
+  const [step, setStep] = useState<"role" | "parent" | "child">("role")
+  // 親のユーザー名
+  const [name, setName] = useState("")          
+  // 親のパスワード
+  const [password, setPassword] = useState("")  
+  // 子どもの名前入力
+  const [childId, setChildId] = useState("")    
+  // 子どもの名前
+  const [nameChild, setNameChild] = useState("") 
+  // 子どもの4桁PIN
+  const [pin, setPin] = useState("")             
+  // エラーメッセージ表示用
+  const [errorMessage, setErrorMessage] = useState<string | null>(null) 
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handlePinInput = (digit: string) => {
-    if (pin.length < 4) {
-      setPin(pin + digit)
-    }
-  }
-
-  const clearPin = () => {
-    setPin("")
-    }
-
+  // 親ログイン
   const handleParentLogin = async () => {
+
+    // エラーメッセージをセット
     setErrorMessage(null);
 
+    // 名前もしくはパスワードがnullだったら
     if (!name || !password) {
       setErrorMessage("ユーザー名とパスワードを入力してください");
       return;
     }
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
     try {
-      const res = await fetch(`${apiBaseUrl}/api/login`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ name, password }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Login failed:", errorData);
-        setErrorMessage(errorData.message || "入力情報が違います。");
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-    window.location.href = "/parent/dashboard";
-    } catch (error) {
-      console.error(error);
-      alert("通信エラーが発生しました");
-    }
-  };
-
-  const handleChildLogin = async () => {
-    setErrorMessage(null);
-    if (!selectedChild || pin.length !== 4) {
-      setErrorMessage("子の名前と4桁のPINを入力してください");
-      return;
-    }
-
-    try {
+      // POST /api/login を叩いてログインのリクエスト送信
       const res = await fetch(`${apiBaseUrl}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ name: selectedChild, password: pin }),
+        body: JSON.stringify({ name, password }),
       });
 
+      //　レスポンスがokでなければエラーを返す
       if (!res.ok) {
-        setErrorMessage("何かまちがえているよ");
+        const errorData = await res.json();
+        setErrorMessage(errorData.message || "入力情報が違います。");
         return;
       }
 
+      // レスポンスをdataに保存
       const data = await res.json();
 
+      // tokenをローカルストレージに保存
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
-      window.location.href = "/child/dashboard";
+      // dashboardへ遷移
+      window.location.href = "/parent/dashboard";
+
+    // エラー
     } catch (error) {
       console.error(error);
       alert("通信エラーが発生しました");
     }
   };
 
+  // 子ログイン
+  const handleChildLogin = async () => {
+
+    // エラーメッセージをセット
+    setErrorMessage(null);
+
+    // 名前もしくはPINがnullだったら
+    if (!nameChild || pin.length !== 4) {
+      setErrorMessage("子の名前と4桁のPINを入力してください");
+      return;
+    }
+
+    try {
+      // POST /api/login を叩いてログインのリクエスト送信
+      const res = await fetch(`${apiBaseUrl}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ name: nameChild, password: pin }),
+      });
+
+      //　レスポンスがokでなければエラーを返す
+      if (!res.ok) {
+        setErrorMessage("何かまちがえているよ");
+        return;
+      }
+
+      // レスポンスをdataに保存
+      const data = await res.json();
+
+      // tokenをローカルストレージに保存
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // dashboardへ遷移
+      window.location.href = "/child/dashboard";
+
+    // エラー
+    } catch (error) {
+      console.error(error);
+      alert("通信エラーが発生しました");
+    }
+  };
+
+  //router、apiBaseUrlが変わるたびに実行される
   useEffect(() => {
     const checkLogin = async () => {
+
+      // ローカルストレージに保存されたJWTトークンを取り出す
       const token = localStorage.getItem("token");
 
+      // トークン無ければ何もしない
       if (!token) return;
 
       try {
+        // GET /api/user を叩いてログインユーザーを取得
         const res = await fetch(`${apiBaseUrl}/api/user`, {
           headers: {
             "Content-Type": "application/json",
@@ -118,18 +142,23 @@ export default function LoginPage() {
           },
         });
 
+        // 取得できなければtokenをremove
         if (!res.ok) {
           localStorage.removeItem("token");
           return;
         }
 
+        // resをuserに保存
         const user = await res.json();
 
+        // userのroleを確認し、それぞれのdashboardに遷移
         if (user.role === "parent") {
           router.push("/parent/dashboard");
         } else if (user.role === "child") {
           router.push("/child/dashboard");
         }
+
+      // エラー
       } catch (error) {
         console.error("ログインチェック失敗:", error);
         localStorage.removeItem("token");
@@ -139,6 +168,17 @@ export default function LoginPage() {
     checkLogin();
   }, [apiBaseUrl, router]);
 
+  // 子どもログイン時に4桁のPINを数字ボタンで入力する処理
+  const handlePinInput = (digit: string) => {
+    if (pin.length < 4) {
+      setPin(pin + digit)
+    }
+  }
+
+  // 子どもログイン時のPINのクリアボタン
+  const clearPin = () => {
+    setPin("")
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -165,6 +205,7 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
+                // 状態をparentに切り替え
                 onClick={() => setStep("parent")}
                 className="w-full h-16 rounded-2xl bg-gradient-to-r from-purple-400 to-blue-400 hover:from-purple-500 hover:to-blue-500 text-white font-medium text-lg shadow-lg"
               >
@@ -173,6 +214,7 @@ export default function LoginPage() {
               </Button>
 
               <Button
+                //状態をchildに切り替え
                 onClick={() => setStep("child")}
                 className="w-full h-16 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-medium text-lg shadow-lg"
               >
@@ -192,12 +234,19 @@ export default function LoginPage() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => {
+                    // ログイン画面の「ロール選択画面」に戻る（状態を "role" に切り替える）
                     setStep("role")
+                    // 親のユーザー名入力を空にする
                     setName("");
+                    // 親のパスワード入力を空にする
                     setPassword("");
-                    setSelectedChild("");
+                    // 子どもの名前の状態を空にする
+                    setNameChild("");
+                    // 子ども入力用のテキストを空にする
                     setChildId("");
+                    // PINコード入力を空にする（リセット）
                     setPin("");
+                    // エラーメッセージをクリア（表示しないように）
                     setErrorMessage(null);
                   }}
                   className="rounded-full"
@@ -219,6 +268,7 @@ export default function LoginPage() {
                       id="name"
                       type="text"
                       value={name}
+                      // ユーザーが入力欄に文字を打つたびに、その文字列がリアルタイムで状態nameに保存される
                       onChange={(e) => setName(e.target.value)}
                       className="pl-10 h-12 rounded-2xl border-2 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
                       placeholder="family_account"
@@ -236,6 +286,7 @@ export default function LoginPage() {
                       id="password"
                       type="password"
                       value={password}
+                      // ユーザーが入力欄に文字を打つたびに、その文字列がリアルタイムで状態passwordに保存される
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 h-12 rounded-2xl border-2 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
                       placeholder="パスワードを入力"
@@ -245,6 +296,7 @@ export default function LoginPage() {
               </div>
 
               <Button
+                // handleParentLoginを呼ぶ
                 onClick={handleParentLogin}
                 className="w-full h-12 rounded-2xl bg-gradient-to-r from-purple-400 to-blue-400 hover:from-purple-500 hover:to-blue-500 text-white font-medium text-lg shadow-lg"
               >
@@ -268,12 +320,19 @@ export default function LoginPage() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => {
+                    // ログイン画面の「ロール選択画面」に戻る（状態を "role" に切り替える）
                     setStep("role")
+                    // 親のユーザー名入力を空にする
                     setName("");
+                    // 親のパスワード入力を空にする
                     setPassword("");
-                    setSelectedChild("");
+                    // 子どもの名前の状態を空にする
+                    setNameChild("");
+                    // 子ども入力用のテキストを空にする
                     setChildId("");
+                    // PINコード入力を空にする（リセット）
                     setPin("");
+                    // エラーメッセージをクリア（表示しないように）
                     setErrorMessage(null);
                   }}
                   className="rounded-full"
@@ -284,7 +343,7 @@ export default function LoginPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!selectedChild ? (
+              {!nameChild ? (
                 // 子ども選択
                 <div className="space-y-4">
                   <div className="grid gap-3">
@@ -300,7 +359,7 @@ export default function LoginPage() {
                     <Button
                       onClick={() => {
                         if (childId.trim()) {
-                          setSelectedChild(childId.trim())
+                          setNameChild(childId.trim())
                         } else {
                           alert("なまえをいれてね")
                         }
@@ -327,6 +386,7 @@ export default function LoginPage() {
                   {/* PIN表示 */}
                   <div className="flex justify-center gap-3 mb-6">
                     {[0, 1, 2, 3].map((index) => (
+                      // mapで1つずつ取り出して4子入力枠を作成
                       <div
                         key={index}
                         className="w-12 h-12 rounded-2xl border-2 border-gray-200 flex items-center justify-center text-2xl font-bold"
@@ -339,6 +399,7 @@ export default function LoginPage() {
                   {/* 数字キーパッド */}
                   <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                      // mapで1つずつ取り出して1~9のボタンを作成
                       <Button
                         key={digit}
                         onClick={() => handlePinInput(digit.toString())}
@@ -363,6 +424,7 @@ export default function LoginPage() {
                       0
                     </Button>
                     <Button
+                      // handleChildLoginを呼ぶ
                       onClick={handleChildLogin}
                       disabled={pin.length !== 4}
                       className="h-14 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white text-lg font-bold shadow-lg disabled:opacity-50"
@@ -378,9 +440,13 @@ export default function LoginPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setSelectedChild("");
+                      // 子どもの名前リセット
+                      setNameChild("");
+                      // 子どもidをリセット
                       setChildId("");
+                      // 子どものPINをリセット
                       setPin("");
+                      // エラーをリセット
                       setErrorMessage(null);
                     }}
                     className="w-full rounded-2xl bg-transparent"

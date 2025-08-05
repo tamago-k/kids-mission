@@ -1,77 +1,36 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PiggyBank, ClipboardCheck, Star, CheckCircle, Gift, ThumbsUp, Smile } from "lucide-react"
+import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { ChildNavigation } from "@/components/navigation/ChildNavigation"
+import type { Task } from "@/types/DashboardChild"
 
 export default function ChildDashboard() {
+  //　ログイン中のユーザー情報を取得
+  const user = useCurrentUser()
+  // 今日やるべきタスク一覧
   const [todayTasks, setTodayTasks] = useState<Task[]>([])
+  // 現在のポイント残高
   const [currentBalance, setCurrentBalance] = useState(0)
-  const [loading, setLoading] = useState(true)
+  // 達成済みタスク数、獲得ポイント数などの統計情報
   const [stats, setStats] = useState({
     task_completed: 0,
     points_earned: 0,
-    consecutive_days: 0,
   })
-  const router = useRouter()
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null)
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  type Submission = {
-    created_at: string;
-    id: number;
-    status: string;
-    submitted_at: string;
-    task_id: number;
-    updated_at: string;
-    user_id: number;
-  };
-
-  type Task = {
-    child_id: number;
-    created_at: string;
-    description: string;
-    due_date: string;
-    id: number;
-    isRecurring: boolean;
-    parent_id: number;
-    recurrence: string | null;
-    recurringType: string | null;
-    reward_amount: number;
-    submission: Submission | null;
-    task_category_id: number;
-    title: string;
-    updated_at: string;
-  };
-
+  //　初回マウント時に実行
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchData = async () => {
       try {
 
-        const token = localStorage.getItem("token");
-
-        const resUser = await fetch(`${apiBaseUrl}/api/user`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        if (!resUser.ok) {
-          router.push("/")
-          return
-        }
-        const user = await resUser.json()
-        if (user.role !== "child") {
-          router.push("/")
-          return
-        }
-        setUser(user)
-
-        // 今日のタスク取得
+        // GET /api/tasks/today を叩いて今日のタスク一覧を取得
         const resTasks = await fetch(`${apiBaseUrl}/api/tasks/today`, {
           headers: {
             "Content-Type": "application/json",
@@ -81,7 +40,7 @@ export default function ChildDashboard() {
         if (!resTasks.ok) throw new Error("タスク取得失敗")
         const tasksData = await resTasks.json()
 
-        // ポイント数取得
+        // GET /api/reward-balance を叩いて現在のポイント数を取得
         const resBalance = await fetch(`${apiBaseUrl}/api/reward-balance`, {
           headers: {
             "Content-Type": "application/json",
@@ -93,16 +52,13 @@ export default function ChildDashboard() {
 
         setTodayTasks(tasksData)
         setCurrentBalance(balanceData.balance)
-        setLoading(false)
       } catch (error) {
         console.error(error)
-        router.push("/")
       }
     }
-
-    const token = localStorage.getItem("token");
     const fetchStats = async () => {
       try {
+        // GET /api/tasks/weekday を叩いて週間一覧を取得
         const res = await fetch(`${apiBaseUrl}/api/tasks/weekday`, {
           headers: {
             "Content-Type": "application/json",
@@ -115,16 +71,11 @@ export default function ChildDashboard() {
         console.error("データ取得失敗", error)
       }
     }
-
     fetchData()
     fetchStats()
   }, [apiBaseUrl])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">読み込み中...</div>
-    )
-  }
+  if (user === null) return null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">

@@ -4,6 +4,7 @@ import { Smile } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 
+// このコンポーネントが受け取るプロパティの型定義
 type Props = {
   taskId?: number;
   currentUserId: number;
@@ -14,12 +15,18 @@ type Props = {
 };
 
 export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, taskTitle }: Props) {
+  // コメントの一覧を格納する
   const [comments, setComments] = useState<Comment[]>([]);
+  // 新規コメントのテキスト入力内容を管理
   const [newComment, setNewComment] = useState<string>("")
+  // コメント一覧を表示するDOM（div）を参照するためのref
   const commentBoxRef = useRef<HTMLDivElement | null>(null);
-  const [_autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  // コメント追加時に自動でスクロールさせるかどうかのフラグ
+  const [, setAutoScrollEnabled] = useState(true);
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // コメントオブジェクトの型定義
   type Comment = {
     id: number;
     user_id: number;
@@ -27,15 +34,21 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     created_at: string;
   };
 
+  // コメント一覧のスクロールイベントのコールバック関数を定義
   const onScroll = () => {
+    // コメント表示領域のDOM要素を取得
     const box = commentBoxRef.current;
     if (!box) return;
+    // スクロール位置がほぼ一番下（10px以内）かどうか判定
     const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 10;
+    // 一番下なら自動スクロール有効、そうでなければ無効に設定
     setAutoScrollEnabled(isAtBottom);
   };
 
+  // コメント一覧をAPIから非同期で取得
   const fetchComments = async () => {
     const token = localStorage.getItem("token");
+    // GET /api/tasks/${taskId}/comments を叩いてタスクに紐づくコメント一覧を取得
     const res = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/comments`, {
       headers: {
         "Content-Type": "application/json",
@@ -48,20 +61,25 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
     }
   };
 
+  // taskIdまたはopenが変わるたびに実行
   useEffect(() => {
+    // タスクIDがないか、モーダルが閉じていたら何もしない
     if (!taskId || !open) return;
 
+    // コメントを取得
     fetchComments();
-    
-    const fetchAndScroll = async () => {
 
+    // コメント取得後にスクロール領域を一番下に移動させる
+    const fetchAndScroll = async () => {
       const box = commentBoxRef.current;
       if (box) {
         box.scrollTop = box.scrollHeight;
       }
     };
+    // モーダルが閉じていれば処理を中断
     if (!open) return;
 
+    // コメント表示ボックスがあればスクロールを一番下
     const box = commentBoxRef.current;
     if (box) {
       box.scrollTop = box.scrollHeight;
@@ -71,9 +89,12 @@ export function TaskCommentModal({ taskId, currentUserId, open, onOpenChange, ta
   }, [taskId, open]);
 
 
+  // 新しいコメントを投稿
   const handleAddComment = async () => {
+    // 入力が空白のみなら何もしない。
     if (!newComment.trim()) return;
     const token = localStorage.getItem("token");
+    // POST /api/tasks/${taskId}/comments を叩いてタスクに紐づくコメントのリクエスト送信
     const res = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/comments`, {
       method: "POST",
       headers: {

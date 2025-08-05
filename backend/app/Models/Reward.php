@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Reward extends Model
 {
+    // 一括代入で書き込み可能カラムの指定
     protected $fillable = ['name', 'icon', 'need_reward'];
 }

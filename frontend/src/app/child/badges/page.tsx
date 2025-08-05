@@ -23,13 +23,18 @@ interface BadgeAssignment {
 }
 
 export default function ChildBadgesPage() {
+  //　ログイン中のユーザー情報を取得
   const user = useCurrentUser()
+  //　badgeAssignments：サーバーから取得する、バッジ割り当て情報一覧。
   const [badgeAssignments, setBadgeAssignments] = useState<BadgeAssignment[]>([])
+  //　表示を「未取得（pending）」か「取得済み（received）」に絞るためのフィルター
   const [filter, setFilter] = useState("pending")
+  //　ゲット済みのバッジ数を数える処理
   const receivedBadgeCount = badgeAssignments.filter(b => b.received_at !== null).length;
+  // 環境変数からAPI URL取得
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  // バッジ一覧取得
+  // バッチ一覧を取得
   const fetchBadgeAssignments = useCallback(async () => {
     if (!user) return
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -37,6 +42,7 @@ export default function ChildBadgesPage() {
       alert("ログイン情報がありません。再ログインしてください。");
       return;
     }
+    // GET /api/badge-assignments を叩いてバッジ一覧を取得
     const res = await fetch(`${apiBaseUrl}/api/badge-assignments`, {
       method: "GET",
       headers: {
@@ -52,6 +58,7 @@ export default function ChildBadgesPage() {
     setBadgeAssignments(data)
   }, [user, apiBaseUrl])
 
+  //fetchBadgeAssignmentsが変わるたびに実行される
   useEffect(() => {
     fetchBadgeAssignments()
   }, [fetchBadgeAssignments])
@@ -63,6 +70,7 @@ export default function ChildBadgesPage() {
       alert("ログイン情報がありません。再ログインしてください。");
       return;
     }
+    // POST /api/badge-assignments/${badgeAssignmentId}/receiveを叩いてバッジ受け取りのリクエスト送信
     const res = await fetch(`${apiBaseUrl}/api/badge-assignments/${badgeAssignmentId}/receive`, {
       method: "POST",
       headers: {
@@ -77,7 +85,7 @@ export default function ChildBadgesPage() {
     await fetchBadgeAssignments()
   }
 
-  // タブで絞り込み
+  // 取得済み・未取得バッジのタブ切り替え
   const filteredBadges = badgeAssignments.filter(b =>
     filter === "pending" ? !b.received_at : !!b.received_at
   )

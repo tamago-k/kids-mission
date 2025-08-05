@@ -11,26 +11,39 @@ import { Label } from "@/components/ui/label"
 import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 export default function ChildrenPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  // 子どもアカウントのリスト
   const [children, setChildren] = useState<Child[]>([])
+  // 色選択の表示制御
   const [showColorPicker, setShowColorPicker] = useState<number | null>(null)
+  // モーダル（新規作成 or 編集）の開閉状態
   const [modalOpen, setModalOpen] = useState(false)
+  // 編集中の子のID（新規の場合はnull）
   const [editChildId, setEditChildId] = useState<number | null>(null)
+  // フォーム入力欄（名前・）の状態
   const [formName, setFormName] = useState("")
+  // フォーム入力欄（パスワード）の状態
   const [formPassword, setFormPassword] = useState("")
+  // フォーム入力欄（アイコン）の状態
   const [formIcon, setFormIcon] = useState(iconOptions[0].id)
+  // フォーム入力欄（テーマ色）の状態
   const [formColorTheme, setFormColorTheme] = useState(colorThemes[0].value)
+  // 削除対象のダイアログ開閉
   const [deleteChildOpen, setDeleteChildOpen] = useState(false)
+  // 削除対象の選択された子どもデータ
   const [selectedChild, setSelectedChild] = useState<typeof children[0] | null>(null)
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // 子どもデータの型
   type Child = {
     id: number;
     name: string;
     password: string;
-    icon: string;
-    colorTheme: string;
+    avatar: string;
+    theme: string;
   };
 
+  // 新規作成時に呼ばれ、フォームを初期化してモーダルを開く
   const handleOpenModal = () => {
     setEditChildId(null);
     setFormName("");
@@ -40,21 +53,27 @@ export default function ChildrenPage() {
     setModalOpen(true);
   };
 
+  // 編集ボタンを押した時の処理
   const handleEdit = (childId: number) => {
+    // 該当する子どもデータを検索
     const child = children.find((c) => c.id === childId);
+
+    //見つかった場合、フォームにデータをセットしてモーダルを開く
     if (child) {
       setEditChildId(child.id);
       setFormName(child.name);
       setFormPassword(String(child.password));
-      setFormIcon(child.icon || iconOptions[0].id);
-      setFormColorTheme(child.colorTheme);
+      setFormIcon(child.avatar || iconOptions[0].id);
+      setFormColorTheme(child.theme);
       setModalOpen(true);
     }
   };
 
+  //　初回マウント時に実行
   useEffect(() => {
     const fetchChildren = async () => {
       const token = localStorage.getItem("token");
+      // GET /api/children を叩いてchildren一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/children`, {
         method: "GET",
         headers: {
@@ -73,23 +92,28 @@ export default function ChildrenPage() {
     fetchChildren();
   }, [apiBaseUrl]);
 
+  // 色テーマの詳細情報を取得（なければデフォルトに）
   const getThemeStyles = (colorTheme: string) => {
     const theme = colorThemes.find((t) => t.value === colorTheme)
     return theme || colorThemes[0]
   }
 
+  // 子どもアカウントの新規・更新処理
   const handleSave = async () => {
+    // 名前が空の場合は保存不可
     if (!formName.trim()) return alert("名前を入力してください");
 
+    // フォーム入力を整形して、APIに渡す形式に
     const payload = {
       name: formName.trim(),
       password: formPassword.trim(),
-      icon: formIcon,
-      colorTheme: formColorTheme,
+      avatar: formIcon,
+      theme: formColorTheme,
     };
     const token = localStorage.getItem("token");
     try {
       if (editChildId === null) {
+        // POST /api/children を叩いて新規作成リクエストを送信
         const res = await fetch(`${apiBaseUrl}/api/children`, {
           method: 'POST',
           headers: {
@@ -102,6 +126,7 @@ export default function ChildrenPage() {
         const newChild = await res.json();
         setChildren(prev => [...prev, newChild]);
       } else {
+        // PUT /api/children を叩いて更新リクエストを送信
         const res = await fetch(`${apiBaseUrl}/api/children/${editChildId}`, {
           method: 'PUT',
           headers: {
@@ -111,10 +136,12 @@ export default function ChildrenPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('更新失敗');
+        // 更新成功後、一覧の中で差し替え
         const updatedChild = await res.json();
         setChildren(prev => prev.map(c => c.id === editChildId ? updatedChild : c));
       }
 
+      // モーダルを閉じ、フォーム状態を初期化。失敗時はアラート
       setModalOpen(false);
       setEditChildId(null);
     } catch (e) {
@@ -126,10 +153,11 @@ export default function ChildrenPage() {
     }
   };
 
+  // 子どもアカウントの削除
   const handleDelete = async (id: number) => {
-
     const token = localStorage.getItem("token");
     try {
+      // DELETE /api/children を叩いて削除リクエストを送信
       const res = await fetch(`${apiBaseUrl}/api/children/${id}`, {
         method: 'DELETE',
         headers: {
@@ -138,6 +166,7 @@ export default function ChildrenPage() {
         },
       });
       if (!res.ok) throw new Error('削除に失敗しました');
+      // 成功時は対象を削除、ダイアログを閉じる
       setChildren(prev => prev.filter(c => c.id !== id));
       setDeleteChildOpen(false);
     } catch (e) {
@@ -181,8 +210,8 @@ export default function ChildrenPage() {
       <div className="p-4 pb-24">
         <div className="space-y-4">
           {children.map((child) => {
-            const theme = getThemeStyles(child.colorTheme)
-            const iconObj = iconOptions.find((icon) => icon.id === child.icon)
+            const theme = getThemeStyles(child.theme)
+            const iconObj = iconOptions.find((icon) => icon.id === child.avatar)
 
             return (
               <Card key={child.id} className="overflow-hidden">
@@ -235,7 +264,7 @@ export default function ChildrenPage() {
                           }}
                           className={`relative p-3 rounded-full bg-gradient-to-r ${color.gradient} hover:scale-105 transition-transform`}
                         >
-                          {child.colorTheme === color.value && (
+                          {child.theme === color.value && (
                             <Check className="w-4 h-4 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
                           )}
                           <span className="sr-only">{color.name}</span>

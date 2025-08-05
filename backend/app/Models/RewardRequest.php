@@ -6,36 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class RewardRequest extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'reward_id',
-        'status',
-        'requested_at',
-    ];
+    // 一括代入で書き込み可能カラムの指定
+    protected $fillable = ['user_id','reward_id','status','requested_at'];
 
-    public $timestamps = true; // updated_atはあるけど、requested_atは独自なのでここで扱う
+    // updated_atはあるけど、requested_atは独自なのでここで扱う
+    public $timestamps = true; 
 
-    // リレーション（User）
+    // RewardRequestからUserへのリレーション 
+    // RewardRequestインスタンスから、その元になっているUserを取得できる。
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // リレーション（Reward）
+    // RewardRequestからRewardへのリレーション 
+    // RewardRequestインスタンスから、その元になっているRewardを取得できる。
     public function reward()
     {
         return $this->belongsTo(Reward::class);
-    }
-
-    // リレーション（履歴）
-    public function histories()
-    {
-        $user = auth()->user();
-        $rewardRequests = RewardRequest::with('reward')
-            ->where('user_id', $user->id)
-            ->orderBy('requested_at', 'desc')
-            ->get();
-
-        return response()->json($rewardRequests);
     }
 }

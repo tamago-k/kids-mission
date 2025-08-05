@@ -11,16 +11,24 @@ import { colorThemes, iconOptions } from "@/components/OptionThemes"
 
 
 export default function RewardUsageApproval() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  // 報酬申請データの配列を保持するstate
   const [requests, setRequests] = useState<RewardUsageRequest[]>([])
-  const [loading, setLoading] = useState(false)
+  // ローディング状態の setter だけ使用
+  const [, setLoading] = useState(false)
+  // 承認・却下の「確認ダイアログ」が開いているかどうかを管理
   const [dialogOpen, setDialogOpen] = useState(false)
+  // 現在「操作対象になっている申請（承認または却下）」を保持
   const [selectedRequest, setSelectedRequest] = useState<RewardUsageRequest | null>(null)
+  // requests の中から、ステータスが "submitted" のものだけを抽出した一覧
   const submittedRequests = requests.filter(req => req.status === "submitted")
+  // 承認 or 却下 のどちらのアクションを実行するかを保持
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null)
+  // 各子どもの ID をキーに、残ポイント・名前を保持するマップ
   const [balancesMap, setBalancesMap] = useState<Record<number, { balance: number; name: string }>>({});
-  
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  //　ユーザーデータの型定義
   type User = {
     id: number;
     name: string;
@@ -28,6 +36,7 @@ export default function RewardUsageApproval() {
     theme?: string;
   };
 
+  //　報酬リクエストデータの型定義
   type RewardUsageRequest = {
     id: number;
     reward_name: string;
@@ -42,9 +51,11 @@ export default function RewardUsageApproval() {
     };
   };
 
+  // サーバーからポイント数一覧を取得する非同期関数を定義（useCallbackでメモ化）
   const fetchAllBalances = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
+      // GET /api/reward-balances を叩いてポイント数一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/reward-balances`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,10 +88,12 @@ export default function RewardUsageApproval() {
     }
   }, [apiBaseUrl]);
 
+  // サーバーから報酬申請一覧を取得する非同期関数を定義（useCallbackでメモ化）
   const fetchRequests = useCallback(async () => {
     setLoading(true)
     const token = localStorage.getItem("token");
     try {
+      // GET /api/reward-requests を叩いて報酬申請一覧を取得
       const res = await fetch(`${apiBaseUrl}/api/reward-requests`, {
         headers: {
           "Content-Type": "application/json",
@@ -101,26 +114,30 @@ export default function RewardUsageApproval() {
     }
   }, [apiBaseUrl]);
 
+  //　初回マウント時に実行
   useEffect(() => {
     fetchAllBalances()
     fetchRequests()
   }, [fetchRequests])
 
 
+  // 報酬申請（req）とアクションの種類（承認 or 却下）を受け取って、確認ダイアログを開く関数
   const openDialog = (req: RewardUsageRequest, type: "approve" | "reject") => {
     setSelectedRequest(req)
     setActionType(type)
     setDialogOpen(true)
   }
 
+  // 承認または却下を実行する関数
   const handleAction = async () => {
+
+    //リクエストとアクションタイプの両方がないと中断
     if (!selectedRequest || !actionType) return
     const token = localStorage.getItem("token");
 
-    const url = `${apiBaseUrl}/api/reward-requests/${selectedRequest.id}/${actionType}`
-
     try {
-      const res = await fetch(url, {
+      // POST /api/reward-requests/${selectedRequest.id}/${actionType} を叩いて承認・却下リクエストを送信
+      const res = await fetch(`${apiBaseUrl}/api/reward-requests/${selectedRequest.id}/${actionType}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -143,6 +160,7 @@ export default function RewardUsageApproval() {
     }
   }
 
+  // 色テーマの配列から指定されたテーマのグラデーションCSSクラスを取得
   const getBgClassByTheme = (themeValue?: string) => {
     const theme = colorThemes.find(t => t.value === themeValue)
     return theme ? theme.gradient : "bg-gray-100"

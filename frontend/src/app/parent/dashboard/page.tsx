@@ -5,111 +5,29 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { User } from "lucide-react"
 import { ParentNavigation } from "@/components/navigation/ParentNavigation"
-import { colorThemes } from "@/components/OptionThemes"
+import type { Task, RewardRequest } from "@/types/DashboardParent"
 
 export default function ParentDashboard() {
+  // トップページに遷移可能
   const router = useRouter()
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  // 報酬の申請リストを管理するstate
   const [rewardRequests, setRewardRequests] = useState<RewardRequest[]>([])
+  // 子どもが「提出」したタスクの一覧を管理するstate
   const [submittedTasks, setSubmittedTasks] = useState<Task[]>([])
+  // 環境変数からAPI URL取得
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  type RewardRequest = {
-    id: number
-    reward_id: number
-    status: "submitted" | "approved" | "rejected"
-    requested_at: string
-    created_at: string
-    updated_at: string
-    reward: {
-      id: number
-      name: string
-      icon: string
-      need_reward: number
-      created_at: string
-      updated_at: string
-    }
-    user: {
-      id: number
-      name: string
-      avatar: string
-      role: "child"
-      theme: string
-      created_at: string
-      updated_at: string
-    }
-  }
-  type Task = {
-    id: number
-    title: string
-    description: string
-    due_date: string
-    reward_amount: number
-    isRecurring: boolean
-    recurrence: "daily" | "weekly" | "monthly" | "weekdays" | "weekends" | null
-    recurringType: string | null
-    completion_status: "submitted" | "approved" | "rejected" | null;
-    child_id: number
-    parent_id: number
-    created_at: string
-    updated_at: string
-    task_category_id: number
-    task_category: {
-      id: number
-      name: string
-      slug: string
-      created_at: string
-      updated_at: string
-    }
-    child: {
-      id: number
-      name: string
-      avatar: string
-      theme: string
-      role: "child"
-      created_at: string
-      updated_at: string
-    }
-    latest_submission: {
-      id: number
-      task_id: number
-      user_id: number
-      status: "submitted" | "approved" | "rejected"
-      submitted_at: string
-      created_at: string
-      updated_at: string
-    } | null
-  }
-
+  // 初回マウント時に実行
   useEffect(() => {
-
     const checkAuthAndFetch = async () => {
     const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/");
-        return;
-      }
-
-      // ロールチェック
-      const resUser = await fetch(`${apiBaseUrl}/api/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
-
-      if (!resUser.ok) {
-        localStorage.removeItem("token");
-        router.push("/");
-        return;
-      }
-      const user = await resUser.json();
-      if (user.role !== "parent") {
-        localStorage.removeItem("token");
-        router.push("/");
+        alert("ログイン情報がありません。再ログインしてください。");
         return;
       }
 
       try {
+        // GET /api/tasks?status=submitted を叩いて申請中タスク一覧を取得
         const resTasks = await fetch(`${apiBaseUrl}/api/tasks?status=submitted`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -126,6 +44,7 @@ export default function ParentDashboard() {
       }
 
       try {
+        // GET /api/reward-requests?status=submitted を叩いて申請中報酬一覧を取得
         const resRewards = await fetch(`${apiBaseUrl}/api/reward-requests?status=submitted`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -144,12 +63,6 @@ export default function ParentDashboard() {
 
     checkAuthAndFetch();
   }, [apiBaseUrl, router]);
-
-
-  const getBgClassByTheme = (themeValue?: string) => {
-    const theme = colorThemes.find(t => t.value === themeValue)
-    return theme ? theme.gradient : "bg-gray-100"
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 max-w-xl mx-auto">
